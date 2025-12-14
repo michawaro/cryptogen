@@ -947,7 +947,13 @@
               currentWord = "";
               currentWordDNA = "";
             }
-            words.push({ type: "punctuation", content: "." });
+            // Ajouter un point seulement si le dernier élément n'est pas déjà un point
+            if (
+              words.length === 0 ||
+              words[words.length - 1].type !== "punctuation"
+            ) {
+              words.push({ type: "punctuation", content: "." });
+            }
             foundStopCodon = true;
             // Ne pas break, continuer après le codon stop
             wordIndex++; // Passer au mot suivant après le point
@@ -2055,7 +2061,7 @@
       // Fonction pour charger la séquence de test
       function loadTestSequence() {
         const testText =
-          "La transgenèse montre l'universalité de la structure de l'ADN, de la transcription ainsi que de la traduction en protéines. Ce sont autant d'arguments en faveur de l'existence d'un ancêtre commun, constitué d'une cellule, possédant de l'ADN contenant une information génétique assurant la production des protéines ";
+          "La transgenèse montre l'universalité de la structure de l'ADN, de la transcription ainsi que de la traduction en protéines. Ce sont autant d'arguments en faveur de l'existence d'un ancêtre commun, constitué d'une cellule, possédant de l'ADN contenant une information génétique assurant la production des protéines.";
 
         // Mots à garder en séquence ADN (à trou)
         const wordsToKeepAsDNA = [
@@ -2253,6 +2259,54 @@
               "Séquence complète après 2e encodage, longueur:",
               fullSequence ? fullSequence.length : 0
             );
+
+            // S'assurer que la séquence se termine correctement par un point avant le marqueur "à trou"
+            const markerIndex = fullSequence.indexOf(TROU_MARKER);
+            if (markerIndex !== -1) {
+              const beforeMarker = fullSequence.substring(0, markerIndex);
+              const afterMarker = fullSequence.substring(markerIndex);
+
+              // Trouver le dernier codon stop (point) dans la séquence avant le marqueur
+              let lastStopIndex = -1;
+              for (let i = beforeMarker.length - 3; i >= 0; i -= 3) {
+                const codon = beforeMarker.substring(i, i + 3);
+                if (["TAA", "TAG", "TGA"].includes(codon)) {
+                  lastStopIndex = i;
+                  break;
+                }
+              }
+
+              // Si on a trouvé un point, s'assurer qu'il n'y a rien après (sauf le marqueur)
+              if (lastStopIndex !== -1) {
+                // Retirer tout ce qui est après le dernier point (espaces, etc.)
+                const stopCodon = beforeMarker.substring(
+                  lastStopIndex,
+                  lastStopIndex + 3
+                );
+                fullSequence =
+                  beforeMarker.substring(0, lastStopIndex) +
+                  stopCodon +
+                  afterMarker;
+              } else {
+                // Aucun point trouvé, ajouter TAA avant le marqueur
+                fullSequence = beforeMarker + "TAA" + afterMarker;
+              }
+            } else {
+              // Pas de marqueur, s'assurer que la séquence se termine par un point
+              const lastCodon = fullSequence.substring(fullSequence.length - 3);
+              if (!["TAA", "TAG", "TGA"].includes(lastCodon)) {
+                // Retirer les espaces à la fin et ajouter un point
+                let trimmed = fullSequence.replace(/TTT+$/, "");
+                if (
+                  !["TAA", "TAG", "TGA"].includes(
+                    trimmed.substring(trimmed.length - 3)
+                  )
+                ) {
+                  trimmed += "TAA";
+                }
+                fullSequence = trimmed;
+              }
+            }
 
             // Si la séquence n'est pas complète, réencoder une dernière fois
             if (!fullSequence || fullSequence.length < 500) {
