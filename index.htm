@@ -328,6 +328,18 @@
           placeholder="Séquence ADN"
         ></div>
         <button onclick="decodeDNA()">Décoder</button>
+        <p
+          style="
+            margin-top: 15px;
+            margin-bottom: 10px;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+          "
+        >
+          Dans le cas où certains mots s'affichent sous forme de séquence de
+          nucléotides, double cliquez dessus pour les déchiffrer.
+        </p>
         <div
           class="output"
           id="output"
@@ -395,6 +407,19 @@
             />
           </label>
         </div>
+        <p
+          style="
+            margin-top: 10px;
+            margin-bottom: 15px;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            font-size: 0.9rem;
+          "
+        >
+          L'import CSV permet à chaque utilisateur de personnaliser
+          temporairement le code génétique pour sa session.
+        </p>
         <table>
           <thead>
             <tr>
@@ -1134,7 +1159,7 @@
         html +=
           '<div style="margin-top: 30px; border-top: 2px solid #e0e0e0; padding-top: 20px;">';
         html +=
-          '<h3 style="color: #667eea; margin-bottom: 15px;">Code Génétique</h3>';
+          '<h3 style="color: #667eea; margin-bottom: 15px;">Code Génétique - Décodage triplet de nucléotides / texte - </h3>';
         html += '<div style="overflow-x: auto;">';
         html +=
           '<table style="width: 100%; border-collapse: collapse; margin: 0 auto;">';
@@ -2147,4 +2172,3 @@
     </script>
   </body>
 </html>
-
