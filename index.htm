@@ -311,7 +311,10 @@
               onchange="importEDIFile(event)"
             />
           </label>
-          <label for="fastaFileInput" style="display: inline-block">
+          <label
+            for="fastaFileInput"
+            style="display: inline-block; margin-right: 10px"
+          >
             <button
               onclick="document.getElementById('fastaFileInput').click()"
               style="background: #4dabf7"
@@ -326,11 +329,14 @@
               onchange="importFASTAFile(event)"
             />
           </label>
+          <button onclick="loadTestSequence()" style="background: #b3ffb3">
+            Tester
+          </button>
         </div>
         <div
           id="dnaInput"
           contenteditable="true"
-          placeholder="Ecris ou colle ici une séquence d'ADN. L'ADN contient des informations codées sous forme de séquence de nucléotides. Peut-être qu'un message est caché dans cette séquence ?"
+          placeholder="Ecris ou colle ici une séquence d'ADN. L'ADN contient des informations codées sous forme de séquence de nucléotides. Peut-être qu'un message est caché dans la séquence que tu vas étudier ?"
         ></div>
         <button onclick="decodeDNA()">Décoder</button>
         <p
@@ -2020,6 +2026,162 @@
           }
         };
         reader.readAsText(file);
+      }
+
+      // Fonction pour charger la séquence de test
+      function loadTestSequence() {
+        const testText =
+          "La transgenèse montre l'universalité de la structure de l'ADN, de la transcription ainsi que de la traduction en protéines. Ce sont autant d'arguments en faveur de l'existence d'un ancêtre commun, constitué d'une cellule, possédant de l'ADN contenant une information génétique assurant la production des protéines ";
+
+        // Mots à garder en séquence ADN (à trou)
+        const wordsToKeepAsDNA = [
+          "transgenèse",
+          "structure",
+          "transcription",
+          "traduction",
+          "ancêtre commun",
+        ];
+
+        // Mettre le texte dans le champ d'encodage
+        const textInput = document.getElementById("textInput");
+        textInput.value = testText;
+
+        // Activer le mode "à trou"
+        if (!trouModeActive) {
+          toggleTrouMode();
+        }
+
+        // Encoder le texte
+        encodeText();
+
+        // Attendre un peu pour que l'encodage soit terminé
+        setTimeout(() => {
+          // Trouver les indices des mots à marquer comme "à trou"
+          const output = document.getElementById("dnaOutput");
+          const wordPositions = currentWordPositions;
+
+          // Réinitialiser les sélections
+          selectedWordIndices.clear();
+
+          // Normaliser le texte original pour la comparaison
+          const normalizedText = normalizeText(testText).toLowerCase();
+
+          // Trouver les mots à marquer en comparant avec le texte original
+          wordPositions.forEach((wordPos, index) => {
+            if (wordPos.type === "word") {
+              // Extraire le texte du mot depuis la séquence ADN
+              const wordDNA = output
+                .getAttribute("data-dna-base")
+                .substring(wordPos.start, wordPos.end);
+              // Décoder le mot pour comparer
+              let decodedWord = "";
+              let nextIsCapital = false;
+              for (let i = 0; i <= wordDNA.length - 3; i += 3) {
+                const codon = wordDNA.substring(i, i + 3);
+                if (codon === "AAA") {
+                  nextIsCapital = true;
+                  continue;
+                }
+                const char = geneticCode[codon];
+                if (char && char !== "START" && char !== "Majuscule") {
+                  let displayChar = char;
+                  if (char === "é") displayChar = "É";
+                  if (char === "è") displayChar = "È";
+                  if (char === "ê") displayChar = "Ê";
+                  if (char === "ë") displayChar = "Ë";
+                  if (char === "ï") displayChar = "Ï";
+                  if (nextIsCapital && displayChar.length === 1) {
+                    displayChar = displayChar.toUpperCase();
+                    nextIsCapital = false;
+                  }
+                  decodedWord += displayChar;
+                }
+              }
+
+              // Normaliser le mot décodé pour la comparaison
+              const normalizedDecoded = normalizeText(decodedWord)
+                .toLowerCase()
+                .trim();
+
+              // Vérifier si ce mot doit être gardé en ADN
+              // Pour "ancêtre commun", vérifier si les deux mots consécutifs le forment
+              let shouldKeep = false;
+              for (const wordToKeep of wordsToKeepAsDNA) {
+                const normalizedWordToKeep =
+                  normalizeText(wordToKeep).toLowerCase();
+                if (normalizedDecoded === normalizedWordToKeep) {
+                  shouldKeep = true;
+                  break;
+                }
+                // Pour "ancêtre commun", vérifier si on a "ancêtre" et le mot suivant est "commun"
+                if (normalizedWordToKeep === "ancêtre commun") {
+                  if (
+                    normalizedDecoded === "ancêtre" &&
+                    index + 1 < wordPositions.length
+                  ) {
+                    const nextWordPos = wordPositions[index + 1];
+                    if (nextWordPos && nextWordPos.type === "word") {
+                      const nextWordDNA = output
+                        .getAttribute("data-dna-base")
+                        .substring(nextWordPos.start, nextWordPos.end);
+                      let nextDecodedWord = "";
+                      let nextIsCapital = false;
+                      for (let i = 0; i <= nextWordDNA.length - 3; i += 3) {
+                        const codon = nextWordDNA.substring(i, i + 3);
+                        if (codon === "AAA") {
+                          nextIsCapital = true;
+                          continue;
+                        }
+                        const char = geneticCode[codon];
+                        if (char && char !== "START" && char !== "Majuscule") {
+                          let displayChar = char;
+                          if (char === "é") displayChar = "É";
+                          if (char === "è") displayChar = "È";
+                          if (char === "ê") displayChar = "Ê";
+                          if (char === "ë") displayChar = "Ë";
+                          if (char === "ï") displayChar = "Ï";
+                          if (nextIsCapital && displayChar.length === 1) {
+                            displayChar = displayChar.toUpperCase();
+                            nextIsCapital = false;
+                          }
+                          nextDecodedWord += displayChar;
+                        }
+                      }
+                      const normalizedNext = normalizeText(nextDecodedWord)
+                        .toLowerCase()
+                        .trim();
+                      if (normalizedNext === "commun") {
+                        shouldKeep = true;
+                        selectedWordIndices.add(index + 1); // Ajouter aussi le mot suivant
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+
+              if (shouldKeep) {
+                selectedWordIndices.add(index);
+              }
+            }
+          });
+
+          // Réencoder avec les mots sélectionnés
+          encodeText();
+
+          // Récupérer la séquence complète avec les marqueurs "à trou"
+          const fullSequence = output.getAttribute("data-dna-sequence");
+
+          // Insérer dans le champ de décodage
+          const dnaInput = document.getElementById("dnaInput");
+          dnaInput.textContent = fullSequence;
+          colorizeDNAInput();
+
+          // Désactiver le mode "à trou" pour revenir à l'état normal
+          if (trouModeActive) {
+            toggleTrouMode();
+          }
+        }, 100);
       }
 
       // Fonction pour exporter le code génétique en CSV
