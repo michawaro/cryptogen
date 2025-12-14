@@ -768,24 +768,39 @@
       function colorizeDNAForDecode(dna) {
         if (!dna || dna.length === 0) return "";
 
+        // Vérifier s'il y a un marqueur "à trou" (TGGTGG)
+        const markerIndex = dna.indexOf(TROU_MARKER);
+        let sequenceToColorize = dna;
+        let markerAndPositions = "";
+
+        if (markerIndex !== -1) {
+          // Séparer la séquence principale et le marqueur avec les positions
+          sequenceToColorize = dna.substring(0, markerIndex);
+          markerAndPositions = dna.substring(markerIndex);
+        }
+
         let html = "";
         let i = 0;
-        const startIndex = dna.indexOf("ATG");
+        const startIndex = sequenceToColorize.indexOf("ATG");
 
         if (startIndex === -1) {
           // Pas de ATG, commencer au début
           i = 0;
         } else {
           // Ajouter tout ce qui précède ATG et ATG lui-même
-          html += `<span>${dna.substring(0, startIndex + 3)}</span>`;
+          html += `<span>${sequenceToColorize.substring(
+            0,
+            startIndex + 3
+          )}</span>`;
           i = startIndex + 3;
         }
 
         let currentWordStart = i;
         let inWord = true;
 
-        while (i <= dna.length - 3) {
-          const codon = dna.substring(i, i + 3);
+        // Traiter toute la séquence sans s'arrêter aux codons stop
+        while (i <= sequenceToColorize.length - 3) {
+          const codon = sequenceToColorize.substring(i, i + 3);
 
           if (codon === "TTT") {
             // Espace
@@ -793,7 +808,7 @@
               // Finir le mot précédent
               const wordLength = i - currentWordStart;
               const className = getNucleotideClass(wordLength);
-              const wordDNA = dna.substring(currentWordStart, i);
+              const wordDNA = sequenceToColorize.substring(currentWordStart, i);
               const decodedWord = decodeDNASequence(wordDNA);
               const tooltip = decodedWord ? ` title="${decodedWord}"` : "";
               html += `<span class="${className}"${tooltip}>${wordDNA}</span>`;
@@ -804,17 +819,20 @@
             currentWordStart = i;
             inWord = true;
           } else if (["TAA", "TAG", "TGA"].includes(codon)) {
-            // Fin de séquence (codon stop = point)
+            // Codon stop = point (mais continuer après)
             if (inWord) {
               const wordLength = i - currentWordStart;
               const className = getNucleotideClass(wordLength);
-              const wordDNA = dna.substring(currentWordStart, i);
+              const wordDNA = sequenceToColorize.substring(currentWordStart, i);
               const decodedWord = decodeDNASequence(wordDNA);
               const tooltip = decodedWord ? ` title="${decodedWord}"` : "";
               html += `<span class="${className}"${tooltip}>${wordDNA}</span>`;
+              inWord = false;
             }
             html += `<span class="word-stop" title="Point">${codon}</span>`;
-            break;
+            i += 3;
+            currentWordStart = i;
+            inWord = true;
           } else {
             i += 3;
           }
@@ -824,15 +842,20 @@
         if (inWord && i > currentWordStart) {
           const wordLength = i - currentWordStart;
           const className = getNucleotideClass(wordLength);
-          const wordDNA = dna.substring(currentWordStart, i);
+          const wordDNA = sequenceToColorize.substring(currentWordStart, i);
           const decodedWord = decodeDNASequence(wordDNA);
           const tooltip = decodedWord ? ` title="${decodedWord}"` : "";
           html += `<span class="${className}"${tooltip}>${wordDNA}</span>`;
         }
 
-        // Ajouter le reste de la séquence
-        if (i < dna.length) {
-          html += `<span>${dna.substring(i)}</span>`;
+        // Ajouter le reste de la séquence (ce qui reste après le dernier triplet complet)
+        if (i < sequenceToColorize.length) {
+          html += `<span>${sequenceToColorize.substring(i)}</span>`;
+        }
+
+        // Ajouter le marqueur et les positions "à trou" s'ils existent
+        if (markerAndPositions) {
+          html += `<span style="color: #999; font-size: 0.9em;">${markerAndPositions}</span>`;
         }
 
         return html;
@@ -926,7 +949,8 @@
             }
             words.push({ type: "punctuation", content: "." });
             foundStopCodon = true;
-            break;
+            // Ne pas break, continuer après le codon stop
+            wordIndex++; // Passer au mot suivant après le point
           }
 
           if (codon === "TTT") {
@@ -981,8 +1005,8 @@
           }
         }
 
-        // Ajouter le dernier mot seulement si on n'a pas rencontré de codon stop
-        if (!foundStopCodon && (currentWord || currentWordDNA)) {
+        // Ajouter le dernier mot s'il existe (même après un codon stop, car on peut avoir plusieurs phrases)
+        if (currentWord || currentWordDNA) {
           if (trouIndices.has(wordIndex)) {
             // Mot "à trou" : garder la séquence ADN
             words.push({
