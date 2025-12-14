@@ -2046,6 +2046,10 @@
         const textInput = document.getElementById("textInput");
         textInput.value = testText;
 
+        // Vérifier que le texte est bien stocké
+        console.log("Texte original, longueur:", testText.length);
+        console.log("Texte dans input, longueur:", textInput.value.length);
+
         // Activer le mode "à trou"
         if (!trouModeActive) {
           toggleTrouMode();
@@ -2056,9 +2060,36 @@
 
         // Attendre un peu pour que l'encodage soit terminé
         setTimeout(() => {
+          // Vérifier que le texte est toujours complet
+          if (textInput.value.length !== testText.length) {
+            console.warn("Le texte a été modifié, restauration...");
+            textInput.value = testText;
+          }
           // Trouver les indices des mots à marquer comme "à trou"
           const output = document.getElementById("dnaOutput");
           const wordPositions = currentWordPositions;
+
+          // Vérifier la séquence de base
+          const baseSequence = output.getAttribute("data-dna-base");
+          console.log(
+            "Séquence de base, longueur:",
+            baseSequence ? baseSequence.length : 0
+          );
+          if (!baseSequence || baseSequence.length < 100) {
+            console.error(
+              "Séquence de base incomplète, attente supplémentaire..."
+            );
+            // Attendre un peu plus et réessayer
+            setTimeout(() => {
+              const retryBase = output.getAttribute("data-dna-base");
+              if (!retryBase || retryBase.length < 100) {
+                alert(
+                  "Erreur : la séquence n'a pas pu être encodée complètement. Veuillez réessayer."
+                );
+                return;
+              }
+            }, 300);
+          }
 
           // Réinitialiser les sélections
           selectedWordIndices.clear();
@@ -2166,21 +2197,87 @@
             }
           });
 
+          // S'assurer que le texte est toujours complet avant le deuxième encodage
+          if (textInput.value.length !== testText.length) {
+            console.warn(
+              "Texte modifié avant deuxième encodage, restauration..."
+            );
+            textInput.value = testText;
+          }
+
           // Réencoder avec les mots sélectionnés
           encodeText();
 
-          // Récupérer la séquence complète avec les marqueurs "à trou"
-          const fullSequence = output.getAttribute("data-dna-sequence");
+          // Attendre un peu plus pour que l'encodage soit complètement terminé
+          setTimeout(() => {
+            // Vérifier à nouveau que le texte est complet
+            if (textInput.value.length !== testText.length) {
+              console.warn(
+                "Texte modifié après deuxième encodage, restauration..."
+              );
+              textInput.value = testText;
+            }
 
-          // Insérer dans le champ de décodage
-          const dnaInput = document.getElementById("dnaInput");
-          dnaInput.textContent = fullSequence;
-          colorizeDNAInput();
+            // Récupérer la séquence complète avec les marqueurs "à trou"
+            let fullSequence = output.getAttribute("data-dna-sequence");
+            const baseSeq = output.getAttribute("data-dna-base");
+            console.log(
+              "Séquence de base après 2e encodage, longueur:",
+              baseSeq ? baseSeq.length : 0
+            );
+            console.log(
+              "Séquence complète après 2e encodage, longueur:",
+              fullSequence ? fullSequence.length : 0
+            );
 
-          // Désactiver le mode "à trou" pour revenir à l'état normal
-          if (trouModeActive) {
-            toggleTrouMode();
-          }
+            // Si la séquence n'est pas complète, réencoder une dernière fois
+            if (!fullSequence || fullSequence.length < 500) {
+              console.warn("Séquence incomplète, réencodage...");
+              textInput.value = testText;
+              encodeText();
+              setTimeout(() => {
+                fullSequence = output.getAttribute("data-dna-sequence");
+                if (fullSequence && fullSequence.length > 500) {
+                  console.log(
+                    "Séquence complète récupérée après réessai, longueur:",
+                    fullSequence.length
+                  );
+                  const dnaInput = document.getElementById("dnaInput");
+                  dnaInput.textContent = fullSequence;
+                  colorizeDNAInput();
+
+                  // Désactiver le mode "à trou" pour revenir à l'état normal
+                  if (trouModeActive) {
+                    toggleTrouMode();
+                  }
+                } else {
+                  console.error(
+                    "Séquence toujours incomplète, longueur:",
+                    fullSequence ? fullSequence.length : 0
+                  );
+                  alert(
+                    "Erreur : la séquence n'a pas pu être encodée complètement."
+                  );
+                }
+              }, 200);
+              return;
+            }
+
+            console.log(
+              "Séquence complète récupérée, longueur:",
+              fullSequence.length
+            );
+
+            // Insérer dans le champ de décodage
+            const dnaInput = document.getElementById("dnaInput");
+            dnaInput.textContent = fullSequence;
+            colorizeDNAInput();
+
+            // Désactiver le mode "à trou" pour revenir à l'état normal
+            if (trouModeActive) {
+              toggleTrouMode();
+            }
+          }, 300);
         }, 100);
       }
 
