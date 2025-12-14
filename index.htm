@@ -122,7 +122,7 @@
         font-family: "Courier New", monospace;
       }
       .output:empty:before {
-        content: "Résultat apparaîtra ici...";
+        content: "Le résultat apparaîtra ici...";
         color: #999;
         font-style: italic;
       }
@@ -271,7 +271,7 @@
             target="_blank"
             style="color: #667eea; text-decoration: underline"
             >cette vidéo</a
-          >. Des exemples d'utilisation seront ajoutés de temps en temps sur
+          >. Des exemples d'utilisation seront ajoutés sur
           <a
             href="https://michawaro.github.io/michawaro/"
             target="_blank"
@@ -354,7 +354,10 @@
 
       <div class="section">
         <h2>Encodage</h2>
-        <textarea id="textInput" placeholder="Texte à encoder"></textarea>
+        <textarea
+          id="textInput"
+          placeholder="Ecris ou colle un texte que tu souhaites encoder dans de l'ADN. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
+        ></textarea>
         <button onclick="encodeText()">Encoder</button>
         <button
           id="trouModeBtn"
