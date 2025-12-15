@@ -2209,11 +2209,14 @@
           cleanedSequence = cleanedSequence.substring(0, lastStopIndex + 3);
         }
 
-        // Encoder les positions "à trou" seulement si on a trouvé des indices
+        // Ne pas ajouter les marqueurs "à trou" - utiliser seulement la séquence de base nettoyée
+        // Les séquences à garder seront détectées automatiquement lors du décodage
         let fullSequence = cleanedSequence;
-        if (wordIndices.size > 0) {
-          const trouPositions = encodeTrouPositions(wordIndices);
-          fullSequence = cleanedSequence + trouPositions;
+
+        // Supprimer tout marqueur "à trou" (TGGTGG) et ce qui suit s'il existe déjà dans la séquence
+        const trouMarkerIndex = fullSequence.indexOf(TROU_MARKER);
+        if (trouMarkerIndex !== -1) {
+          fullSequence = fullSequence.substring(0, trouMarkerIndex);
         }
 
         // Mettre la séquence directement dans le champ de décodage
