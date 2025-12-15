@@ -301,7 +301,7 @@
           >.
         </p>
         <p class="subtitle" style="margin-top: 10px; font-size: 1rem">
-          Retour ou suggestions ?
+          Retours ou suggestions ?
           <span
             id="emailIcon"
             style="
@@ -906,8 +906,12 @@
 
       function decodeDNA() {
         const dnaInput = document.getElementById("dnaInput");
-        // Récupérer le texte brut
-        const rawInput = dnaInput.innerText || dnaInput.textContent || "";
+        // Récupérer la séquence complète depuis l'attribut data si elle existe
+        // Sinon utiliser le texte du champ (pour les cas où l'utilisateur tape manuellement)
+        let rawInput = dnaInput.getAttribute("data-full-sequence");
+        if (!rawInput) {
+          rawInput = dnaInput.innerText || dnaInput.textContent || "";
+        }
         // Nettoyer pour le décodage (enlever tout sauf A, T, C, G)
         let input = rawInput.toUpperCase().replace(/[^ATCG]/g, "");
 
@@ -2219,20 +2223,34 @@
           cleanedSequence = cleanedSequence.substring(0, lastStopIndex + 3);
         }
 
-        // Ne pas ajouter les marqueurs "à trou" - utiliser seulement la séquence de base nettoyée
-        // Les séquences à garder seront détectées automatiquement lors du décodage
+        // Encoder les positions "à trou" pour que le décodage sache quels mots garder en ADN
         let fullSequence = cleanedSequence;
-
-        // Supprimer tout marqueur "à trou" (TGGTGG) et ce qui suit s'il existe déjà dans la séquence
-        const trouMarkerIndex = fullSequence.indexOf(TROU_MARKER);
-        if (trouMarkerIndex !== -1) {
-          fullSequence = fullSequence.substring(0, trouMarkerIndex);
+        if (wordIndices.size > 0) {
+          const trouPositions = encodeTrouPositions(wordIndices);
+          fullSequence = cleanedSequence + trouPositions;
         }
 
-        // Mettre la séquence directement dans le champ de décodage
+        // Mettre la séquence dans le champ de décodage
+        // Les marqueurs "à trou" seront présents mais masqués visuellement
         const dnaInput = document.getElementById("dnaInput");
         dnaInput.textContent = fullSequence;
-        colorizeDNAInput();
+
+        // Masquer visuellement les marqueurs "à trou" (TGGTGG et ce qui suit) dans le champ d'entrée
+        setTimeout(() => {
+          colorizeDNAInput();
+          // Après le coloriage, masquer la partie avec les marqueurs "à trou"
+          const markerIndex = fullSequence.indexOf(TROU_MARKER);
+          if (markerIndex !== -1) {
+            // Créer un style pour masquer la partie après le marqueur
+            const visiblePart = fullSequence.substring(0, markerIndex);
+            const hiddenPart = fullSequence.substring(markerIndex);
+            // Remplacer le contenu pour n'afficher que la partie visible
+            // Mais garder la séquence complète dans un attribut data pour le décodage
+            dnaInput.setAttribute("data-full-sequence", fullSequence);
+            dnaInput.textContent = visiblePart;
+            colorizeDNAInput();
+          }
+        }, 10);
       }
 
       // Fonction pour copier l'adresse email dans le presse-papier
