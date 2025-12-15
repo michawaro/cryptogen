@@ -2819,40 +2819,6 @@
               }
             });
 
-            // Utiliser pointermove sur la cellule pour une meilleure fluidité
-            cell.addEventListener("pointermove", function (e) {
-              // Vérifier que le pointeur est actif (bouton pressé)
-              if (e.buttons === 1 && isPainting) {
-                e.preventDefault();
-                const row = parseInt(this.getAttribute("data-row"));
-                const col = parseInt(this.getAttribute("data-col"));
-
-                if (
-                  currentTool === "paint" ||
-                  currentTool === "spray" ||
-                  currentTool === "erase"
-                ) {
-                  paintPixel(row, col);
-                } else if (
-                  currentTool === "circle" ||
-                  currentTool === "square" ||
-                  currentTool === "triangle" ||
-                  currentTool === "star"
-                ) {
-                  // Restaurer la grille sauvegardée puis dessiner la forme
-                  if (shapePreviewGrid && shapeStartPos) {
-                    pixelArtGrid = JSON.parse(JSON.stringify(shapePreviewGrid));
-                    previewShape(
-                      shapeStartPos.row,
-                      shapeStartPos.col,
-                      row,
-                      col
-                    );
-                  }
-                }
-              }
-            });
-
             cell.addEventListener("pointerup", function (e) {
               // Libérer le pointeur sur la grille
               const pixelGrid = document.getElementById("pixelGrid");
@@ -2871,6 +2837,13 @@
                   isPainting = false;
                   lastPaintRow = -1;
                   lastPaintCol = -1;
+                  // Annuler le requestAnimationFrame en cours
+                  if (rafId !== null) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                  }
+                  // Mettre à jour la séquence ADN et sauvegarder l'historique à la fin du trait
+                  updateDNASequence();
                   saveToHistory();
                 } else if (
                   currentTool === "circle" ||
@@ -2905,55 +2878,89 @@
 
           // Gestionnaire pointermove sur la grille entière pour une meilleure fluidité
           const pixelGrid = document.getElementById("pixelGrid");
-          let lastPaintTime = 0;
+          let rafId = null;
           if (pixelGrid) {
             pixelGrid.addEventListener("pointermove", function (e) {
               if (e.buttons === 1 && isPainting) {
                 e.preventDefault();
-                const now = performance.now();
-                // Throttling pour améliorer les performances (max 60 FPS)
-                if (now - lastPaintTime < 16) return;
-                lastPaintTime = now;
 
-                // Trouver la cellule sous le pointeur en utilisant elementFromPoint
-                const element = document.elementFromPoint(e.clientX, e.clientY);
-                if (element && element.classList.contains("pixel-cell")) {
-                  const row = parseInt(element.getAttribute("data-row"));
-                  const col = parseInt(element.getAttribute("data-col"));
+                // Utiliser requestAnimationFrame pour une meilleure fluidité
+                if (rafId !== null) {
+                  cancelAnimationFrame(rafId);
+                }
 
-                  // Éviter de peindre plusieurs fois la même cellule
-                  if (row === lastPaintRow && col === lastPaintCol) return;
-                  lastPaintRow = row;
-                  lastPaintCol = col;
+                rafId = requestAnimationFrame(function () {
+                  // Trouver la cellule sous le pointeur en utilisant elementFromPoint
+                  const element = document.elementFromPoint(
+                    e.clientX,
+                    e.clientY
+                  );
+                  if (element && element.classList.contains("pixel-cell")) {
+                    const row = parseInt(element.getAttribute("data-row"));
+                    const col = parseInt(element.getAttribute("data-col"));
 
-                  if (row >= 0 && row < 70 && col >= 0 && col < 70) {
-                    if (
-                      currentTool === "paint" ||
-                      currentTool === "spray" ||
-                      currentTool === "erase"
-                    ) {
-                      paintPixel(row, col, true); // skipHistory pour fluidité
-                    } else if (
-                      currentTool === "circle" ||
-                      currentTool === "square" ||
-                      currentTool === "triangle" ||
-                      currentTool === "star"
-                    ) {
-                      // Restaurer la grille sauvegardée puis dessiner la forme
-                      if (shapePreviewGrid && shapeStartPos) {
-                        pixelArtGrid = JSON.parse(
-                          JSON.stringify(shapePreviewGrid)
-                        );
-                        previewShape(
-                          shapeStartPos.row,
-                          shapeStartPos.col,
-                          row,
-                          col
-                        );
+                    if (row >= 0 && row < 70 && col >= 0 && col < 70) {
+                      if (
+                        currentTool === "paint" ||
+                        currentTool === "spray" ||
+                        currentTool === "erase"
+                      ) {
+                        // Interpolation : peindre toutes les cellules entre la dernière position et la position actuelle
+                        if (lastPaintRow >= 0 && lastPaintCol >= 0) {
+                          const dx = col - lastPaintCol;
+                          const dy = row - lastPaintRow;
+                          const distance = Math.max(Math.abs(dx), Math.abs(dy));
+
+                          if (distance > 1) {
+                            // Remplir les trous entre les positions
+                            for (let i = 0; i <= distance; i++) {
+                              const t = distance > 0 ? i / distance : 0;
+                              const interpRow = Math.round(
+                                lastPaintRow + dy * t
+                              );
+                              const interpCol = Math.round(
+                                lastPaintCol + dx * t
+                              );
+                              if (
+                                interpRow >= 0 &&
+                                interpRow < 70 &&
+                                interpCol >= 0 &&
+                                interpCol < 70
+                              ) {
+                                paintPixel(interpRow, interpCol, true);
+                              }
+                            }
+                          } else {
+                            paintPixel(row, col, true);
+                          }
+                        } else {
+                          paintPixel(row, col, true);
+                        }
+                        lastPaintRow = row;
+                        lastPaintCol = col;
+                      } else if (
+                        currentTool === "circle" ||
+                        currentTool === "square" ||
+                        currentTool === "triangle" ||
+                        currentTool === "star"
+                      ) {
+                        // Restaurer la grille sauvegardée puis dessiner la forme
+                        if (shapePreviewGrid && shapeStartPos) {
+                          pixelArtGrid = JSON.parse(
+                            JSON.stringify(shapePreviewGrid)
+                          );
+                          previewShape(
+                            shapeStartPos.row,
+                            shapeStartPos.col,
+                            row,
+                            col
+                          );
+                        }
                       }
                     }
                   }
-                }
+                  rafId = null;
+                });
               }
             });
 
@@ -2967,6 +2974,12 @@
                   isPainting = false;
                   lastPaintRow = -1;
                   lastPaintCol = -1;
+                  // Annuler le requestAnimationFrame en cours
+                  if (rafId !== null) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                  }
+                  updateDNASequence();
                   saveToHistory();
                 } else if (
                   currentTool === "circle" ||
@@ -3009,6 +3022,12 @@
                 isPainting = false;
                 lastPaintRow = -1;
                 lastPaintCol = -1;
+                // Annuler le requestAnimationFrame en cours
+                if (rafId !== null) {
+                  cancelAnimationFrame(rafId);
+                  rafId = null;
+                }
+                updateDNASequence();
                 saveToHistory();
               } else if (
                 currentTool === "circle" ||
@@ -3254,6 +3273,20 @@
         }
       }
 
+      // Fonction pour mettre à jour un pixel spécifique dans l'affichage
+      function updatePixelDisplay(row, col) {
+        const pixel = document.querySelector(
+          `.pixel-cell[data-row="${row}"][data-col="${col}"]`
+        );
+        if (pixel) {
+          const colorIndex =
+            pixelArtGrid[row] && pixelArtGrid[row][col] !== undefined
+              ? pixelArtGrid[row][col]
+              : 0;
+          pixel.style.background = colorPalette[colorIndex];
+        }
+      }
+
       // Fonction pour peindre un pixel (ou une zone selon la taille)
       function paintPixel(row, col, skipHistory = false) {
         if (currentTool === "paint") {
@@ -3272,6 +3305,8 @@
               j++
             ) {
               pixelArtGrid[i][j] = window.selectedColorIndex;
+              // Mettre à jour uniquement ce pixel dans l'affichage
+              updatePixelDisplay(i, j);
             }
           }
         } else if (currentTool === "spray") {
@@ -3305,6 +3340,7 @@
               const probability = Math.max(0, 1 - distFromCenter / radius);
               if (Math.random() < probability) {
                 pixelArtGrid[randomRow][randomCol] = window.selectedColorIndex;
+                updatePixelDisplay(randomRow, randomCol);
               }
             }
           }
@@ -3323,6 +3359,7 @@
               j++
             ) {
               pixelArtGrid[i][j] = 0; // Blanc (AAA)
+              updatePixelDisplay(i, j);
             }
           }
         } else {
@@ -3330,19 +3367,19 @@
           return;
         }
 
-        // Rafraîchir l'affichage de toute la zone affectée
-        refreshPixelGrid();
-
-        // Mettre à jour la séquence ADN
-        updateDNASequence();
-
-        // Sauvegarder dans l'historique seulement si on n'a pas demandé de skip
+        // Mettre à jour la séquence ADN seulement si on n'a pas demandé de skip
         if (!skipHistory) {
-          // Utiliser un debounce pour éviter trop de sauvegardes
+          // Utiliser un debounce pour éviter trop de mises à jour
+          clearTimeout(window.dnaUpdateTimeout);
+          window.dnaUpdateTimeout = setTimeout(() => {
+            updateDNASequence();
+          }, 200);
+
+          // Sauvegarder dans l'historique avec debounce
           clearTimeout(window.paintTimeout);
           window.paintTimeout = setTimeout(() => {
             saveToHistory();
-          }, 100);
+          }, 300);
         }
       }
 
