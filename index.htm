@@ -1428,11 +1428,11 @@
             html += `<span class="word-stop">${word.content}</span>`;
           } else if (word.type === "trou") {
             // Afficher la séquence ADN avec double-clic
-            html += `<span class="word-trou decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ff6b6b; padding: 4px 6px; border-radius: 4px; cursor: pointer;" title="Double-cliquez pour décoder">${word.content}</span>`;
+            html += `<span class="word-trou decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ff6b6b; padding: 4px 6px; border-radius: 4px; cursor: pointer; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;" title="Double-cliquez pour décoder">${word.content}</span>`;
           } else {
             // Mot normal - vérifier si c'est une séquence ADN pure
             if (isDNASequence(word.content)) {
-              html += `<span class="decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ffb3d9; padding: 4px 6px; border-radius: 4px; cursor: pointer;" title="Double-cliquez pour décoder">${word.content}</span>`;
+              html += `<span class="decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ffb3d9; padding: 4px 6px; border-radius: 4px; cursor: pointer; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;" title="Double-cliquez pour décoder">${word.content}</span>`;
             } else {
               const length = word.content.length;
               const className = getWordClass(length);
@@ -1447,26 +1447,72 @@
         output.innerHTML = html;
 
         // Ajouter les événements double-clic/double-tap sur les séquences ADN
+        // Variable globale pour le double-tap (partagée entre tous les spans)
+        if (!window.lastDecodeTap) {
+          window.lastDecodeTap = { time: 0, target: null };
+        }
+
         output.querySelectorAll(".decode-dna").forEach((span) => {
+          // Empêcher la sélection de texte sur mobile
+          span.addEventListener(
+            "touchstart",
+            function (e) {
+              // Si c'est un double-tap potentiel, empêcher la sélection
+              const currentTime = new Date().getTime();
+              const timeSinceLastTap = currentTime - window.lastDecodeTap.time;
+              if (
+                timeSinceLastTap < 300 &&
+                window.lastDecodeTap.target === this
+              ) {
+                e.preventDefault();
+              }
+            },
+            { passive: false }
+          );
+
           // Double-clic pour desktop
-          span.addEventListener("dblclick", function () {
+          span.addEventListener("dblclick", function (e) {
+            e.preventDefault();
             const dnaSequence = this.getAttribute("data-dna");
             openDecodeModal(dnaSequence, this);
           });
 
           // Double-tap pour mobile/tactile
-          let lastTap = 0;
-          span.addEventListener("touchend", function (e) {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            if (tapLength < 300 && tapLength > 0) {
-              // Double tap détecté
-              e.preventDefault();
-              const dnaSequence = this.getAttribute("data-dna");
-              openDecodeModal(dnaSequence, this);
-            }
-            lastTap = currentTime;
-          });
+          span.addEventListener(
+            "touchend",
+            function (e) {
+              const currentTime = new Date().getTime();
+              const timeSinceLastTap = currentTime - window.lastDecodeTap.time;
+
+              // Vérifier si c'est un double-tap sur le même élément
+              if (
+                timeSinceLastTap < 300 &&
+                timeSinceLastTap > 0 &&
+                window.lastDecodeTap.target === this
+              ) {
+                // Double tap détecté
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Annuler toute sélection de texte
+                if (window.getSelection) {
+                  window.getSelection().removeAllRanges();
+                }
+
+                const dnaSequence = this.getAttribute("data-dna");
+                openDecodeModal(dnaSequence, this);
+
+                // Réinitialiser pour éviter les triple-taps
+                window.lastDecodeTap.time = 0;
+                window.lastDecodeTap.target = null;
+              } else {
+                // Premier tap
+                window.lastDecodeTap.time = currentTime;
+                window.lastDecodeTap.target = this;
+              }
+            },
+            { passive: false }
+          );
         });
       }
 
@@ -1737,27 +1783,73 @@
             );
 
             newSpan.style.cursor = "pointer";
+            newSpan.style.userSelect = "none";
+            newSpan.style.webkitUserSelect = "none";
+            newSpan.style.mozUserSelect = "none";
+            newSpan.style.msUserSelect = "none";
             newSpan.title = "Double-cliquez pour modifier";
 
             // Ajouter l'événement de double-clic/double-tap pour permettre de modifier à nouveau
-            newSpan.addEventListener("dblclick", function () {
+            newSpan.addEventListener("dblclick", function (e) {
+              e.preventDefault();
               const dnaSequence = this.getAttribute("data-dna");
               openDecodeModal(dnaSequence, this);
             });
 
+            // Empêcher la sélection de texte sur mobile
+            newSpan.addEventListener(
+              "touchstart",
+              function (e) {
+                const currentTime = new Date().getTime();
+                const timeSinceLastTap =
+                  currentTime - window.lastDecodeTap.time;
+                if (
+                  timeSinceLastTap < 300 &&
+                  window.lastDecodeTap.target === this
+                ) {
+                  e.preventDefault();
+                }
+              },
+              { passive: false }
+            );
+
             // Double-tap pour mobile/tactile
-            let lastTap = 0;
-            newSpan.addEventListener("touchend", function (e) {
-              const currentTime = new Date().getTime();
-              const tapLength = currentTime - lastTap;
-              if (tapLength < 300 && tapLength > 0) {
-                // Double tap détecté
-                e.preventDefault();
-                const dnaSequence = this.getAttribute("data-dna");
-                openDecodeModal(dnaSequence, this);
-              }
-              lastTap = currentTime;
-            });
+            newSpan.addEventListener(
+              "touchend",
+              function (e) {
+                const currentTime = new Date().getTime();
+                const timeSinceLastTap =
+                  currentTime - window.lastDecodeTap.time;
+
+                // Vérifier si c'est un double-tap sur le même élément
+                if (
+                  timeSinceLastTap < 300 &&
+                  timeSinceLastTap > 0 &&
+                  window.lastDecodeTap.target === this
+                ) {
+                  // Double tap détecté
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  // Annuler toute sélection de texte
+                  if (window.getSelection) {
+                    window.getSelection().removeAllRanges();
+                  }
+
+                  const dnaSequence = this.getAttribute("data-dna");
+                  openDecodeModal(dnaSequence, this);
+
+                  // Réinitialiser pour éviter les triple-taps
+                  window.lastDecodeTap.time = 0;
+                  window.lastDecodeTap.target = null;
+                } else {
+                  // Premier tap
+                  window.lastDecodeTap.time = currentTime;
+                  window.lastDecodeTap.target = this;
+                }
+              },
+              { passive: false }
+            );
 
             // Remplacer l'ancien span par le nouveau
             window.modalOriginalSpan.parentNode.replaceChild(
@@ -2990,6 +3082,11 @@
         window.selectedColorIndex = 56;
         updateSelectedColorDisplay();
         updateDNASequence();
+
+        // Sélectionner visuellement la couleur noire dans la palette
+        setTimeout(() => {
+          selectColor(56);
+        }, 100);
 
         // Ajouter les event listeners pour les pixels
         setTimeout(() => {
