@@ -1507,6 +1507,29 @@
                     }
                   }
                 });
+
+                // Passer automatiquement à la case suivante quand une lettre est entrée
+                input.addEventListener("input", function (e) {
+                  const value = this.value.trim().toUpperCase();
+                  // Si une lettre a été entrée (pas vide, pas juste supprimée)
+                  if (
+                    value.length === 1 &&
+                    /[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞß]/.test(value)
+                  ) {
+                    // Passer à la case suivante
+                    const nextIndex = findNextInputIndex(index, 1);
+                    const nextInput = document.getElementById(
+                      `letter-${nextIndex}`
+                    );
+                    if (nextInput) {
+                      // Petit délai pour s'assurer que la valeur est bien mise à jour
+                      setTimeout(() => {
+                        nextInput.focus();
+                        nextInput.select();
+                      }, 10);
+                    }
+                  }
+                });
               }
             }
           });
