@@ -918,6 +918,7 @@
           const codon = input.substring(i, i + 3);
 
           if (["TAA", "TAG", "TGA"].includes(codon)) {
+            // D'abord, finaliser et ajouter le mot actuel s'il existe
             if (currentWord || currentWordDNA) {
               if (trouIndices.has(wordIndex)) {
                 // Mot "à trou" : garder la séquence ADN
@@ -937,9 +938,12 @@
                   });
                 }
               }
-              currentWord = "";
-              currentWordDNA = "";
             }
+
+            // Réinitialiser IMMÉDIATEMENT pour éviter que le point soit intégré au mot suivant
+            currentWord = "";
+            currentWordDNA = "";
+
             // Ignorer les codons stop consécutifs en sautant directement au prochain codon non-stop
             while (i + 3 <= input.length - 3) {
               const nextCodon = input.substring(i + 3, i + 6);
@@ -951,7 +955,6 @@
             }
 
             // Ajouter un point seulement si le dernier élément ajouté n'est pas déjà un point
-            // Vérifier les 2 derniers éléments pour être sûr
             let shouldAddPoint = true;
             if (words.length > 0) {
               const lastElement = words[words.length - 1];
@@ -962,18 +965,6 @@
               ) {
                 shouldAddPoint = false;
               }
-              // Vérifier aussi l'avant-dernier élément au cas où
-              if (words.length > 1) {
-                const secondLastElement = words[words.length - 2];
-                if (
-                  secondLastElement.type === "punctuation" &&
-                  secondLastElement.content === "." &&
-                  lastElement.type === "punctuation" &&
-                  lastElement.content === "."
-                ) {
-                  shouldAddPoint = false;
-                }
-              }
             }
 
             if (shouldAddPoint) {
@@ -981,6 +972,8 @@
             }
             foundStopCodon = true;
             wordIndex++; // Passer au mot suivant après le point
+            // CONTINUER dans la boucle pour traiter le prochain codon (qui sera le début du mot suivant)
+            continue;
           }
 
           if (codon === "TTT") {
@@ -1006,6 +999,18 @@
               }
               currentWord = "";
               currentWordDNA = "";
+            }
+            // Ne pas ajouter d'espace si le dernier élément est déjà un point (évite l'espace entre point et mot suivant)
+            if (words.length > 0) {
+              const lastElement = words[words.length - 1];
+              if (
+                lastElement.type === "punctuation" &&
+                lastElement.content === "."
+              ) {
+                // Ne pas ajouter d'espace après un point
+                wordIndex++; // Passer au mot suivant quand même
+                continue;
+              }
             }
             words.push({ type: "space", content: " " });
             wordIndex++; // Passer au mot suivant
