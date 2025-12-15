@@ -2531,10 +2531,11 @@
       let colorPalette = []; // Palette de 64 couleurs
       let pixelArtHistory = []; // Historique pour undo/redo
       let pixelArtHistoryIndex = -1; // Index actuel dans l'historique
-      let currentTool = "paint"; // Outil actuel : "paint", "erase", "circle", "square", "triangle", "star"
+      let currentTool = "paint"; // Outil actuel : "paint", "spray", "erase", "circle", "square", "triangle", "star"
       let shapeStartPos = null; // Position de départ pour les formes
       let shapePreviewGrid = null; // Grille sauvegardée avant le dessin de forme (pour prévisualisation)
       let brushSize = 1; // Taille du pinceau (en pixels)
+      let spraySize = 1; // Taille de l'aérographe (en pixels)
       let eraserSize = 1; // Taille de la gomme (en pixels)
 
       // Fonction pour ouvrir l'éditeur pixel art
@@ -2646,6 +2647,18 @@
         }
         html += "</div>";
         html +=
+          '<button id="sprayToolBtn" onclick="selectTool(\'spray\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Aérographe">🎨 Aérographe</button>';
+        html +=
+          '<div id="spraySizeSelector" style="display: none; gap: 5px; align-items: center;">';
+        for (let i = 1; i <= 10; i++) {
+          html += `<button onclick="setSpraySize(${i})" class="sizeBtn" data-size="${i}" style="padding: 4px 8px; border: 2px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 0.9rem; background: ${
+            i === 1 ? "#667eea" : "white"
+          }; color: ${
+            i === 1 ? "white" : "#333"
+          };" title="Taille ${i}">${i}</button>`;
+        }
+        html += "</div>";
+        html +=
           '<button id="eraseToolBtn" onclick="selectTool(\'erase\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Gomme">🧹 Gomme</button>';
         html +=
           '<div id="eraserSizeSelector" style="display: none; gap: 5px; align-items: center;">';
@@ -2657,8 +2670,11 @@
           };" title="Taille ${i}">${i}</button>`;
         }
         html += "</div>";
+        html += "</div>";
+
+        // Deuxième ligne : Formes géométriques
         html +=
-          '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
+          '<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">';
         html +=
           '<button id="circleToolBtn" onclick="selectTool(\'circle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Cercle - Cliquez et glissez">⭕ Cercle</button>';
         html +=
@@ -2724,7 +2740,11 @@
               const row = parseInt(this.getAttribute("data-row"));
               const col = parseInt(this.getAttribute("data-col"));
 
-              if (currentTool === "paint" || currentTool === "erase") {
+              if (
+                currentTool === "paint" ||
+                currentTool === "spray" ||
+                currentTool === "erase"
+              ) {
                 isPainting = true;
                 paintPixel(row, col);
                 // Capturer le pointeur sur la grille pour une meilleure fluidité
@@ -2759,7 +2779,11 @@
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
 
-                if (currentTool === "paint" || currentTool === "erase") {
+                if (
+                  currentTool === "paint" ||
+                  currentTool === "spray" ||
+                  currentTool === "erase"
+                ) {
                   paintPixel(row, col);
                 } else if (
                   currentTool === "circle" ||
@@ -2791,7 +2815,11 @@
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
 
-                if (currentTool === "paint" || currentTool === "erase") {
+                if (
+                  currentTool === "paint" ||
+                  currentTool === "spray" ||
+                  currentTool === "erase"
+                ) {
                   isPainting = false;
                   saveToHistory();
                 } else if (
@@ -2838,7 +2866,11 @@
                   const col = parseInt(element.getAttribute("data-col"));
 
                   if (row >= 0 && row < 70 && col >= 0 && col < 70) {
-                    if (currentTool === "paint" || currentTool === "erase") {
+                    if (
+                      currentTool === "paint" ||
+                      currentTool === "spray" ||
+                      currentTool === "erase"
+                    ) {
                       paintPixel(row, col);
                     } else if (
                       currentTool === "circle" ||
@@ -2866,7 +2898,11 @@
 
             pixelGrid.addEventListener("pointerleave", function (e) {
               if (isPainting) {
-                if (currentTool === "paint" || currentTool === "erase") {
+                if (
+                  currentTool === "paint" ||
+                  currentTool === "spray" ||
+                  currentTool === "erase"
+                ) {
                   isPainting = false;
                   saveToHistory();
                 } else if (
@@ -2972,6 +3008,7 @@
 
           // Initialiser les boutons de taille
           setBrushSize(brushSize);
+          setSpraySize(spraySize);
           setEraserSize(eraserSize);
         }, 10);
       }
@@ -3065,6 +3102,7 @@
         // Mettre à jour l'apparence des boutons
         const tools = [
           "paint",
+          "spray",
           "erase",
           "circle",
           "square",
@@ -3078,7 +3116,8 @@
               btn.style.background = "#667eea";
               btn.style.transform = "scale(1.05)";
             } else {
-              if (t === "paint") btn.style.background = "#51cf66";
+              if (t === "paint" || t === "spray")
+                btn.style.background = "#51cf66";
               else if (t === "erase") btn.style.background = "#ff6b6b";
               else btn.style.background = "#ffa94d";
               btn.style.transform = "scale(1)";
@@ -3088,10 +3127,14 @@
 
         // Afficher/masquer les sélecteurs de taille
         const brushSizeSelector = document.getElementById("brushSizeSelector");
+        const spraySizeSelector = document.getElementById("spraySizeSelector");
         const eraserSizeSelector =
           document.getElementById("eraserSizeSelector");
         if (brushSizeSelector) {
           brushSizeSelector.style.display = tool === "paint" ? "flex" : "none";
+        }
+        if (spraySizeSelector) {
+          spraySizeSelector.style.display = tool === "spray" ? "flex" : "none";
         }
         if (eraserSizeSelector) {
           eraserSizeSelector.style.display = tool === "erase" ? "flex" : "none";
@@ -3103,6 +3146,9 @@
           if (tool === "paint") {
             toolStatus.textContent =
               "Outil: Pinceau - Cliquez et glissez pour peindre";
+          } else if (tool === "spray") {
+            toolStatus.textContent =
+              "Outil: Aérographe - Cliquez et glissez pour peindre avec effet spray";
           } else if (tool === "erase") {
             toolStatus.textContent =
               "Outil: Gomme - Cliquez et glissez pour effacer (remet en blanc)";
@@ -3158,6 +3204,40 @@
               j++
             ) {
               pixelArtGrid[i][j] = window.selectedColorIndex;
+            }
+          }
+        } else if (currentTool === "spray") {
+          if (window.selectedColorIndex === undefined) return;
+          const size = spraySize;
+          const radius = size;
+          // Aérographe : peindre aléatoirement quelques pixels dans un cercle
+          const sprayDensity = 0.25; // 25% de densité
+          const numPixels = Math.max(
+            1,
+            Math.floor(Math.PI * radius * radius * sprayDensity)
+          );
+
+          for (let n = 0; n < numPixels; n++) {
+            // Générer un point aléatoire dans un cercle
+            const angle = Math.random() * 2 * Math.PI;
+            const distance = Math.random() * radius;
+            const randomRow = Math.round(row + distance * Math.cos(angle));
+            const randomCol = Math.round(col + distance * Math.sin(angle));
+
+            if (
+              randomRow >= 0 &&
+              randomRow < 70 &&
+              randomCol >= 0 &&
+              randomCol < 70
+            ) {
+              // Probabilité décroissante avec la distance du centre (effet spray réaliste)
+              const distFromCenter = Math.sqrt(
+                Math.pow(randomRow - row, 2) + Math.pow(randomCol - col, 2)
+              );
+              const probability = Math.max(0, 1 - distFromCenter / radius);
+              if (Math.random() < probability) {
+                pixelArtGrid[randomRow][randomCol] = window.selectedColorIndex;
+              }
             }
           }
         } else if (currentTool === "erase") {
@@ -3246,6 +3326,27 @@
         eraserSize = size;
         // Mettre à jour l'affichage des boutons
         const selector = document.getElementById("eraserSizeSelector");
+        if (selector) {
+          selector.querySelectorAll(".sizeBtn").forEach((btn) => {
+            const btnSize = parseInt(btn.getAttribute("data-size"));
+            if (btnSize === size) {
+              btn.style.background = "#667eea";
+              btn.style.color = "white";
+              btn.style.borderColor = "#667eea";
+            } else {
+              btn.style.background = "white";
+              btn.style.color = "#333";
+              btn.style.borderColor = "#ccc";
+            }
+          });
+        }
+      }
+
+      // Fonction pour définir la taille de l'aérographe
+      function setSpraySize(size) {
+        spraySize = size;
+        // Mettre à jour l'affichage des boutons
+        const selector = document.getElementById("spraySizeSelector");
         if (selector) {
           selector.querySelectorAll(".sizeBtn").forEach((btn) => {
             const btnSize = parseInt(btn.getAttribute("data-size"));
