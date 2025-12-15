@@ -2500,6 +2500,10 @@
       let tripletToColorMap = {}; // Mapping triplet -> couleur
       let colorToTripletMap = {}; // Mapping couleur -> triplet
       let colorPalette = []; // Palette de 64 couleurs
+      let pixelArtHistory = []; // Historique pour undo/redo
+      let pixelArtHistoryIndex = -1; // Index actuel dans l'historique
+      let currentTool = "paint"; // Outil actuel : "paint", "erase", "circle", "square", "triangle", "star"
+      let shapeStartPos = null; // Position de départ pour les formes
 
       // Fonction pour ouvrir l'éditeur pixel art
       function openPixelArtEditor() {
@@ -2541,6 +2545,12 @@
         if (exportEDIBtn) exportEDIBtn.style.display = "inline-block";
         if (exportFASTABtn) exportFASTABtn.style.display = "inline-block";
 
+        // Initialiser l'historique
+        pixelArtHistory = [JSON.parse(JSON.stringify(pixelArtGrid))];
+        pixelArtHistoryIndex = 0;
+        currentTool = "paint";
+        shapeStartPos = null;
+
         // Créer l'interface
         let html = '<div style="display: flex; gap: 20px; flex-wrap: wrap;">';
 
@@ -2579,6 +2589,34 @@
         // Grille de pixel art
         html += '<div style="flex: 1; min-width: 500px;">';
         html += '<h3 style="margin-top: 0; color: #667eea;">Grille 50×50</h3>';
+
+        // Barre d'outils
+        html +=
+          '<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">';
+        html +=
+          '<button id="undoBtn" onclick="undoPixelArt()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Annuler (Ctrl+Z)">↶ Annuler</button>';
+        html +=
+          '<button id="redoBtn" onclick="redoPixelArt()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Refaire (Ctrl+Y)">↷ Refaire</button>';
+        html +=
+          '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
+        html +=
+          '<button id="paintToolBtn" onclick="selectTool(\'paint\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Pinceau">🖌️ Pinceau</button>';
+        html +=
+          '<button id="eraseToolBtn" onclick="selectTool(\'erase\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Gomme">🧹 Gomme</button>';
+        html +=
+          '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
+        html +=
+          '<button id="circleToolBtn" onclick="selectTool(\'circle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Cercle (2 clics)">⭕ Cercle</button>';
+        html +=
+          '<button id="squareToolBtn" onclick="selectTool(\'square\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Carré (2 clics)">⬜ Carré</button>';
+        html +=
+          '<button id="triangleToolBtn" onclick="selectTool(\'triangle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Triangle (2 clics)">🔺 Triangle</button>';
+        html +=
+          '<button id="starToolBtn" onclick="selectTool(\'star\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Étoile (2 clics)">⭐ Étoile</button>';
+        html += "</div>";
+        html +=
+          '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
+
         html +=
           '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(50, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 600px; max-height: 600px; overflow: auto; user-select: none;">';
 
@@ -2627,14 +2665,97 @@
           pixelCells.forEach((cell) => {
             cell.addEventListener("mousedown", function (e) {
               e.preventDefault();
-              isPainting = true;
               const row = parseInt(this.getAttribute("data-row"));
               const col = parseInt(this.getAttribute("data-col"));
-              paintPixel(row, col);
+
+              if (currentTool === "paint" || currentTool === "erase") {
+                isPainting = true;
+                paintPixel(row, col);
+              } else if (
+                currentTool === "circle" ||
+                currentTool === "square" ||
+                currentTool === "triangle" ||
+                currentTool === "star"
+              ) {
+                // Formes géométriques : premier clic = point de départ
+                if (shapeStartPos === null) {
+                  shapeStartPos = { row, col };
+                  const toolStatus = document.getElementById("toolStatus");
+                  if (toolStatus) {
+                    if (currentTool === "circle") {
+                      toolStatus.textContent =
+                        "Premier point défini. Cliquez à nouveau pour définir le rayon du cercle";
+                    } else if (currentTool === "square") {
+                      toolStatus.textContent =
+                        "Premier coin défini. Cliquez sur le coin opposé pour créer le carré";
+                    } else if (currentTool === "triangle") {
+                      toolStatus.textContent =
+                        "Premier point défini. Cliquez sur le deuxième point pour créer le triangle";
+                    } else if (currentTool === "star") {
+                      toolStatus.textContent =
+                        "Centre défini. Cliquez à nouveau pour définir la taille de l'étoile";
+                    }
+                  }
+                } else {
+                  // Deuxième clic = point de fin
+                  if (currentTool === "circle") {
+                    const radius = Math.max(
+                      Math.abs(shapeStartPos.row - row),
+                      Math.abs(shapeStartPos.col - col)
+                    );
+                    drawCircle(shapeStartPos.row, shapeStartPos.col, radius);
+                    shapeStartPos = null;
+                    selectTool(currentTool); // Réinitialiser le message
+                  } else if (currentTool === "square") {
+                    drawSquare(shapeStartPos.row, shapeStartPos.col, row, col);
+                    shapeStartPos = null;
+                    selectTool(currentTool); // Réinitialiser le message
+                  } else if (currentTool === "triangle") {
+                    // Pour le triangle, on utilise le centre et deux autres points
+                    const centerRow = shapeStartPos.row;
+                    const centerCol = shapeStartPos.col;
+                    const point2Row = row;
+                    const point2Col = col;
+                    // Calculer le troisième point pour former un triangle équilatéral
+                    const dx = point2Col - centerCol;
+                    const dy = point2Row - centerRow;
+                    const point3Row = centerRow - dy;
+                    const point3Col = centerCol + dx;
+                    drawTriangle(
+                      centerRow,
+                      centerCol,
+                      point2Row,
+                      point2Col,
+                      point3Row,
+                      point3Col
+                    );
+                    shapeStartPos = null;
+                    selectTool(currentTool); // Réinitialiser le message
+                  } else if (currentTool === "star") {
+                    // Pour l'étoile, on utilise la distance entre les deux points
+                    const outerRadius = Math.max(
+                      Math.abs(shapeStartPos.row - row),
+                      Math.abs(shapeStartPos.col - col)
+                    );
+                    const innerRadius = Math.floor(outerRadius * 0.4);
+                    drawStar(
+                      shapeStartPos.row,
+                      shapeStartPos.col,
+                      outerRadius,
+                      innerRadius
+                    );
+                    shapeStartPos = null;
+                    selectTool(currentTool); // Réinitialiser le message
+                  }
+                }
+              }
             });
 
             cell.addEventListener("mouseenter", function (e) {
-              if (isPainting) {
+              if (
+                isPainting &&
+                (currentTool === "paint" || currentTool === "erase")
+              ) {
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
                 paintPixel(row, col);
@@ -2642,7 +2763,10 @@
             });
 
             cell.addEventListener("mouseup", function () {
-              isPainting = false;
+              if (currentTool === "paint" || currentTool === "erase") {
+                isPainting = false;
+                saveToHistory();
+              }
             });
           });
 
@@ -2650,14 +2774,38 @@
           const pixelGrid = document.getElementById("pixelGrid");
           if (pixelGrid) {
             pixelGrid.addEventListener("mouseleave", function () {
-              isPainting = false;
+              if (currentTool === "paint" || currentTool === "erase") {
+                isPainting = false;
+                saveToHistory();
+              }
             });
           }
 
           // Arrêter de peindre si on relâche la souris n'importe où
           document.addEventListener("mouseup", function () {
-            isPainting = false;
+            if (currentTool === "paint" || currentTool === "erase") {
+              isPainting = false;
+              saveToHistory();
+            }
           });
+
+          // Raccourcis clavier pour undo/redo
+          document.addEventListener("keydown", function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+              e.preventDefault();
+              undoPixelArt();
+            } else if (
+              (e.ctrlKey || e.metaKey) &&
+              (e.key === "y" || (e.key === "z" && e.shiftKey))
+            ) {
+              e.preventDefault();
+              redoPixelArt();
+            }
+          });
+
+          // Initialiser les boutons d'outils
+          selectTool("paint");
+          updateUndoRedoButtons();
         }, 10);
       }
 
@@ -2687,12 +2835,147 @@
         }
       }
 
-      // Fonction pour peindre un pixel
-      function paintPixel(row, col) {
-        if (window.selectedColorIndex === undefined) return;
+      // Fonction pour sauvegarder l'état actuel dans l'historique
+      function saveToHistory() {
+        // Supprimer les états futurs si on n'est pas à la fin
+        pixelArtHistory = pixelArtHistory.slice(0, pixelArtHistoryIndex + 1);
+        // Ajouter le nouvel état
+        pixelArtHistory.push(JSON.parse(JSON.stringify(pixelArtGrid)));
+        pixelArtHistoryIndex++;
+        // Limiter l'historique à 50 états
+        if (pixelArtHistory.length > 50) {
+          pixelArtHistory.shift();
+          pixelArtHistoryIndex--;
+        }
+        updateUndoRedoButtons();
+      }
 
-        pixelArtGrid[row][col] = window.selectedColorIndex;
-        const color = colorPalette[window.selectedColorIndex];
+      // Fonction pour annuler
+      function undoPixelArt() {
+        if (pixelArtHistoryIndex > 0) {
+          pixelArtHistoryIndex--;
+          pixelArtGrid = JSON.parse(
+            JSON.stringify(pixelArtHistory[pixelArtHistoryIndex])
+          );
+          refreshPixelGrid();
+          updateDNASequence();
+          updateUndoRedoButtons();
+        }
+      }
+
+      // Fonction pour refaire
+      function redoPixelArt() {
+        if (pixelArtHistoryIndex < pixelArtHistory.length - 1) {
+          pixelArtHistoryIndex++;
+          pixelArtGrid = JSON.parse(
+            JSON.stringify(pixelArtHistory[pixelArtHistoryIndex])
+          );
+          refreshPixelGrid();
+          updateDNASequence();
+          updateUndoRedoButtons();
+        }
+      }
+
+      // Fonction pour mettre à jour les boutons undo/redo
+      function updateUndoRedoButtons() {
+        const undoBtn = document.getElementById("undoBtn");
+        const redoBtn = document.getElementById("redoBtn");
+        if (undoBtn) {
+          undoBtn.disabled = pixelArtHistoryIndex <= 0;
+          undoBtn.style.opacity = undoBtn.disabled ? "0.5" : "1";
+        }
+        if (redoBtn) {
+          redoBtn.disabled = pixelArtHistoryIndex >= pixelArtHistory.length - 1;
+          redoBtn.style.opacity = redoBtn.disabled ? "0.5" : "1";
+        }
+      }
+
+      // Fonction pour sélectionner un outil
+      function selectTool(tool) {
+        currentTool = tool;
+        shapeStartPos = null;
+
+        // Mettre à jour l'apparence des boutons
+        const tools = [
+          "paint",
+          "erase",
+          "circle",
+          "square",
+          "triangle",
+          "star",
+        ];
+        tools.forEach((t) => {
+          const btn = document.getElementById(t + "ToolBtn");
+          if (btn) {
+            if (t === tool) {
+              btn.style.background = "#667eea";
+              btn.style.transform = "scale(1.05)";
+            } else {
+              if (t === "paint") btn.style.background = "#51cf66";
+              else if (t === "erase") btn.style.background = "#ff6b6b";
+              else btn.style.background = "#ffa94d";
+              btn.style.transform = "scale(1)";
+            }
+          }
+        });
+
+        // Mettre à jour le message d'état
+        const toolStatus = document.getElementById("toolStatus");
+        if (toolStatus) {
+          if (tool === "paint") {
+            toolStatus.textContent =
+              "Outil: Pinceau - Cliquez et glissez pour peindre";
+          } else if (tool === "erase") {
+            toolStatus.textContent =
+              "Outil: Gomme - Cliquez et glissez pour effacer (remet en blanc)";
+          } else if (tool === "circle") {
+            toolStatus.textContent =
+              "Outil: Cercle - Cliquez sur le centre, puis cliquez à nouveau pour définir le rayon";
+          } else if (tool === "square") {
+            toolStatus.textContent =
+              "Outil: Carré - Cliquez sur un coin, puis cliquez sur le coin opposé";
+          } else if (tool === "triangle") {
+            toolStatus.textContent =
+              "Outil: Triangle - Cliquez sur le premier point, puis sur le deuxième point pour créer un triangle équilatéral";
+          } else if (tool === "star") {
+            toolStatus.textContent =
+              "Outil: Étoile - Cliquez sur le centre, puis cliquez à nouveau pour définir la taille";
+          }
+        }
+      }
+
+      // Fonction pour rafraîchir l'affichage de la grille
+      function refreshPixelGrid() {
+        for (let i = 0; i < 50; i++) {
+          for (let j = 0; j < 50; j++) {
+            const pixel = document.querySelector(
+              `.pixel-cell[data-row="${i}"][data-col="${j}"]`
+            );
+            if (pixel) {
+              const colorIndex =
+                pixelArtGrid[i] && pixelArtGrid[i][j] !== undefined
+                  ? pixelArtGrid[i][j]
+                  : 0;
+              pixel.style.background = colorPalette[colorIndex];
+            }
+          }
+        }
+      }
+
+      // Fonction pour peindre un pixel
+      function paintPixel(row, col, skipHistory = false) {
+        if (currentTool === "paint") {
+          if (window.selectedColorIndex === undefined) return;
+          pixelArtGrid[row][col] = window.selectedColorIndex;
+        } else if (currentTool === "erase") {
+          pixelArtGrid[row][col] = 0; // Blanc (AAA)
+        } else {
+          // Pour les formes, on gère différemment
+          return;
+        }
+
+        const colorIndex = pixelArtGrid[row][col];
+        const color = colorPalette[colorIndex];
 
         // Mettre à jour l'affichage du pixel
         const pixel = document.querySelector(
@@ -2704,6 +2987,161 @@
 
         // Mettre à jour la séquence ADN
         updateDNASequence();
+
+        // Sauvegarder dans l'historique seulement si on n'a pas demandé de skip
+        if (!skipHistory) {
+          // Utiliser un debounce pour éviter trop de sauvegardes
+          clearTimeout(window.paintTimeout);
+          window.paintTimeout = setTimeout(() => {
+            saveToHistory();
+          }, 100);
+        }
+      }
+
+      // Fonction pour dessiner un cercle
+      function drawCircle(centerRow, centerCol, radius) {
+        const colorIndex =
+          currentTool === "erase"
+            ? 0
+            : window.selectedColorIndex !== undefined
+            ? window.selectedColorIndex
+            : 0;
+        for (let i = 0; i < 50; i++) {
+          for (let j = 0; j < 50; j++) {
+            const dx = j - centerCol;
+            const dy = i - centerRow;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance <= radius) {
+              pixelArtGrid[i][j] = colorIndex;
+            }
+          }
+        }
+        refreshPixelGrid();
+        updateDNASequence();
+        saveToHistory();
+      }
+
+      // Fonction pour dessiner un carré
+      function drawSquare(startRow, startCol, endRow, endCol) {
+        const colorIndex =
+          currentTool === "erase"
+            ? 0
+            : window.selectedColorIndex !== undefined
+            ? window.selectedColorIndex
+            : 0;
+        const minRow = Math.min(startRow, endRow);
+        const maxRow = Math.max(startRow, endRow);
+        const minCol = Math.min(startCol, endCol);
+        const maxCol = Math.max(startCol, endCol);
+
+        for (let i = minRow; i <= maxRow && i < 50; i++) {
+          for (let j = minCol; j <= maxCol && j < 50; j++) {
+            pixelArtGrid[i][j] = colorIndex;
+          }
+        }
+        refreshPixelGrid();
+        updateDNASequence();
+        saveToHistory();
+      }
+
+      // Fonction pour dessiner un triangle
+      function drawTriangle(row1, col1, row2, col2, row3, col3) {
+        const colorIndex =
+          currentTool === "erase"
+            ? 0
+            : window.selectedColorIndex !== undefined
+            ? window.selectedColorIndex
+            : 0;
+
+        // Calculer les limites
+        const minRow = Math.min(row1, row2, row3);
+        const maxRow = Math.max(row1, row2, row3);
+        const minCol = Math.min(col1, col2, col3);
+        const maxCol = Math.max(col1, col2, col3);
+
+        // Fonction pour vérifier si un point est dans le triangle
+        function pointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
+          const d1 = sign(px, py, x1, y1, x2, y2);
+          const d2 = sign(px, py, x2, y2, x3, y3);
+          const d3 = sign(px, py, x3, y3, x1, y1);
+          const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
+          const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
+          return !(hasNeg && hasPos);
+        }
+
+        function sign(x1, y1, x2, y2, x3, y3) {
+          return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
+        }
+
+        for (let i = minRow; i <= maxRow && i < 50; i++) {
+          for (let j = minCol; j <= maxCol && j < 50; j++) {
+            if (pointInTriangle(j, i, col1, row1, col2, row2, col3, row3)) {
+              pixelArtGrid[i][j] = colorIndex;
+            }
+          }
+        }
+        refreshPixelGrid();
+        updateDNASequence();
+        saveToHistory();
+      }
+
+      // Fonction pour dessiner une étoile
+      function drawStar(centerRow, centerCol, outerRadius, innerRadius) {
+        const colorIndex =
+          currentTool === "erase"
+            ? 0
+            : window.selectedColorIndex !== undefined
+            ? window.selectedColorIndex
+            : 0;
+        const points = 5; // Étoile à 5 branches
+
+        // Calculer les points de l'étoile
+        const starPoints = [];
+        for (let i = 0; i < points * 2; i++) {
+          const angle = (i * Math.PI) / points;
+          const radius = i % 2 === 0 ? outerRadius : innerRadius;
+          const x = centerCol + radius * Math.cos(angle - Math.PI / 2);
+          const y = centerRow + radius * Math.sin(angle - Math.PI / 2);
+          starPoints.push({ x: Math.round(x), y: Math.round(y) });
+        }
+
+        // Remplir l'étoile en utilisant un polygone
+        const minRow = Math.max(0, Math.min(...starPoints.map((p) => p.y)) - 2);
+        const maxRow = Math.min(
+          49,
+          Math.max(...starPoints.map((p) => p.y)) + 2
+        );
+        const minCol = Math.max(0, Math.min(...starPoints.map((p) => p.x)) - 2);
+        const maxCol = Math.min(
+          49,
+          Math.max(...starPoints.map((p) => p.x)) + 2
+        );
+
+        for (let i = minRow; i <= maxRow; i++) {
+          for (let j = minCol; j <= maxCol; j++) {
+            if (pointInPolygon(j, i, starPoints)) {
+              pixelArtGrid[i][j] = colorIndex;
+            }
+          }
+        }
+        refreshPixelGrid();
+        updateDNASequence();
+        saveToHistory();
+      }
+
+      // Fonction pour vérifier si un point est dans un polygone
+      function pointInPolygon(x, y, points) {
+        let inside = false;
+        for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+          const xi = points[i].x,
+            yi = points[i].y;
+          const xj = points[j].x,
+            yj = points[j].y;
+          const intersect =
+            yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+          if (intersect) inside = !inside;
+        }
+        return inside;
       }
 
       // Fonction pour mettre à jour la séquence ADN dans dnaOutput
