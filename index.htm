@@ -2268,32 +2268,38 @@
               trouPositions ? trouPositions.length : 0
             );
 
-            // Nettoyer la séquence de base : retirer les espaces à la fin et s'assurer qu'elle se termine par un seul point
+            // Nettoyer la séquence de base : retirer uniquement les espaces à la fin
+            // Ne pas couper le contenu valide, même s'il y a plusieurs phrases
             let cleanedBase = baseSeq;
             if (cleanedBase) {
-              // Retirer les espaces à la fin
+              // Retirer uniquement les espaces à la fin (TTT)
               cleanedBase = cleanedBase.replace(/TTT+$/, "");
 
-              // Vérifier le dernier codon
+              // Vérifier le dernier codon - s'assurer qu'il y a un point final
               const lastCodon = cleanedBase.substring(cleanedBase.length - 3);
               if (!["TAA", "TAG", "TGA"].includes(lastCodon)) {
-                // Pas de point, en ajouter un
+                // Pas de point à la fin, en ajouter un
                 cleanedBase += "TAA";
               } else {
-                // Vérifier s'il y a plusieurs points consécutifs et ne garder que le dernier
-                let pointCount = 0;
+                // Il y a déjà un point à la fin, vérifier s'il y a des points consécutifs
+                // (sans contenu entre) et ne garder que le dernier
+                let consecutivePoints = 0;
                 for (let i = cleanedBase.length - 3; i >= 0; i -= 3) {
                   const codon = cleanedBase.substring(i, i + 3);
                   if (["TAA", "TAG", "TGA"].includes(codon)) {
-                    pointCount++;
-                    if (pointCount > 1) {
-                      // Retirer les points supplémentaires
-                      cleanedBase = cleanedBase.substring(0, i + 3);
-                      break;
-                    }
+                    consecutivePoints++;
                   } else {
+                    // Dès qu'on trouve un codon qui n'est pas un point, on arrête
+                    // (car les points ne sont plus consécutifs)
                     break;
                   }
+                }
+                // Si plusieurs points consécutifs, ne garder que le dernier
+                if (consecutivePoints > 1) {
+                  cleanedBase = cleanedBase.substring(
+                    0,
+                    cleanedBase.length - (consecutivePoints - 1) * 3
+                  );
                 }
               }
             }
@@ -2312,35 +2318,25 @@
               const beforeMarker = fullSequence.substring(0, markerIndex);
               const afterMarker = fullSequence.substring(markerIndex);
 
-              // Nettoyer la séquence avant le marqueur : retirer les espaces à la fin
+              // Nettoyer la séquence avant le marqueur : retirer uniquement les espaces à la fin
               let cleanedBefore = beforeMarker.replace(/TTT+$/, "");
 
-              // Trouver le dernier codon stop (point) dans la séquence nettoyée
-              let lastStopIndex = -1;
-              for (let i = cleanedBefore.length - 3; i >= 0; i -= 3) {
-                const codon = cleanedBefore.substring(i, i + 3);
-                if (["TAA", "TAG", "TGA"].includes(codon)) {
-                  lastStopIndex = i;
-                  break;
-                }
+              // Vérifier que la séquence se termine par un point (mais ne pas couper le contenu valide avant)
+              // Chercher le dernier point dans la séquence (il peut y avoir plusieurs phrases)
+              let hasPointAtEnd = false;
+              const lastCodon = cleanedBefore.substring(
+                cleanedBefore.length - 3
+              );
+              if (["TAA", "TAG", "TGA"].includes(lastCodon)) {
+                hasPointAtEnd = true;
+                // Vérifier s'il y a plusieurs points consécutifs à la fin et ne garder que le dernier
+              } else {
+                // Pas de point à la fin, en ajouter un avant le marqueur
+                cleanedBefore += "TAA";
               }
 
-              // Si on a trouvé un point, s'assurer qu'il n'y a rien après (sauf le marqueur)
-              if (lastStopIndex !== -1) {
-                // Retirer tout ce qui est après le dernier point
-                const stopCodon = cleanedBefore.substring(
-                  lastStopIndex,
-                  lastStopIndex + 3
-                );
-                // S'assurer qu'il n'y a qu'un seul point (pas de points multiples)
-                fullSequence =
-                  cleanedBefore.substring(0, lastStopIndex) +
-                  stopCodon +
-                  afterMarker;
-              } else {
-                // Aucun point trouvé, ajouter TAA avant le marqueur
-                fullSequence = cleanedBefore + "TAA" + afterMarker;
-              }
+              // Construire la séquence finale : séquence nettoyée + marqueur + positions
+              fullSequence = cleanedBefore + afterMarker;
             } else {
               // Pas de marqueur, s'assurer que la séquence se termine par un seul point
               // Retirer les espaces à la fin
