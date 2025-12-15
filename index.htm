@@ -95,8 +95,9 @@
         cursor: pointer;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
-          1px 1px 0 #000, 0 0 2px #000;
+        text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5),
+          0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5),
+          0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
       }
@@ -180,8 +181,9 @@
         right: -8px;
         background: #ff6b6b;
         color: white;
-        text-shadow: -0.5px -0.5px 0 #000, 0.5px -0.5px 0 #000,
-          -0.5px 0.5px 0 #000, 0.5px 0.5px 0 #000, 0 0 1px #000;
+        text-shadow: -0.3px -0.3px 0 rgba(0, 0, 0, 0.5),
+          0.3px -0.3px 0 rgba(0, 0, 0, 0.5), -0.3px 0.3px 0 rgba(0, 0, 0, 0.5),
+          0.3px 0.3px 0 rgba(0, 0, 0, 0.5), 0 0 0.5px rgba(0, 0, 0, 0.3);
         border-radius: 50%;
         width: 20px;
         height: 20px;
@@ -243,8 +245,9 @@
       th {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
-          1px 1px 0 #000, 0 0 2px #000;
+        text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5),
+          0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5),
+          0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3);
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.85rem;
@@ -528,7 +531,7 @@
         ACA: "B",
         ACC: "C",
         // D : 2 triplets
-        ACG: "D",
+        ACG: "Ç",
         ACT: "D",
         // E : 1 triplet
         AGC: "E",
@@ -1077,7 +1080,8 @@
           if (word.type === "space") {
             html += `<span class="word-space">${word.content}</span>`;
           } else if (word.type === "punctuation") {
-            html += `<span>${word.content}</span>`;
+            // Les points doivent avoir la couleur d'arrière-plan rose pastel
+            html += `<span class="word-stop">${word.content}</span>`;
           } else if (word.type === "trou") {
             // Afficher la séquence ADN avec double-clic
             html += `<span class="word-trou decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ff6b6b; padding: 4px 6px; border-radius: 4px; cursor: pointer;" title="Double-cliquez pour décoder">${word.content}</span>`;
@@ -1214,7 +1218,7 @@
         // Bouton de validation
         html += '<div style="text-align: center; margin: 20px 0;">';
         html +=
-          '<button id="validateDecode" style="background: #51cf66; color: white; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 2px #000; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">Valider</button>';
+          '<button id="validateDecode" style="background: #51cf66; color: white; text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5), 0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3); border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">Valider</button>';
         html += "</div>";
 
         // Deuxième ligne : les triplets
@@ -1243,9 +1247,9 @@
         html += "<thead><tr>";
         for (let i = 0; i < 4; i++) {
           html +=
-            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 2px #000; padding: 10px; text-align: center;">Codon</th>';
+            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5), 0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3); padding: 10px; text-align: center;">Codon</th>';
           html +=
-            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 2px #000; padding: 10px; text-align: center;">Symbole</th>';
+            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5), 0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3); padding: 10px; text-align: center;">Symbole</th>';
         }
         html += "</tr></thead><tbody>";
 
@@ -2251,28 +2255,70 @@
               textInput.value = testText;
             }
 
-            // Récupérer la séquence complète avec les marqueurs "à trou"
-            let fullSequence = output.getAttribute("data-dna-sequence");
+            // Récupérer la séquence de base et les positions "à trou" séparément
             const baseSeq = output.getAttribute("data-dna-base");
+            const trouPositions = output.getAttribute("data-trou-positions");
+
             console.log(
               "Séquence de base après 2e encodage, longueur:",
               baseSeq ? baseSeq.length : 0
             );
             console.log(
-              "Séquence complète après 2e encodage, longueur:",
+              "Positions à trou, longueur:",
+              trouPositions ? trouPositions.length : 0
+            );
+
+            // Nettoyer la séquence de base : retirer les espaces à la fin et s'assurer qu'elle se termine par un seul point
+            let cleanedBase = baseSeq;
+            if (cleanedBase) {
+              // Retirer les espaces à la fin
+              cleanedBase = cleanedBase.replace(/TTT+$/, "");
+
+              // Vérifier le dernier codon
+              const lastCodon = cleanedBase.substring(cleanedBase.length - 3);
+              if (!["TAA", "TAG", "TGA"].includes(lastCodon)) {
+                // Pas de point, en ajouter un
+                cleanedBase += "TAA";
+              } else {
+                // Vérifier s'il y a plusieurs points consécutifs et ne garder que le dernier
+                let pointCount = 0;
+                for (let i = cleanedBase.length - 3; i >= 0; i -= 3) {
+                  const codon = cleanedBase.substring(i, i + 3);
+                  if (["TAA", "TAG", "TGA"].includes(codon)) {
+                    pointCount++;
+                    if (pointCount > 1) {
+                      // Retirer les points supplémentaires
+                      cleanedBase = cleanedBase.substring(0, i + 3);
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
+                }
+              }
+            }
+
+            // Construire la séquence complète avec la séquence de base nettoyée et les positions "à trou"
+            let fullSequence = cleanedBase + (trouPositions || "");
+
+            console.log(
+              "Séquence complète après nettoyage, longueur:",
               fullSequence ? fullSequence.length : 0
             );
 
-            // S'assurer que la séquence se termine correctement par un point avant le marqueur "à trou"
+            // Vérification supplémentaire : s'assurer que la séquence se termine correctement
             const markerIndex = fullSequence.indexOf(TROU_MARKER);
             if (markerIndex !== -1) {
               const beforeMarker = fullSequence.substring(0, markerIndex);
               const afterMarker = fullSequence.substring(markerIndex);
 
-              // Trouver le dernier codon stop (point) dans la séquence avant le marqueur
+              // Nettoyer la séquence avant le marqueur : retirer les espaces à la fin
+              let cleanedBefore = beforeMarker.replace(/TTT+$/, "");
+
+              // Trouver le dernier codon stop (point) dans la séquence nettoyée
               let lastStopIndex = -1;
-              for (let i = beforeMarker.length - 3; i >= 0; i -= 3) {
-                const codon = beforeMarker.substring(i, i + 3);
+              for (let i = cleanedBefore.length - 3; i >= 0; i -= 3) {
+                const codon = cleanedBefore.substring(i, i + 3);
                 if (["TAA", "TAG", "TGA"].includes(codon)) {
                   lastStopIndex = i;
                   break;
@@ -2281,34 +2327,46 @@
 
               // Si on a trouvé un point, s'assurer qu'il n'y a rien après (sauf le marqueur)
               if (lastStopIndex !== -1) {
-                // Retirer tout ce qui est après le dernier point (espaces, etc.)
-                const stopCodon = beforeMarker.substring(
+                // Retirer tout ce qui est après le dernier point
+                const stopCodon = cleanedBefore.substring(
                   lastStopIndex,
                   lastStopIndex + 3
                 );
+                // S'assurer qu'il n'y a qu'un seul point (pas de points multiples)
                 fullSequence =
-                  beforeMarker.substring(0, lastStopIndex) +
+                  cleanedBefore.substring(0, lastStopIndex) +
                   stopCodon +
                   afterMarker;
               } else {
                 // Aucun point trouvé, ajouter TAA avant le marqueur
-                fullSequence = beforeMarker + "TAA" + afterMarker;
+                fullSequence = cleanedBefore + "TAA" + afterMarker;
               }
             } else {
-              // Pas de marqueur, s'assurer que la séquence se termine par un point
-              const lastCodon = fullSequence.substring(fullSequence.length - 3);
+              // Pas de marqueur, s'assurer que la séquence se termine par un seul point
+              // Retirer les espaces à la fin
+              let trimmed = fullSequence.replace(/TTT+$/, "");
+              // Vérifier le dernier codon
+              const lastCodon = trimmed.substring(trimmed.length - 3);
               if (!["TAA", "TAG", "TGA"].includes(lastCodon)) {
-                // Retirer les espaces à la fin et ajouter un point
-                let trimmed = fullSequence.replace(/TTT+$/, "");
-                if (
-                  !["TAA", "TAG", "TGA"].includes(
-                    trimmed.substring(trimmed.length - 3)
-                  )
-                ) {
-                  trimmed += "TAA";
+                trimmed += "TAA";
+              } else {
+                // Vérifier s'il y a plusieurs points consécutifs et ne garder que le dernier
+                let pointCount = 0;
+                for (let i = trimmed.length - 3; i >= 0; i -= 3) {
+                  const codon = trimmed.substring(i, i + 3);
+                  if (["TAA", "TAG", "TGA"].includes(codon)) {
+                    pointCount++;
+                    if (pointCount > 1) {
+                      // Retirer les points supplémentaires
+                      trimmed = trimmed.substring(0, i + 3);
+                      break;
+                    }
+                  } else {
+                    break;
+                  }
                 }
-                fullSequence = trimmed;
               }
+              fullSequence = trimmed;
             }
 
             // Vérifier que la séquence est valide (contient au moins ATG et se termine correctement)
