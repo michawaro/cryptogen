@@ -515,20 +515,37 @@
           "
         >
           <h2 style="margin: 0; color: #667eea">Éditeur Pixel Art</h2>
-          <button
-            id="closePixelArtModal"
-            style="
-              background: #ff6b6b;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 1.2rem;
-            "
-          >
-            ✕ Fermer
-          </button>
+          <div style="display: flex; gap: 10px">
+            <button
+              id="savePixelArtBtn"
+              onclick="savePixelArt()"
+              style="
+                background: #51cf66;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2rem;
+              "
+            >
+              💾 Enregistrer
+            </button>
+            <button
+              id="closePixelArtModal"
+              style="
+                background: #ff6b6b;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2rem;
+              "
+            >
+              ✕ Fermer
+            </button>
+          </div>
         </div>
         <div id="pixelArtContent"></div>
       </div>
@@ -2912,6 +2929,27 @@
       let brushSize = 1; // Taille du pinceau (en pixels)
       let spraySize = 1; // Taille de l'aérographe (en pixels)
       let eraserSize = 1; // Taille de la gomme (en pixels)
+
+      // Fonction pour enregistrer le pixel art (export direct en .fasta)
+      function savePixelArt() {
+        // Vérifier que la séquence existe dans dnaOutput
+        const output = document.getElementById("dnaOutput");
+        if (!output) {
+          alert("Erreur : impossible de trouver la séquence ADN.");
+          return;
+        }
+
+        const fullSequence = output.getAttribute("data-dna-sequence");
+        if (!fullSequence) {
+          alert(
+            "Aucune séquence à exporter. Veuillez d'abord créer un dessin."
+          );
+          return;
+        }
+
+        // Utiliser directement la fonction d'export FASTA
+        exportFASTAFile();
+      }
 
       // Fonction pour ouvrir l'éditeur pixel art
       function openPixelArtEditor() {
