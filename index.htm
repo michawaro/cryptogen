@@ -136,8 +136,15 @@
         border: 2px solid #e0e0e0;
         font-family: "Courier New", monospace;
       }
-      .output:empty:before {
-        content: "Le résultat apparaîtra ici... Vous pouvez le copier-coller dans encodage pour tester que tout fonctionne puis envoyer ce message codé à qui vous voulez. Pour rendre ça moins facile, double-cliquez sur les mots dont vous souhaitez empêcher le décodage automatique.";
+      /* Message pour la fenêtre de résultats de décodage */
+      #output:empty:before {
+        content: "Les résultats apparaîtront ici, tu vas savoir ce qu'on souhaite te dire à partir de cet ADN !";
+        color: #999;
+        font-style: italic;
+      }
+      /* Message pour la fenêtre de résultats d'encodage */
+      #dnaOutput:empty:before {
+        content: "Le résultat apparaîtra ici... Tu peux le copier-coller dans encodage pour tester que tout fonctionne puis envoyer ce message codé à qui tu veux. Pour rendre ça moins facile, double-clique sur les mots dont tu souhaites empêcher le décodage automatique.";
         color: #999;
         font-style: italic;
       }
