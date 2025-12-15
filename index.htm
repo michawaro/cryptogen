@@ -551,6 +551,149 @@
       </div>
     </div>
 
+    <!-- Fenêtre modale pour choisir le nom de fichier et le répertoire -->
+    <div
+      id="saveFileModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1003;
+        overflow-y: auto;
+      "
+    >
+      <div
+        style="
+          background: white;
+          margin: 100px auto;
+          padding: 30px;
+          border-radius: 12px;
+          max-width: 500px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          "
+        >
+          <h3 style="margin: 0; color: #667eea">Enregistrer le fichier</h3>
+          <button
+            id="closeSaveFileModal"
+            style="
+              background: #ff6b6b;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+            "
+          >
+            ✕
+          </button>
+        </div>
+        <div style="margin-bottom: 20px">
+          <label
+            for="fileNameInput"
+            style="
+              display: block;
+              margin-bottom: 8px;
+              font-weight: bold;
+              color: #333;
+            "
+          >
+            Nom du fichier :
+          </label>
+          <input
+            type="text"
+            id="fileNameInput"
+            value="sequence_encodée"
+            style="
+              width: 100%;
+              padding: 10px;
+              border: 2px solid #ddd;
+              border-radius: 6px;
+              font-size: 1rem;
+              box-sizing: border-box;
+            "
+          />
+          <p
+            id="fileExtensionInfo"
+            style="margin: 5px 0 15px 0; color: #666; font-size: 0.9rem"
+          >
+            Extension : .fasta
+          </p>
+          <button
+            id="chooseDirectoryBtn"
+            onclick="chooseDirectory()"
+            style="
+              width: 100%;
+              padding: 12px;
+              margin-bottom: 10px;
+              background: #4dabf7;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1rem;
+              font-weight: bold;
+            "
+          >
+            📁 Choisir le répertoire
+          </button>
+          <p style="margin: 5px 0 15px 0; color: #666; font-size: 0.9rem">
+            <span id="directoryInfo"
+              >Le fichier sera téléchargé dans le répertoire par défaut de votre
+              navigateur.</span
+            >
+          </p>
+          <div style="display: flex; gap: 10px; margin-top: 20px">
+            <button
+              id="confirmSaveBtn"
+              onclick="confirmSaveFile()"
+              style="
+                flex: 1;
+                padding: 12px;
+                background: #51cf66;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-weight: bold;
+              "
+            >
+              💾 Enregistrer
+            </button>
+            <button
+              onclick="closeSaveFileModal()"
+              style="
+                flex: 1;
+                padding: 12px;
+                background: #ff6b6b;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-weight: bold;
+              "
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Fenêtre modale pour choisir la taille -->
     <div
       id="sizeModal"
@@ -2410,15 +2553,129 @@
       // Fonction pour exporter selon le format choisi
       function openExportFormat(format) {
         closeExportModal();
-        if (format === "edi") {
-          exportEDIFile();
-        } else if (format === "fasta") {
-          exportFASTAFile();
+        // Ouvrir la modale de sauvegarde avec le format choisi
+        openSaveFileModal(format);
+      }
+
+      // Variables globales pour la sauvegarde
+      let currentExportFormat = "fasta";
+      let selectedDirectoryHandle = null;
+
+      // Fonction pour ouvrir la modale de sauvegarde
+      function openSaveFileModal(format = "fasta") {
+        currentExportFormat = format;
+        const modal = document.getElementById("saveFileModal");
+        const fileNameInput = document.getElementById("fileNameInput");
+        const fileExtensionInfo = document.getElementById("fileExtensionInfo");
+
+        if (!modal || !fileNameInput || !fileExtensionInfo) return;
+
+        // Définir le nom de fichier par défaut selon le format
+        const defaultName =
+          format === "edi" ? "sequence_encodée" : "sequence_encodée";
+        fileNameInput.value = defaultName;
+        fileExtensionInfo.textContent = `Extension : .${format}`;
+
+        // Réinitialiser le répertoire sélectionné
+        selectedDirectoryHandle = null;
+        const directoryInfo = document.getElementById("directoryInfo");
+        if (directoryInfo) {
+          if ("showDirectoryPicker" in window) {
+            directoryInfo.textContent =
+              "Le fichier sera téléchargé dans le répertoire par défaut de votre navigateur. Cliquez sur 'Choisir le répertoire' pour sélectionner un emplacement.";
+          } else {
+            directoryInfo.textContent =
+              "Le fichier sera téléchargé dans le répertoire par défaut de votre navigateur. Le choix de répertoire n'est pas disponible dans votre navigateur.";
+          }
+        }
+
+        // Désactiver le bouton de choix de répertoire si l'API n'est pas disponible
+        const chooseDirectoryBtn =
+          document.getElementById("chooseDirectoryBtn");
+        if (chooseDirectoryBtn) {
+          if ("showDirectoryPicker" in window) {
+            chooseDirectoryBtn.disabled = false;
+            chooseDirectoryBtn.style.opacity = "1";
+            chooseDirectoryBtn.style.cursor = "pointer";
+          } else {
+            chooseDirectoryBtn.disabled = true;
+            chooseDirectoryBtn.style.opacity = "0.5";
+            chooseDirectoryBtn.style.cursor = "not-allowed";
+          }
+        }
+
+        modal.style.display = "block";
+        // Focus sur le champ de nom de fichier
+        setTimeout(() => {
+          fileNameInput.focus();
+          fileNameInput.select();
+        }, 100);
+      }
+
+      // Fonction pour fermer la modale de sauvegarde
+      function closeSaveFileModal() {
+        const modal = document.getElementById("saveFileModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      // Fonction pour choisir le répertoire (API File System Access)
+      async function chooseDirectory() {
+        try {
+          // Vérifier si l'API est disponible (Chrome/Edge)
+          if ("showDirectoryPicker" in window) {
+            const directoryHandle = await window.showDirectoryPicker();
+            selectedDirectoryHandle = directoryHandle;
+            const directoryInfo = document.getElementById("directoryInfo");
+            if (directoryInfo) {
+              directoryInfo.textContent = `Répertoire sélectionné : ${directoryHandle.name}`;
+            }
+          } else {
+            alert(
+              "Le choix de répertoire n'est pas disponible dans votre navigateur. Le fichier sera téléchargé dans le répertoire par défaut."
+            );
+          }
+        } catch (error) {
+          // L'utilisateur a annulé la sélection
+          if (error.name !== "AbortError") {
+            console.error("Erreur lors de la sélection du répertoire:", error);
+          }
+        }
+      }
+
+      // Fonction pour confirmer la sauvegarde
+      async function confirmSaveFile() {
+        const fileNameInput = document.getElementById("fileNameInput");
+        if (!fileNameInput) return;
+
+        let fileName = fileNameInput.value.trim();
+        if (!fileName) {
+          alert("Veuillez entrer un nom de fichier.");
+          return;
+        }
+
+        // Nettoyer le nom de fichier (enlever les caractères invalides)
+        fileName = fileName.replace(/[<>:"/\\|?*]/g, "_");
+
+        // Ajouter l'extension si elle n'est pas présente
+        if (!fileName.endsWith("." + currentExportFormat)) {
+          fileName += "." + currentExportFormat;
+        }
+
+        // Fermer la modale
+        closeSaveFileModal();
+
+        // Exporter le fichier
+        if (currentExportFormat === "edi") {
+          await exportEDIFile(fileName);
+        } else if (currentExportFormat === "fasta") {
+          await exportFASTAFile(fileName);
         }
       }
 
       // Fonction pour exporter la séquence ADN en format .edi
-      function exportEDIFile() {
+      async function exportEDIFile(fileName = "sequence_encodée.edi") {
         const output = document.getElementById("dnaOutput");
         const fullSequence = output.getAttribute("data-dna-sequence");
 
@@ -2433,20 +2690,41 @@
         // On exporte juste la séquence ADN, le format .edi sera reconnu par l'import
         const ediFile = fullSequence;
 
-        // Créer un blob et télécharger
+        // Si un répertoire a été sélectionné, utiliser l'API File System Access
+        if (selectedDirectoryHandle && "showDirectoryPicker" in window) {
+          try {
+            const fileHandle = await selectedDirectoryHandle.getFileHandle(
+              fileName,
+              { create: true }
+            );
+            const writable = await fileHandle.createWritable();
+            await writable.write(ediFile);
+            await writable.close();
+            alert(`Fichier enregistré : ${fileName}`);
+            return;
+          } catch (error) {
+            console.error("Erreur lors de l'enregistrement:", error);
+            alert(
+              "Erreur lors de l'enregistrement. Le fichier sera téléchargé à la place."
+            );
+          }
+        }
+
+        // Sinon, télécharger normalement
         const blob = new Blob([ediFile], { type: "text/plain;charset=utf-8;" });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "sequence_encodée.edi");
+        link.setAttribute("download", fileName);
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }
 
       // Fonction pour exporter la séquence ADN en format .fasta
-      function exportFASTAFile() {
+      async function exportFASTAFile(fileName = "sequence_encodée.fasta") {
         const output = document.getElementById("dnaOutput");
         const fullSequence = output.getAttribute("data-dna-sequence");
 
@@ -2462,18 +2740,39 @@
         const sequenceLines = fullSequence.match(/.{1,60}/g) || [fullSequence];
         const fastaFile = fastaContent + sequenceLines.join("\n") + "\n";
 
-        // Créer un blob et télécharger
+        // Si un répertoire a été sélectionné, utiliser l'API File System Access
+        if (selectedDirectoryHandle && "showDirectoryPicker" in window) {
+          try {
+            const fileHandle = await selectedDirectoryHandle.getFileHandle(
+              fileName,
+              { create: true }
+            );
+            const writable = await fileHandle.createWritable();
+            await writable.write(fastaFile);
+            await writable.close();
+            alert(`Fichier enregistré : ${fileName}`);
+            return;
+          } catch (error) {
+            console.error("Erreur lors de l'enregistrement:", error);
+            alert(
+              "Erreur lors de l'enregistrement. Le fichier sera téléchargé à la place."
+            );
+          }
+        }
+
+        // Sinon, télécharger normalement
         const blob = new Blob([fastaFile], {
           type: "text/plain;charset=utf-8;",
         });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "sequence_encodée.fasta");
+        link.setAttribute("download", fileName);
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }
 
       const tbody = document.getElementById("codeTable");
@@ -2947,8 +3246,8 @@
           return;
         }
 
-        // Utiliser directement la fonction d'export FASTA
-        exportFASTAFile();
+        // Ouvrir la modale de sauvegarde avec le format FASTA
+        openSaveFileModal("fasta");
       }
 
       // Fonction pour ouvrir l'éditeur pixel art
@@ -3493,6 +3792,31 @@
             exportModal.addEventListener("click", function (e) {
               if (e.target === this) {
                 closeExportModal();
+              }
+            });
+          }
+
+          // Event listeners pour la modale de sauvegarde
+          const closeSaveFileModalBtn =
+            document.getElementById("closeSaveFileModal");
+          if (closeSaveFileModalBtn) {
+            closeSaveFileModalBtn.addEventListener("click", closeSaveFileModal);
+          }
+          const saveFileModal = document.getElementById("saveFileModal");
+          if (saveFileModal) {
+            saveFileModal.addEventListener("click", function (e) {
+              if (e.target === this) {
+                closeSaveFileModal();
+              }
+            });
+          }
+
+          // Permettre d'appuyer sur Entrée pour confirmer
+          const fileNameInput = document.getElementById("fileNameInput");
+          if (fileNameInput) {
+            fileNameInput.addEventListener("keypress", function (e) {
+              if (e.key === "Enter") {
+                confirmSaveFile();
               }
             });
           }
