@@ -693,28 +693,21 @@
       // Fonction pour encoder les positions des mots sélectionnés
       function encodeTrouPositions(indices) {
         if (indices.size === 0) return "";
-        // Format: TGGTGG (marqueur) + positions encodées en base 4 (A=0, T=1, C=2, G=3)
-        // Utiliser TAG comme séparateur entre les positions (TAG est maintenant un point, mais utilisé ici comme marqueur technique)
+        // Format: TGGTGG (marqueur) + positions encodées en base 4, longueur fixe 4 (A=0, T=1, C=2, G=3)
+        // Longueur fixe évite toute ambiguïté lors du décodage (pas besoin de séparateur)
         const positions = Array.from(indices).sort((a, b) => a - b);
         let encoded = TROU_MARKER; // Marqueur de début
 
-        for (let i = 0; i < positions.length; i++) {
-          if (i > 0) {
-            encoded += "TAG"; // Utiliser TAG comme séparateur
+        for (let pos of positions) {
+          let digits = [];
+          let n = pos;
+          // Encoder sur 4 digits base 4
+          for (let i = 0; i < 4; i++) {
+            digits.unshift(n % 4);
+            n = Math.floor(n / 4);
           }
-          // Encoder la position en base 4 avec A, T, C, G
-          let pos = positions[i];
-          if (pos === 0) {
-            encoded += "A"; // Position 0 = A
-          } else {
-            let posStr = pos.toString(4);
-            let dnaStr = "";
-            for (let digit of posStr) {
-              const d = parseInt(digit);
-              dnaStr += ["A", "T", "C", "G"][d];
-            }
-            encoded += dnaStr;
-          }
+          const dnaDigits = digits.map((d) => ["A", "T", "C", "G"][d]).join("");
+          encoded += dnaDigits;
         }
 
         return encoded;
@@ -727,21 +720,22 @@
         const startIdx = dna.indexOf(TROU_MARKER);
         if (startIdx === -1) return indices;
 
-        // Extraire la partie après le marqueur
+        // Extraire la partie après le marqueur (chaque position = 4 bases codées)
         const encoded = dna.substring(startIdx + TROU_MARKER.length);
-        // Séparer par "TAG"
-        const parts = encoded.split("TAG").filter((p) => p.length > 0);
-
-        for (let part of parts) {
-          // Décoder de base 4 (A=0, T=1, C=2, G=3) vers décimal
+        for (let i = 0; i + 4 <= encoded.length; i += 4) {
+          const chunk = encoded.substring(i, i + 4);
           let pos = 0;
-          for (let i = 0; i < part.length; i++) {
-            const char = part[i];
-            const digit = ["A", "T", "C", "G"].indexOf(char);
-            if (digit === -1) continue;
+          for (let j = 0; j < chunk.length; j++) {
+            const digit = ["A", "T", "C", "G"].indexOf(chunk[j]);
+            if (digit === -1) {
+              pos = null;
+              break;
+            }
             pos = pos * 4 + digit;
           }
-          indices.add(pos);
+          if (pos !== null) {
+            indices.add(pos);
+          }
         }
 
         return indices;
@@ -893,8 +887,24 @@
       // Fonction pour coloriser le textarea de décodage
       function colorizeDNAInput() {
         const dnaInput = document.getElementById("dnaInput");
-        const text = dnaInput.innerText || dnaInput.textContent || "";
-        const cleaned = text.toUpperCase().replace(/[^ATCG]/g, "");
+        let rawText = dnaInput.getAttribute("data-full-sequence");
+        if (!rawText) {
+          rawText = dnaInput.innerText || dnaInput.textContent || "";
+        }
+
+        // Si on détecte un marqueur "à trou", on masque visuellement la partie après le marqueur
+        const markerIndex = rawText.indexOf(TROU_MARKER);
+        if (markerIndex !== -1) {
+          const visible = rawText.substring(0, markerIndex);
+          // Stocker la séquence complète pour le décodage
+          dnaInput.setAttribute("data-full-sequence", rawText);
+          // Afficher uniquement la partie visible
+          dnaInput.textContent = visible;
+          // Repartir du visible pour le coloriage
+          rawText = visible;
+        }
+
+        const cleaned = rawText.toUpperCase().replace(/[^ATCG]/g, "");
 
         if (cleaned.length === 0) {
           if (text.length === 0) {
@@ -2051,7 +2061,15 @@
             if (sequences && sequences.length > 0) {
               // Concaténer toutes les séquences trouvées pour préserver les marqueurs "à trou"
               const dnaSequence = sequences.join("").toUpperCase();
-              dnaInput.textContent = dnaSequence;
+              // Stocker la séquence complète (avec marqueurs) pour le décodage
+              dnaInput.setAttribute("data-full-sequence", dnaSequence);
+              // Afficher seulement la partie visible avant le marqueur
+              const markerIndex = dnaSequence.indexOf(TROU_MARKER);
+              const visible =
+                markerIndex !== -1
+                  ? dnaSequence.substring(0, markerIndex)
+                  : dnaSequence;
+              dnaInput.textContent = visible;
               colorizeDNAInput();
               alert("Fichier .edi importé avec succès !");
             } else {
