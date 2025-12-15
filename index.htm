@@ -331,42 +331,26 @@
       <div class="section">
         <h2>Décodage</h2>
         <div style="margin-bottom: 15px; text-align: center">
-          <label
-            for="ediFileInput"
-            style="display: inline-block; margin-right: 10px"
+          <button
+            onclick="openImportModal()"
+            style="background: #4dabf7; margin-right: 10px"
           >
-            <button
-              onclick="document.getElementById('ediFileInput').click()"
-              style="background: #4dabf7"
-            >
-              Importer .edi
-            </button>
-            <input
-              type="file"
-              id="ediFileInput"
-              accept=".edi"
-              style="display: none"
-              onchange="importEDIFile(event)"
-            />
-          </label>
-          <label
-            for="fastaFileInput"
-            style="display: inline-block; margin-right: 10px"
-          >
-            <button
-              onclick="document.getElementById('fastaFileInput').click()"
-              style="background: #4dabf7"
-            >
-              Importer .fasta
-            </button>
-            <input
-              type="file"
-              id="fastaFileInput"
-              accept=".fasta,.fa,.fas"
-              style="display: none"
-              onchange="importFASTAFile(event)"
-            />
-          </label>
+            Importer
+          </button>
+          <input
+            type="file"
+            id="ediFileInput"
+            accept=".edi"
+            style="display: none"
+            onchange="importEDIFile(event)"
+          />
+          <input
+            type="file"
+            id="fastaFileInput"
+            accept=".fasta,.fa,.fas"
+            style="display: none"
+            onchange="importFASTAFile(event)"
+          />
           <button onclick="loadTestSequence()" style="background: #b3ffb3">
             Tester
           </button>
@@ -424,18 +408,11 @@
           Copier la séquence
         </button>
         <button
-          id="exportEDIBtn"
-          onclick="exportEDIFile()"
+          id="exportBtn"
+          onclick="openExportModal()"
           style="margin-left: 10px; background: #ffa94d; display: none"
         >
-          Exporter .edi
-        </button>
-        <button
-          id="exportFASTABtn"
-          onclick="exportFASTAFile()"
-          style="margin-left: 10px; background: #ffa94d; display: none"
-        >
-          Exporter .fasta
+          Télécharger
         </button>
         <button
           onclick="openPixelArtEditor()"
@@ -616,6 +593,200 @@
             gap: 10px;
           "
         ></div>
+      </div>
+    </div>
+
+    <!-- Fenêtre modale pour choisir le format d'import -->
+    <div
+      id="importModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1002;
+        overflow-y: auto;
+      "
+    >
+      <div
+        style="
+          background: white;
+          margin: 100px auto;
+          padding: 30px;
+          border-radius: 12px;
+          max-width: 500px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          "
+        >
+          <h3 style="margin: 0; color: #667eea">Choisir le format d'import</h3>
+          <button
+            id="closeImportModal"
+            style="
+              background: #ff6b6b;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+            "
+          >
+            ✕
+          </button>
+        </div>
+        <div style="margin-bottom: 20px">
+          <button
+            onclick="openImportFormat('edi')"
+            style="
+              width: 100%;
+              padding: 15px;
+              margin-bottom: 10px;
+              background: #4dabf7;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1.1rem;
+              font-weight: bold;
+            "
+          >
+            📄 Format .edi
+          </button>
+          <p style="margin: 5px 0 15px 0; color: #666; font-size: 0.9rem">
+            Format simple : une seule ligne de séquence ADN sans en-tête. Idéal
+            pour les séquences courtes.
+          </p>
+          <button
+            onclick="openImportFormat('fasta')"
+            style="
+              width: 100%;
+              padding: 15px;
+              margin-bottom: 10px;
+              background: #4dabf7;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1.1rem;
+              font-weight: bold;
+            "
+          >
+            🧬 Format .fasta
+          </button>
+          <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem">
+            Format standard en bioinformatique : commence par un en-tête (ligne
+            commençant par ">") suivi de la séquence ADN sur une ou plusieurs
+            lignes. Plus lisible pour les longues séquences.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fenêtre modale pour choisir le format d'export -->
+    <div
+      id="exportModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1002;
+        overflow-y: auto;
+      "
+    >
+      <div
+        style="
+          background: white;
+          margin: 100px auto;
+          padding: 30px;
+          border-radius: 12px;
+          max-width: 500px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          "
+        >
+          <h3 style="margin: 0; color: #667eea">Choisir le format d'export</h3>
+          <button
+            id="closeExportModal"
+            style="
+              background: #ff6b6b;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+            "
+          >
+            ✕
+          </button>
+        </div>
+        <div style="margin-bottom: 20px">
+          <button
+            onclick="openExportFormat('edi')"
+            style="
+              width: 100%;
+              padding: 15px;
+              margin-bottom: 10px;
+              background: #ffa94d;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1.1rem;
+              font-weight: bold;
+            "
+          >
+            📄 Format .edi
+          </button>
+          <p style="margin: 5px 0 15px 0; color: #666; font-size: 0.9rem">
+            Format simple : une seule ligne de séquence ADN sans en-tête. Idéal
+            pour les séquences courtes.
+          </p>
+          <button
+            onclick="openExportFormat('fasta')"
+            style="
+              width: 100%;
+              padding: 15px;
+              margin-bottom: 10px;
+              background: #ffa94d;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1.1rem;
+              font-weight: bold;
+            "
+          >
+            🧬 Format .fasta
+          </button>
+          <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem">
+            Format standard en bioinformatique : commence par un en-tête (ligne
+            commençant par ">") suivi de la séquence ADN sur une ou plusieurs
+            lignes. Plus lisible pour les longues séquences.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -2014,8 +2185,7 @@
 
         // Ajouter les positions des mots "à trou" à la fin de la séquence si le mode est actif
         const copyBtn = document.getElementById("copyBtn");
-        const exportEDIBtn = document.getElementById("exportEDIBtn");
-        const exportFASTABtn = document.getElementById("exportFASTABtn");
+        const exportBtn = document.getElementById("exportBtn");
 
         // Stocker la séquence de base (sans marqueurs "à trou")
         output.setAttribute("data-dna-base", dna);
@@ -2035,8 +2205,7 @@
             '<span style="color: #666;">Aucune séquence à afficher.</span>';
           // Afficher les boutons
           copyBtn.style.display = "inline-block";
-          exportEDIBtn.style.display = "inline-block";
-          exportFASTABtn.style.display = "inline-block";
+          if (exportBtn) exportBtn.style.display = "inline-block";
         } else if (trouModeActive) {
           // Mode "à trou" actif mais aucun mot sélectionné - afficher quand même la séquence
           output.setAttribute("data-dna-sequence", dna);
@@ -2044,19 +2213,19 @@
           output.innerHTML =
             coloredDNA ||
             '<span style="color: #666;">Aucune séquence à afficher. Double-cliquez sur les mots pour les sélectionner.</span>';
-          // Afficher les boutons d'export
+          // Afficher le bouton d'export
           copyBtn.style.display = "none";
-          exportEDIBtn.style.display = "inline-block";
-          exportFASTABtn.style.display = "inline-block";
+          const exportBtn = document.getElementById("exportBtn");
+          if (exportBtn) exportBtn.style.display = "inline-block";
         } else {
           // Mode "à trou" désactivé
           output.setAttribute("data-dna-sequence", dna);
           output.removeAttribute("data-trou-positions");
           output.innerHTML = coloredDNA || "";
-          // Afficher les boutons d'export même sans "à trou"
+          // Afficher le bouton d'export même sans "à trou"
           copyBtn.style.display = "none";
-          exportEDIBtn.style.display = "inline-block";
-          exportFASTABtn.style.display = "inline-block";
+          const exportBtn = document.getElementById("exportBtn");
+          if (exportBtn) exportBtn.style.display = "inline-block";
         }
       }
 
@@ -2084,6 +2253,58 @@
                 "Erreur lors de la copie. Veuillez sélectionner manuellement la séquence."
               );
             });
+        }
+      }
+
+      // Fonction pour ouvrir la modale d'import
+      function openImportModal() {
+        const modal = document.getElementById("importModal");
+        if (modal) {
+          modal.style.display = "block";
+        }
+      }
+
+      // Fonction pour fermer la modale d'import
+      function closeImportModal() {
+        const modal = document.getElementById("importModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      // Fonction pour ouvrir le sélecteur de fichier selon le format choisi
+      function openImportFormat(format) {
+        closeImportModal();
+        if (format === "edi") {
+          document.getElementById("ediFileInput").click();
+        } else if (format === "fasta") {
+          document.getElementById("fastaFileInput").click();
+        }
+      }
+
+      // Fonction pour ouvrir la modale d'export
+      function openExportModal() {
+        const modal = document.getElementById("exportModal");
+        if (modal) {
+          modal.style.display = "block";
+        }
+      }
+
+      // Fonction pour fermer la modale d'export
+      function closeExportModal() {
+        const modal = document.getElementById("exportModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      // Fonction pour exporter selon le format choisi
+      function openExportFormat(format) {
+        closeExportModal();
+        if (format === "edi") {
+          exportEDIFile();
+        } else if (format === "fasta") {
+          exportFASTAFile();
         }
       }
 
@@ -2634,11 +2855,9 @@
         dnaOutput.textContent = initialSequence;
         dnaOutput.setAttribute("data-dna-sequence", initialSequence);
 
-        // Afficher les boutons d'export
-        const exportEDIBtn = document.getElementById("exportEDIBtn");
-        const exportFASTABtn = document.getElementById("exportFASTABtn");
-        if (exportEDIBtn) exportEDIBtn.style.display = "inline-block";
-        if (exportFASTABtn) exportFASTABtn.style.display = "inline-block";
+        // Afficher le bouton d'export
+        const exportBtn = document.getElementById("exportBtn");
+        if (exportBtn) exportBtn.style.display = "inline-block";
 
         // Initialiser l'historique
         pixelArtHistory = [JSON.parse(JSON.stringify(pixelArtGrid))];
@@ -3109,6 +3328,35 @@
             sizeModal.addEventListener("click", function (e) {
               if (e.target === this) {
                 closeSizeModal();
+              }
+            });
+          }
+
+          // Fermer les modales d'import/export
+          const closeImportModalBtn =
+            document.getElementById("closeImportModal");
+          if (closeImportModalBtn) {
+            closeImportModalBtn.addEventListener("click", closeImportModal);
+          }
+          const importModal = document.getElementById("importModal");
+          if (importModal) {
+            importModal.addEventListener("click", function (e) {
+              if (e.target === this) {
+                closeImportModal();
+              }
+            });
+          }
+
+          const closeExportModalBtn =
+            document.getElementById("closeExportModal");
+          if (closeExportModalBtn) {
+            closeExportModalBtn.addEventListener("click", closeExportModal);
+          }
+          const exportModal = document.getElementById("exportModal");
+          if (exportModal) {
+            exportModal.addEventListener("click", function (e) {
+              if (e.target === this) {
+                closeExportModal();
               }
             });
           }
@@ -3844,11 +4092,9 @@
         dnaOutput.textContent = sequence;
         dnaOutput.setAttribute("data-dna-sequence", sequence);
 
-        // Afficher les boutons d'export
-        const exportEDIBtn = document.getElementById("exportEDIBtn");
-        const exportFASTABtn = document.getElementById("exportFASTABtn");
-        if (exportEDIBtn) exportEDIBtn.style.display = "inline-block";
-        if (exportFASTABtn) exportFASTABtn.style.display = "inline-block";
+        // Afficher le bouton d'export
+        const exportBtn = document.getElementById("exportBtn");
+        if (exportBtn) exportBtn.style.display = "inline-block";
       }
 
       // Fonction pour charger une séquence ADN dans l'éditeur pixel art
