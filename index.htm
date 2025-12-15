@@ -998,8 +998,8 @@
         // Nettoyer pour le décodage (enlever tout sauf A, T, C, G)
         let input = rawInput.toUpperCase().replace(/[^ATCG]/g, "");
 
-        // Détecter si c'est une image pixel art (7500 nucléotides = 2500 triplets pour une grille 50x50)
-        if (input.length === 7500) {
+        // Détecter si c'est une image pixel art (14700 nucléotides = 4900 triplets pour une grille 70x70)
+        if (input.length === 14700) {
           // C'est une image pixel art, ouvrir l'éditeur avec cette séquence
           loadPixelArtFromSequence(input);
           return;
@@ -2504,6 +2504,7 @@
       let pixelArtHistoryIndex = -1; // Index actuel dans l'historique
       let currentTool = "paint"; // Outil actuel : "paint", "erase", "circle", "square", "triangle", "star"
       let shapeStartPos = null; // Position de départ pour les formes
+      let shapePreviewGrid = null; // Grille sauvegardée avant le dessin de forme (pour prévisualisation)
 
       // Fonction pour ouvrir l'éditeur pixel art
       function openPixelArtEditor() {
@@ -2522,7 +2523,7 @@
         });
 
         // Initialiser la grille avec AAA (blanc) pour tous les carreaux si elle n'existe pas déjà
-        const gridSize = 50;
+        const gridSize = 70;
         if (pixelArtGrid.length === 0 || pixelArtGrid.length !== gridSize) {
           pixelArtGrid = [];
           for (let i = 0; i < gridSize; i++) {
@@ -2533,7 +2534,7 @@
           }
         }
 
-        // Initialiser la séquence dans dnaOutput avec 7500 A (2500 × AAA)
+        // Initialiser la séquence dans dnaOutput avec 14700 A (4900 × AAA)
         const initialSequence = "AAA".repeat(gridSize * gridSize);
         const dnaOutput = document.getElementById("dnaOutput");
         dnaOutput.textContent = initialSequence;
@@ -2588,7 +2589,7 @@
 
         // Grille de pixel art
         html += '<div style="flex: 1; min-width: 500px;">';
-        html += '<h3 style="margin-top: 0; color: #667eea;">Grille 50×50</h3>';
+        html += '<h3 style="margin-top: 0; color: #667eea;">Grille 70×70</h3>';
 
         // Barre d'outils
         html +=
@@ -2618,7 +2619,7 @@
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
 
         html +=
-          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(50, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 600px; max-height: 600px; overflow: auto; user-select: none;">';
+          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 840px; max-height: 840px; overflow: auto; user-select: none;">';
 
         for (let i = 0; i < gridSize; i++) {
           for (let j = 0; j < gridSize; j++) {
@@ -2677,95 +2678,69 @@
                 currentTool === "triangle" ||
                 currentTool === "star"
               ) {
-                // Formes géométriques : premier clic = point de départ
-                if (shapeStartPos === null) {
-                  shapeStartPos = { row, col };
-                  const toolStatus = document.getElementById("toolStatus");
-                  if (toolStatus) {
-                    if (currentTool === "circle") {
-                      toolStatus.textContent =
-                        "Premier point défini. Cliquez à nouveau pour définir le rayon du cercle";
-                    } else if (currentTool === "square") {
-                      toolStatus.textContent =
-                        "Premier coin défini. Cliquez sur le coin opposé pour créer le carré";
-                    } else if (currentTool === "triangle") {
-                      toolStatus.textContent =
-                        "Premier point défini. Cliquez sur le deuxième point pour créer le triangle";
-                    } else if (currentTool === "star") {
-                      toolStatus.textContent =
-                        "Centre défini. Cliquez à nouveau pour définir la taille de l'étoile";
-                    }
-                  }
-                } else {
-                  // Deuxième clic = point de fin
-                  if (currentTool === "circle") {
-                    const radius = Math.max(
-                      Math.abs(shapeStartPos.row - row),
-                      Math.abs(shapeStartPos.col - col)
-                    );
-                    drawCircle(shapeStartPos.row, shapeStartPos.col, radius);
-                    shapeStartPos = null;
-                    selectTool(currentTool); // Réinitialiser le message
-                  } else if (currentTool === "square") {
-                    drawSquare(shapeStartPos.row, shapeStartPos.col, row, col);
-                    shapeStartPos = null;
-                    selectTool(currentTool); // Réinitialiser le message
-                  } else if (currentTool === "triangle") {
-                    // Pour le triangle, on utilise le centre et deux autres points
-                    const centerRow = shapeStartPos.row;
-                    const centerCol = shapeStartPos.col;
-                    const point2Row = row;
-                    const point2Col = col;
-                    // Calculer le troisième point pour former un triangle équilatéral
-                    const dx = point2Col - centerCol;
-                    const dy = point2Row - centerRow;
-                    const point3Row = centerRow - dy;
-                    const point3Col = centerCol + dx;
-                    drawTriangle(
-                      centerRow,
-                      centerCol,
-                      point2Row,
-                      point2Col,
-                      point3Row,
-                      point3Col
-                    );
-                    shapeStartPos = null;
-                    selectTool(currentTool); // Réinitialiser le message
-                  } else if (currentTool === "star") {
-                    // Pour l'étoile, on utilise la distance entre les deux points
-                    const outerRadius = Math.max(
-                      Math.abs(shapeStartPos.row - row),
-                      Math.abs(shapeStartPos.col - col)
-                    );
-                    const innerRadius = Math.floor(outerRadius * 0.4);
-                    drawStar(
+                // Formes géométriques : clic = point de départ, glissement pour ajuster
+                isPainting = true;
+                shapeStartPos = { row, col };
+                // Sauvegarder l'état actuel de la grille pour la prévisualisation
+                shapePreviewGrid = JSON.parse(JSON.stringify(pixelArtGrid));
+              }
+            });
+
+            cell.addEventListener("mouseenter", function (e) {
+              if (isPainting) {
+                const row = parseInt(this.getAttribute("data-row"));
+                const col = parseInt(this.getAttribute("data-col"));
+
+                if (currentTool === "paint" || currentTool === "erase") {
+                  paintPixel(row, col);
+                } else if (
+                  currentTool === "circle" ||
+                  currentTool === "square" ||
+                  currentTool === "triangle" ||
+                  currentTool === "star"
+                ) {
+                  // Restaurer la grille sauvegardée puis dessiner la forme
+                  if (shapePreviewGrid && shapeStartPos) {
+                    pixelArtGrid = JSON.parse(JSON.stringify(shapePreviewGrid));
+                    previewShape(
                       shapeStartPos.row,
                       shapeStartPos.col,
-                      outerRadius,
-                      innerRadius
+                      row,
+                      col
                     );
-                    shapeStartPos = null;
-                    selectTool(currentTool); // Réinitialiser le message
                   }
                 }
               }
             });
 
-            cell.addEventListener("mouseenter", function (e) {
-              if (
-                isPainting &&
-                (currentTool === "paint" || currentTool === "erase")
-              ) {
+            cell.addEventListener("mouseup", function () {
+              if (isPainting) {
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
-                paintPixel(row, col);
-              }
-            });
 
-            cell.addEventListener("mouseup", function () {
-              if (currentTool === "paint" || currentTool === "erase") {
-                isPainting = false;
-                saveToHistory();
+                if (currentTool === "paint" || currentTool === "erase") {
+                  isPainting = false;
+                  saveToHistory();
+                } else if (
+                  currentTool === "circle" ||
+                  currentTool === "square" ||
+                  currentTool === "triangle" ||
+                  currentTool === "star"
+                ) {
+                  // Finaliser la forme
+                  if (shapeStartPos) {
+                    finalizeShape(
+                      shapeStartPos.row,
+                      shapeStartPos.col,
+                      row,
+                      col
+                    );
+                    shapeStartPos = null;
+                    shapePreviewGrid = null;
+                    isPainting = false;
+                    saveToHistory();
+                  }
+                }
               }
             });
           });
@@ -2774,18 +2749,62 @@
           const pixelGrid = document.getElementById("pixelGrid");
           if (pixelGrid) {
             pixelGrid.addEventListener("mouseleave", function () {
-              if (currentTool === "paint" || currentTool === "erase") {
-                isPainting = false;
-                saveToHistory();
+              if (isPainting) {
+                if (currentTool === "paint" || currentTool === "erase") {
+                  isPainting = false;
+                  saveToHistory();
+                } else if (
+                  currentTool === "circle" ||
+                  currentTool === "square" ||
+                  currentTool === "triangle" ||
+                  currentTool === "star"
+                ) {
+                  // Finaliser la forme avec la dernière position connue
+                  if (shapeStartPos) {
+                    // Utiliser la position de départ comme position finale si on sort
+                    finalizeShape(
+                      shapeStartPos.row,
+                      shapeStartPos.col,
+                      shapeStartPos.row,
+                      shapeStartPos.col
+                    );
+                    shapeStartPos = null;
+                    shapePreviewGrid = null;
+                    isPainting = false;
+                    saveToHistory();
+                  }
+                }
               }
             });
           }
 
           // Arrêter de peindre si on relâche la souris n'importe où
           document.addEventListener("mouseup", function () {
-            if (currentTool === "paint" || currentTool === "erase") {
-              isPainting = false;
-              saveToHistory();
+            if (isPainting) {
+              if (currentTool === "paint" || currentTool === "erase") {
+                isPainting = false;
+                saveToHistory();
+              } else if (
+                currentTool === "circle" ||
+                currentTool === "square" ||
+                currentTool === "triangle" ||
+                currentTool === "star"
+              ) {
+                // Finaliser la forme
+                if (shapeStartPos) {
+                  // Utiliser la position de départ comme position finale
+                  finalizeShape(
+                    shapeStartPos.row,
+                    shapeStartPos.col,
+                    shapeStartPos.row,
+                    shapeStartPos.col
+                  );
+                  shapeStartPos = null;
+                  shapePreviewGrid = null;
+                  isPainting = false;
+                  saveToHistory();
+                }
+              }
             }
           });
 
@@ -2930,24 +2949,24 @@
               "Outil: Gomme - Cliquez et glissez pour effacer (remet en blanc)";
           } else if (tool === "circle") {
             toolStatus.textContent =
-              "Outil: Cercle - Cliquez sur le centre, puis cliquez à nouveau pour définir le rayon";
+              "Outil: Cercle - Cliquez et glissez pour dessiner un cercle";
           } else if (tool === "square") {
             toolStatus.textContent =
-              "Outil: Carré - Cliquez sur un coin, puis cliquez sur le coin opposé";
+              "Outil: Carré - Cliquez et glissez pour dessiner un carré";
           } else if (tool === "triangle") {
             toolStatus.textContent =
-              "Outil: Triangle - Cliquez sur le premier point, puis sur le deuxième point pour créer un triangle équilatéral";
+              "Outil: Triangle - Cliquez et glissez pour dessiner un triangle équilatéral";
           } else if (tool === "star") {
             toolStatus.textContent =
-              "Outil: Étoile - Cliquez sur le centre, puis cliquez à nouveau pour définir la taille";
+              "Outil: Étoile - Cliquez et glissez pour dessiner une étoile";
           }
         }
       }
 
       // Fonction pour rafraîchir l'affichage de la grille
       function refreshPixelGrid() {
-        for (let i = 0; i < 50; i++) {
-          for (let j = 0; j < 50; j++) {
+        for (let i = 0; i < 70; i++) {
+          for (let j = 0; j < 70; j++) {
             const pixel = document.querySelector(
               `.pixel-cell[data-row="${i}"][data-col="${j}"]`
             );
@@ -2999,15 +3018,23 @@
       }
 
       // Fonction pour dessiner un cercle
-      function drawCircle(centerRow, centerCol, radius) {
-        const colorIndex =
-          currentTool === "erase"
-            ? 0
-            : window.selectedColorIndex !== undefined
-            ? window.selectedColorIndex
-            : 0;
-        for (let i = 0; i < 50; i++) {
-          for (let j = 0; j < 50; j++) {
+      function drawCircle(
+        centerRow,
+        centerCol,
+        radius,
+        colorIndex = null,
+        preview = false
+      ) {
+        if (colorIndex === null) {
+          colorIndex =
+            currentTool === "erase"
+              ? 0
+              : window.selectedColorIndex !== undefined
+              ? window.selectedColorIndex
+              : 0;
+        }
+        for (let i = 0; i < 70; i++) {
+          for (let j = 0; j < 70; j++) {
             const dx = j - centerCol;
             const dy = i - centerRow;
             const distance = Math.sqrt(dx * dx + dy * dy);
@@ -3018,40 +3045,64 @@
         }
         refreshPixelGrid();
         updateDNASequence();
-        saveToHistory();
+        if (!preview) {
+          saveToHistory();
+        }
       }
 
       // Fonction pour dessiner un carré
-      function drawSquare(startRow, startCol, endRow, endCol) {
-        const colorIndex =
-          currentTool === "erase"
-            ? 0
-            : window.selectedColorIndex !== undefined
-            ? window.selectedColorIndex
-            : 0;
+      function drawSquare(
+        startRow,
+        startCol,
+        endRow,
+        endCol,
+        colorIndex = null,
+        preview = false
+      ) {
+        if (colorIndex === null) {
+          colorIndex =
+            currentTool === "erase"
+              ? 0
+              : window.selectedColorIndex !== undefined
+              ? window.selectedColorIndex
+              : 0;
+        }
         const minRow = Math.min(startRow, endRow);
         const maxRow = Math.max(startRow, endRow);
         const minCol = Math.min(startCol, endCol);
         const maxCol = Math.max(startCol, endCol);
 
-        for (let i = minRow; i <= maxRow && i < 50; i++) {
-          for (let j = minCol; j <= maxCol && j < 50; j++) {
+        for (let i = minRow; i <= maxRow && i < 70; i++) {
+          for (let j = minCol; j <= maxCol && j < 70; j++) {
             pixelArtGrid[i][j] = colorIndex;
           }
         }
         refreshPixelGrid();
         updateDNASequence();
-        saveToHistory();
+        if (!preview) {
+          saveToHistory();
+        }
       }
 
       // Fonction pour dessiner un triangle
-      function drawTriangle(row1, col1, row2, col2, row3, col3) {
-        const colorIndex =
-          currentTool === "erase"
-            ? 0
-            : window.selectedColorIndex !== undefined
-            ? window.selectedColorIndex
-            : 0;
+      function drawTriangle(
+        row1,
+        col1,
+        row2,
+        col2,
+        row3,
+        col3,
+        colorIndex = null,
+        preview = false
+      ) {
+        if (colorIndex === null) {
+          colorIndex =
+            currentTool === "erase"
+              ? 0
+              : window.selectedColorIndex !== undefined
+              ? window.selectedColorIndex
+              : 0;
+        }
 
         // Calculer les limites
         const minRow = Math.min(row1, row2, row3);
@@ -3073,8 +3124,8 @@
           return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
         }
 
-        for (let i = minRow; i <= maxRow && i < 50; i++) {
-          for (let j = minCol; j <= maxCol && j < 50; j++) {
+        for (let i = minRow; i <= maxRow && i < 70; i++) {
+          for (let j = minCol; j <= maxCol && j < 70; j++) {
             if (pointInTriangle(j, i, col1, row1, col2, row2, col3, row3)) {
               pixelArtGrid[i][j] = colorIndex;
             }
@@ -3082,17 +3133,28 @@
         }
         refreshPixelGrid();
         updateDNASequence();
-        saveToHistory();
+        if (!preview) {
+          saveToHistory();
+        }
       }
 
       // Fonction pour dessiner une étoile
-      function drawStar(centerRow, centerCol, outerRadius, innerRadius) {
-        const colorIndex =
-          currentTool === "erase"
-            ? 0
-            : window.selectedColorIndex !== undefined
-            ? window.selectedColorIndex
-            : 0;
+      function drawStar(
+        centerRow,
+        centerCol,
+        outerRadius,
+        innerRadius,
+        colorIndex = null,
+        preview = false
+      ) {
+        if (colorIndex === null) {
+          colorIndex =
+            currentTool === "erase"
+              ? 0
+              : window.selectedColorIndex !== undefined
+              ? window.selectedColorIndex
+              : 0;
+        }
         const points = 5; // Étoile à 5 branches
 
         // Calculer les points de l'étoile
@@ -3108,12 +3170,12 @@
         // Remplir l'étoile en utilisant un polygone
         const minRow = Math.max(0, Math.min(...starPoints.map((p) => p.y)) - 2);
         const maxRow = Math.min(
-          49,
+          69,
           Math.max(...starPoints.map((p) => p.y)) + 2
         );
         const minCol = Math.max(0, Math.min(...starPoints.map((p) => p.x)) - 2);
         const maxCol = Math.min(
-          49,
+          69,
           Math.max(...starPoints.map((p) => p.x)) + 2
         );
 
@@ -3126,7 +3188,9 @@
         }
         refreshPixelGrid();
         updateDNASequence();
-        saveToHistory();
+        if (!preview) {
+          saveToHistory();
+        }
       }
 
       // Fonction pour vérifier si un point est dans un polygone
@@ -3144,14 +3208,125 @@
         return inside;
       }
 
+      // Fonction pour prévisualiser une forme (sans sauvegarder dans l'historique)
+      function previewShape(startRow, startCol, endRow, endCol) {
+        // Restaurer la grille sauvegardée avant de dessiner
+        if (shapePreviewGrid) {
+          pixelArtGrid = JSON.parse(JSON.stringify(shapePreviewGrid));
+        }
+
+        const colorIndex =
+          currentTool === "erase"
+            ? 0
+            : window.selectedColorIndex !== undefined
+            ? window.selectedColorIndex
+            : 0;
+
+        if (currentTool === "circle") {
+          const radius = Math.max(
+            Math.abs(startRow - endRow),
+            Math.abs(startCol - endCol)
+          );
+          drawCircle(startRow, startCol, radius, colorIndex, true);
+        } else if (currentTool === "square") {
+          drawSquare(startRow, startCol, endRow, endCol, colorIndex, true);
+        } else if (currentTool === "triangle") {
+          const centerRow = startRow;
+          const centerCol = startCol;
+          const point2Row = endRow;
+          const point2Col = endCol;
+          const dx = point2Col - centerCol;
+          const dy = point2Row - centerRow;
+          const point3Row = centerRow - dy;
+          const point3Col = centerCol + dx;
+          drawTriangle(
+            centerRow,
+            centerCol,
+            point2Row,
+            point2Col,
+            point3Row,
+            point3Col,
+            colorIndex,
+            true
+          );
+        } else if (currentTool === "star") {
+          const outerRadius = Math.max(
+            Math.abs(startRow - endRow),
+            Math.abs(startCol - endCol)
+          );
+          const innerRadius = Math.floor(outerRadius * 0.4);
+          drawStar(
+            startRow,
+            startCol,
+            outerRadius,
+            innerRadius,
+            colorIndex,
+            true
+          );
+        }
+      }
+
+      // Fonction pour finaliser une forme (sauvegarder dans l'historique)
+      function finalizeShape(startRow, startCol, endRow, endCol) {
+        const colorIndex =
+          currentTool === "erase"
+            ? 0
+            : window.selectedColorIndex !== undefined
+            ? window.selectedColorIndex
+            : 0;
+
+        if (currentTool === "circle") {
+          const radius = Math.max(
+            Math.abs(startRow - endRow),
+            Math.abs(startCol - endCol)
+          );
+          drawCircle(startRow, startCol, radius, colorIndex, false);
+        } else if (currentTool === "square") {
+          drawSquare(startRow, startCol, endRow, endCol, colorIndex, false);
+        } else if (currentTool === "triangle") {
+          const centerRow = startRow;
+          const centerCol = startCol;
+          const point2Row = endRow;
+          const point2Col = endCol;
+          const dx = point2Col - centerCol;
+          const dy = point2Row - centerRow;
+          const point3Row = centerRow - dy;
+          const point3Col = centerCol + dx;
+          drawTriangle(
+            centerRow,
+            centerCol,
+            point2Row,
+            point2Col,
+            point3Row,
+            point3Col,
+            colorIndex,
+            false
+          );
+        } else if (currentTool === "star") {
+          const outerRadius = Math.max(
+            Math.abs(startRow - endRow),
+            Math.abs(startCol - endCol)
+          );
+          const innerRadius = Math.floor(outerRadius * 0.4);
+          drawStar(
+            startRow,
+            startCol,
+            outerRadius,
+            innerRadius,
+            colorIndex,
+            false
+          );
+        }
+      }
+
       // Fonction pour mettre à jour la séquence ADN dans dnaOutput
       function updateDNASequence() {
         const triplets = generateAllTriplets();
         let sequence = "";
 
         // Parcourir la grille ligne par ligne
-        for (let i = 0; i < 50; i++) {
-          for (let j = 0; j < 50; j++) {
+        for (let i = 0; i < 70; i++) {
+          for (let j = 0; j < 70; j++) {
             const colorIndex = pixelArtGrid[i][j];
             const triplet = triplets[colorIndex];
             sequence += triplet;
@@ -3173,12 +3348,12 @@
       // Fonction pour charger une séquence ADN dans l'éditeur pixel art
       function loadPixelArtFromSequence(sequence) {
         const triplets = generateAllTriplets();
-        const gridSize = 50;
+        const gridSize = 70;
 
         // Vérifier que la séquence a la bonne longueur
-        if (sequence.length !== 7500) {
+        if (sequence.length !== 14700) {
           alert(
-            "La séquence doit faire exactement 7500 nucléotides (2500 triplets) pour être une image pixel art."
+            "La séquence doit faire exactement 14700 nucléotides (4900 triplets) pour être une image pixel art."
           );
           return;
         }
