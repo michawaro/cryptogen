@@ -624,21 +624,29 @@
         trouModeActive = !trouModeActive;
         const btn = document.getElementById("trouModeBtn");
         const output = document.getElementById("dnaOutput");
+        const textInput = document.getElementById("textInput");
 
         if (trouModeActive) {
           btn.classList.add("trou-mode-active");
           btn.textContent = "Mode à trou actif (double-cliquez sur les mots)";
           // Réencoder pour permettre la sélection
-          if (document.getElementById("textInput").value) {
+          if (textInput.value.trim()) {
             encodeText();
+          } else {
+            // Si aucun texte n'est encodé, afficher un message
+            output.innerHTML =
+              '<span style="color: #666; font-style: italic;">Veuillez d\'abord encoder un texte pour utiliser le mode "à trou".</span>';
           }
         } else {
           btn.classList.remove("trou-mode-active");
           btn.textContent = "Encodage à trou";
           selectedWordIndices.clear();
           // Réencoder pour enlever les sélections
-          if (document.getElementById("textInput").value) {
+          if (textInput.value.trim()) {
             encodeText();
+          } else {
+            // Si aucun texte n'est encodé, vider l'affichage
+            output.innerHTML = "";
           }
         }
       }
@@ -1822,23 +1830,39 @@
         // Stocker la séquence de base (sans marqueurs "à trou")
         output.setAttribute("data-dna-base", dna);
 
+        // Toujours afficher la séquence ADN colorisée
+        const coloredDNA = colorizeDNA(dna, wordPositions, dnaToText);
+
         if (trouModeActive && selectedWordIndices.size > 0) {
           const trouPositions = encodeTrouPositions(selectedWordIndices);
           const fullSequence = dna + trouPositions;
           // Stocker la séquence complète avec les positions dans un attribut data
           output.setAttribute("data-dna-sequence", fullSequence);
           output.setAttribute("data-trou-positions", trouPositions);
-          // Afficher uniquement la séquence ADN (sans le marqueur et les positions)
-          output.innerHTML = colorizeDNA(dna, wordPositions, dnaToText);
+          // Afficher la séquence ADN colorisée (le texte reste visible)
+          output.innerHTML =
+            coloredDNA ||
+            '<span style="color: #666;">Aucune séquence à afficher.</span>';
           // Afficher les boutons
           copyBtn.style.display = "inline-block";
           exportEDIBtn.style.display = "inline-block";
           exportFASTABtn.style.display = "inline-block";
-        } else {
-          // Stocker la séquence complète (sans marqueurs "à trou")
+        } else if (trouModeActive) {
+          // Mode "à trou" actif mais aucun mot sélectionné - afficher quand même la séquence
           output.setAttribute("data-dna-sequence", dna);
           output.removeAttribute("data-trou-positions");
-          output.innerHTML = colorizeDNA(dna, wordPositions, dnaToText);
+          output.innerHTML =
+            coloredDNA ||
+            '<span style="color: #666;">Aucune séquence à afficher. Double-cliquez sur les mots pour les sélectionner.</span>';
+          // Afficher les boutons d'export
+          copyBtn.style.display = "none";
+          exportEDIBtn.style.display = "inline-block";
+          exportFASTABtn.style.display = "inline-block";
+        } else {
+          // Mode "à trou" désactivé
+          output.setAttribute("data-dna-sequence", dna);
+          output.removeAttribute("data-trou-positions");
+          output.innerHTML = coloredDNA || "";
           // Afficher les boutons d'export même sans "à trou"
           copyBtn.style.display = "none";
           exportEDIBtn.style.display = "inline-block";
