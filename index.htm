@@ -2142,14 +2142,25 @@
             "Séquence de base, longueur:",
             baseSequence ? baseSequence.length : 0
           );
-          if (!baseSequence || baseSequence.length < 100) {
+          // Vérifier que la séquence de base est valide (commence par ATG et a une longueur minimale raisonnable)
+          const isBaseValid =
+            baseSequence &&
+            baseSequence.length >= 6 && // Au moins ATG + un codon
+            baseSequence.startsWith("ATG");
+
+          if (!isBaseValid) {
             console.error(
-              "Séquence de base incomplète, attente supplémentaire..."
+              "Séquence de base invalide, attente supplémentaire..."
             );
             // Attendre un peu plus et réessayer
             setTimeout(() => {
               const retryBase = output.getAttribute("data-dna-base");
-              if (!retryBase || retryBase.length < 100) {
+              const isRetryValid =
+                retryBase &&
+                retryBase.length >= 6 &&
+                retryBase.startsWith("ATG");
+
+              if (!isRetryValid) {
                 alert(
                   "Erreur : la séquence n'a pas pu être encodée complètement. Veuillez réessayer."
                 );
@@ -2294,16 +2305,34 @@
               }
             }
 
-            // Si la séquence n'est pas complète, réencoder une dernière fois
-            if (!fullSequence || fullSequence.length < 500) {
-              console.warn("Séquence incomplète, réencodage...");
+            // Vérifier que la séquence est valide (contient au moins ATG et se termine correctement)
+            const isValidSequence =
+              fullSequence &&
+              fullSequence.length >= 6 && // Au moins ATG + un codon
+              fullSequence.startsWith("ATG") &&
+              (fullSequence.includes(TROU_MARKER) ||
+                ["TAA", "TAG", "TGA"].includes(
+                  fullSequence.substring(fullSequence.length - 3)
+                ));
+
+            if (!isValidSequence) {
+              console.warn("Séquence invalide, réencodage...");
               textInput.value = testText;
               encodeText();
               setTimeout(() => {
                 fullSequence = output.getAttribute("data-dna-sequence");
-                if (fullSequence && fullSequence.length > 500) {
+                const retryIsValid =
+                  fullSequence &&
+                  fullSequence.length >= 6 &&
+                  fullSequence.startsWith("ATG") &&
+                  (fullSequence.includes(TROU_MARKER) ||
+                    ["TAA", "TAG", "TGA"].includes(
+                      fullSequence.substring(fullSequence.length - 3)
+                    ));
+
+                if (retryIsValid) {
                   console.log(
-                    "Séquence complète récupérée après réessai, longueur:",
+                    "Séquence valide récupérée après réessai, longueur:",
                     fullSequence.length
                   );
                   const dnaInput = document.getElementById("dnaInput");
@@ -2316,11 +2345,11 @@
                   }
                 } else {
                   console.error(
-                    "Séquence toujours incomplète, longueur:",
+                    "Séquence toujours invalide, longueur:",
                     fullSequence ? fullSequence.length : 0
                   );
                   alert(
-                    "Erreur : la séquence n'a pas pu être encodée complètement."
+                    "Erreur : la séquence n'a pas pu être encodée correctement."
                   );
                 }
               }, 200);
