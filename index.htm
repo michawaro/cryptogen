@@ -677,7 +677,6 @@
         } else {
           btn.classList.remove("trou-mode-active");
           btn.textContent = "Encodage à trou";
-          selectedWordIndices.clear();
           // Réencoder pour enlever les sélections
           if (textInput.value.trim()) {
             encodeText();
@@ -1850,7 +1849,7 @@
         // Toujours afficher la séquence ADN colorisée
         const coloredDNA = colorizeDNA(dna, wordPositions, dnaToText);
 
-        if (trouModeActive && selectedWordIndices.size > 0) {
+        if (selectedWordIndices.size > 0) {
           const trouPositions = encodeTrouPositions(selectedWordIndices);
           const fullSequence = dna + trouPositions;
           // Stocker la séquence complète avec les positions dans un attribut data
