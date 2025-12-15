@@ -1626,9 +1626,25 @@
           let codonLength = 0;
           // Gérer les caractères spéciaux en premier (ponctuation)
           if (char === ".") {
+            // Finaliser le mot actuel AVANT d'ajouter le point
+            if (inWord) {
+              const wordDNA = dna.substring(currentWordStart, dna.length);
+              if (currentWordText) {
+                dnaToText[wordDNA] = currentWordText;
+              }
+              wordPositions.push({
+                type: "word",
+                start: currentWordStart,
+                end: dna.length,
+              });
+              inWord = false;
+              currentWordText = "";
+            }
+            // Maintenant ajouter le point (qui ne fait pas partie du mot)
             dna += "TAA";
-            codonLength = 3;
+            // Ne pas mettre codonLength pour éviter que le point initialise un nouveau mot
             isStartOfSentence = true; // Après un point, on est au début d'une phrase
+            continue; // Passer au caractère suivant sans traiter le point comme un codon de mot
           }
           // Gérer l'apostrophe (tous les types normalisés vers ')
           // Vérifier aussi directement les codes Unicode au cas où la normalisation n'a pas fonctionné
