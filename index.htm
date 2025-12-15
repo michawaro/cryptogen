@@ -941,19 +941,17 @@
               currentWordDNA = "";
             }
             // Ignorer les codons stop consécutifs en sautant directement au prochain codon non-stop
-            let consecutiveStops = 1; // On a déjà trouvé un stop
             while (i + 3 <= input.length - 3) {
               const nextCodon = input.substring(i + 3, i + 6);
               if (["TAA", "TAG", "TGA"].includes(nextCodon)) {
                 i += 3; // Sauter ce codon stop aussi
-                consecutiveStops++;
               } else {
                 break; // Prochain codon n'est pas un stop, continuer normalement
               }
             }
 
             // Ajouter un point seulement si le dernier élément ajouté n'est pas déjà un point
-            // (même si on a plusieurs stops consécutifs, on n'ajoute qu'un seul point)
+            // Vérifier les 2 derniers éléments pour être sûr
             let shouldAddPoint = true;
             if (words.length > 0) {
               const lastElement = words[words.length - 1];
@@ -963,6 +961,18 @@
                 lastElement.content === "."
               ) {
                 shouldAddPoint = false;
+              }
+              // Vérifier aussi l'avant-dernier élément au cas où
+              if (words.length > 1) {
+                const secondLastElement = words[words.length - 2];
+                if (
+                  secondLastElement.type === "punctuation" &&
+                  secondLastElement.content === "." &&
+                  lastElement.type === "punctuation" &&
+                  lastElement.content === "."
+                ) {
+                  shouldAddPoint = false;
+                }
               }
             }
 
@@ -1020,23 +1030,32 @@
         }
 
         // Ajouter le dernier mot s'il existe (même après un codon stop, car on peut avoir plusieurs phrases)
+        // Mais seulement si on n'a pas déjà traité un codon stop à la fin qui aurait vidé currentWord
         if (currentWord || currentWordDNA) {
-          if (trouIndices.has(wordIndex)) {
-            // Mot "à trou" : garder la séquence ADN
-            words.push({
-              type: "trou",
-              content: currentWordDNA,
-              dna: currentWordDNA,
-            });
-          } else {
-            // Mot normal : décoder
-            if (currentWord) {
-              wordToDNA[currentWord] = currentWordDNA;
+          // Vérifier si le dernier codon de la séquence est un stop
+          const lastCodon = input.substring(input.length - 3);
+          const isLastCodonStop = ["TAA", "TAG", "TGA"].includes(lastCodon);
+
+          // Si le dernier codon est un stop, il a déjà été traité dans la boucle
+          // et le mot a déjà été ajouté, donc on ne doit pas l'ajouter à nouveau
+          if (!isLastCodonStop) {
+            if (trouIndices.has(wordIndex)) {
+              // Mot "à trou" : garder la séquence ADN
               words.push({
-                type: "normal",
-                content: currentWord,
+                type: "trou",
+                content: currentWordDNA,
                 dna: currentWordDNA,
               });
+            } else {
+              // Mot normal : décoder
+              if (currentWord) {
+                wordToDNA[currentWord] = currentWordDNA;
+                words.push({
+                  type: "normal",
+                  content: currentWord,
+                  dna: currentWordDNA,
+                });
+              }
             }
           }
         }
@@ -2064,12 +2083,92 @@
       // Fonction pour charger la séquence de test
       function loadTestSequence() {
         // Séquence ADN de test à mettre directement dans le champ de décodage
-        const testSequence =
+        const baseSequence =
           "ATGGGCACACCCACTCTTACAACTTTTGGCAAACTTGGCTTTACAGACCTTGGCACACCCACTCTTACAACTTTTCTTTTCACTGGCGTATTTGCCGTGACTTTTGCTGTGCCCCTTACTTTTACGACTTTTCGTTTCAAGCTCACTTAATTTATTGCTAAACTTACCGACCCCGGCTTTGCTAAAAATACTCGTAAACCCGGCTAA";
+
+        // Séquences ADN à garder encodées (à deviner)
+        const sequencesToKeep = [
+          "ACAGACCTTGGCACACCCACTCTTACAACT",
+          "CGTTTCAAGCTCACT",
+          "GCTAAAAATACTCGTAAACCCGGC",
+        ];
+
+        // Décoder temporairement la séquence pour trouver les positions des mots
+        // On va simuler le décodage pour trouver les indices
+        const input = baseSequence;
+        const startIndex = input.indexOf("ATG");
+        if (startIndex === -1) {
+          alert("Séquence invalide : pas de codon START (ATG)");
+          return;
+        }
+
+        // Trouver les positions des séquences à garder
+        const wordIndices = new Set();
+        let wordIndex = 0;
+        let currentWordDNA = "";
+
+        for (let i = startIndex + 3; i <= input.length - 3; i += 3) {
+          const codon = input.substring(i, i + 3);
+
+          if (["TAA", "TAG", "TGA"].includes(codon)) {
+            // Fin de mot (point)
+            if (currentWordDNA) {
+              // Vérifier si cette séquence ADN correspond à une des séquences à garder
+              for (const seqToKeep of sequencesToKeep) {
+                if (currentWordDNA === seqToKeep) {
+                  wordIndices.add(wordIndex);
+                  break;
+                }
+              }
+              currentWordDNA = "";
+              wordIndex++;
+            }
+            // Ignorer les codons stop consécutifs
+            while (i + 3 <= input.length - 3) {
+              const nextCodon = input.substring(i + 3, i + 6);
+              if (["TAA", "TAG", "TGA"].includes(nextCodon)) {
+                i += 3;
+              } else {
+                break;
+              }
+            }
+          } else if (codon === "TTT") {
+            // Espace - fin de mot
+            if (currentWordDNA) {
+              for (const seqToKeep of sequencesToKeep) {
+                if (currentWordDNA === seqToKeep) {
+                  wordIndices.add(wordIndex);
+                  break;
+                }
+              }
+              currentWordDNA = "";
+              wordIndex++;
+            }
+          } else {
+            // Caractère normal - ajouter au mot actuel
+            currentWordDNA += codon;
+          }
+        }
+
+        // Ajouter le dernier mot s'il existe
+        if (currentWordDNA) {
+          for (const seqToKeep of sequencesToKeep) {
+            if (currentWordDNA === seqToKeep) {
+              wordIndices.add(wordIndex);
+              break;
+            }
+          }
+        }
+
+        // Encoder les positions "à trou"
+        const trouPositions = encodeTrouPositions(wordIndices);
+
+        // Construire la séquence complète avec les marqueurs "à trou"
+        const fullSequence = baseSequence + trouPositions;
 
         // Mettre la séquence directement dans le champ de décodage
         const dnaInput = document.getElementById("dnaInput");
-        dnaInput.textContent = testSequence;
+        dnaInput.textContent = fullSequence;
         colorizeDNAInput();
       }
 
