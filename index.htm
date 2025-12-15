@@ -3121,9 +3121,10 @@
         updateSelectedColorDisplay();
         updateDNASequence();
 
-        // Sélectionner visuellement la couleur noire dans la palette
+        // Sélectionner visuellement la couleur noire dans la palette et le pinceau
         setTimeout(() => {
           selectColor(56);
+          selectTool("paint");
         }, 100);
 
         // Ajouter les event listeners pour les pixels
@@ -3444,14 +3445,14 @@
             }
           });
 
-          // Initialiser les boutons d'outils
-          selectTool("paint");
-          updateUndoRedoButtons();
-
           // Initialiser les boutons de taille
           setBrushSize(brushSize);
           setSpraySize(spraySize);
           setEraserSize(eraserSize);
+
+          // Initialiser les boutons d'outils (après l'initialisation des tailles)
+          selectTool("paint");
+          updateUndoRedoButtons();
 
           // Fermer la modale de taille
           const closeSizeModalBtn = document.getElementById("closeSizeModal");
