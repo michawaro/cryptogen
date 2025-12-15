@@ -2083,8 +2083,12 @@
       // Fonction pour charger la séquence de test
       function loadTestSequence() {
         // Séquence ADN de test à mettre directement dans le champ de décodage
-        const baseSequence =
+        let baseSequence =
           "ATGGGCACACCCACTCTTACAACTTTTGGCAAACTTGGCTTTACAGACCTTGGCACACCCACTCTTACAACTTTTCTTTTCACTGGCGTATTTGCCGTGACTTTTGCTGTGCCCCTTACTTTTACGACTTTTCGTTTCAAGCTCACTTAATTTATTGCTAAACTTACCGACCCCGGCTTTGCTAAAAATACTCGTAAACCCGGCTAA";
+
+        // Nettoyer la séquence : retirer les espaces (TTT) qui suivent directement un point (TAA, TAG, TGA)
+        // Cela évite d'avoir un espace entre deux phrases qui cause un deuxième point
+        baseSequence = baseSequence.replace(/(TAA|TAG|TGA)TTT+/g, "$1");
 
         // Séquences ADN à garder encodées (à deviner)
         const sequencesToKeep = [
@@ -2160,11 +2164,40 @@
           }
         }
 
-        // Encoder les positions "à trou"
-        const trouPositions = encodeTrouPositions(wordIndices);
+        // S'assurer que la séquence se termine par un seul point (TAA, TAG ou TGA)
+        // Retirer tout ce qui suit le dernier point
+        let cleanedSequence = baseSequence;
+        let lastStopIndex = -1;
+        for (let i = cleanedSequence.length - 3; i >= 0; i -= 3) {
+          const codon = cleanedSequence.substring(i, i + 3);
+          if (["TAA", "TAG", "TGA"].includes(codon)) {
+            lastStopIndex = i;
+            // Vérifier s'il y a des codons stop consécutifs avant
+            let j = i - 3;
+            while (j >= 0) {
+              const prevCodon = cleanedSequence.substring(j, j + 3);
+              if (["TAA", "TAG", "TGA"].includes(prevCodon)) {
+                lastStopIndex = j;
+                j -= 3;
+              } else {
+                break;
+              }
+            }
+            break;
+          }
+        }
 
-        // Construire la séquence complète avec les marqueurs "à trou"
-        const fullSequence = baseSequence + trouPositions;
+        if (lastStopIndex !== -1) {
+          // Garder seulement jusqu'au dernier point (inclus)
+          cleanedSequence = cleanedSequence.substring(0, lastStopIndex + 3);
+        }
+
+        // Encoder les positions "à trou" seulement si on a trouvé des indices
+        let fullSequence = cleanedSequence;
+        if (wordIndices.size > 0) {
+          const trouPositions = encodeTrouPositions(wordIndices);
+          fullSequence = cleanedSequence + trouPositions;
+        }
 
         // Mettre la séquence directement dans le champ de décodage
         const dnaInput = document.getElementById("dnaInput");
