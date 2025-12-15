@@ -519,22 +519,21 @@
     <script>
       const geneticCode = {
         ATG: "START",
-        // AAA : marqueur de majuscule (pour le triplet suivant)
-        AAA: "Majuscule",
+        AAA: "A",
         // Ordre alphabétique des triplets
         // A : 1 triplet
-        AAC: "A",
-        // B : 2 triplets
-        AAG: "À",
-        AAT: "Â",
+        AAC: "À",
+        AAG: "Â",
+        // B : 1 triplet
+        AAT: "B",
         // C : 2 triplets
-        ACA: "B",
-        ACC: "C",
+        ACA: "C",
+        ACC: "Ç",
         // D : 2 triplets
-        ACG: "Ç",
-        ACT: "D",
+        ACG: "D",
         // E : 1 triplet
-        AGC: "E",
+        ACT: "E",
+        AGC: "Œ",
         // É (é en majuscule) : 1 triplet
         AGG: "É",
         // È (è en majuscule) : 1 triplet
@@ -617,7 +616,7 @@
 
       const reverseCode = {};
       for (let [codon, char] of Object.entries(geneticCode)) {
-        if (char !== "START" && char !== "Majuscule") {
+        if (char !== "START") {
           if (!reverseCode[char]) reverseCode[char] = [];
           reverseCode[char].push(codon);
         }
@@ -750,31 +749,16 @@
       // Fonction pour décoder une séquence ADN en texte
       function decodeDNASequence(dnaSequence) {
         let decoded = "";
-        let nextIsCapital = false;
         for (let i = 0; i <= dnaSequence.length - 3; i += 3) {
           const codon = dnaSequence.substring(i, i + 3);
-
-          // Vérifier si c'est le marqueur de majuscule AAA
-          if (codon === "AAA") {
-            nextIsCapital = true;
-            continue; // Passer au codon suivant
-          }
-
           const decodedChar = geneticCode[codon];
-          if (decodedChar) {
+          if (decodedChar && decodedChar !== "START") {
             let displayChar = decodedChar;
             if (decodedChar === "é") displayChar = "É";
             if (decodedChar === "è") displayChar = "È";
             if (decodedChar === "ê") displayChar = "Ê";
             if (decodedChar === "ë") displayChar = "Ë";
             if (decodedChar === "ï") displayChar = "Ï";
-
-            // Appliquer la majuscule si AAA a été rencontré avant
-            if (nextIsCapital && displayChar && displayChar.length === 1) {
-              displayChar = displayChar.toUpperCase();
-              nextIsCapital = false;
-            }
-
             decoded += displayChar;
           }
         }
@@ -930,16 +914,8 @@
         let wordIndex = 0; // Index du mot actuel
         let foundStopCodon = false; // Indicateur si on a trouvé un codon stop
 
-        let nextIsCapital = false; // Indique si le prochain caractère doit être en majuscule
-
         for (let i = startIndex + 3; i <= input.length - 3; i += 3) {
           const codon = input.substring(i, i + 3);
-
-          // Vérifier si c'est le marqueur de majuscule AAA
-          if (codon === "AAA") {
-            nextIsCapital = true;
-            continue; // Passer au codon suivant
-          }
 
           if (["TAA", "TAG", "TGA"].includes(codon)) {
             if (currentWord || currentWordDNA) {
@@ -1025,7 +1001,7 @@
             wordIndex++; // Passer au mot suivant
           } else {
             const decodedChar = geneticCode[codon];
-            if (decodedChar) {
+            if (decodedChar && decodedChar !== "START") {
               // Forcer les minuscules accentuées à s'afficher en majuscules
               let displayChar = decodedChar;
               if (decodedChar === "é") displayChar = "É";
@@ -1033,12 +1009,6 @@
               if (decodedChar === "ê") displayChar = "Ê";
               if (decodedChar === "ë") displayChar = "Ë";
               if (decodedChar === "ï") displayChar = "Ï";
-
-              // Appliquer la majuscule si AAA a été rencontré avant
-              if (nextIsCapital && displayChar && displayChar.length === 1) {
-                displayChar = displayChar.toUpperCase();
-                nextIsCapital = false;
-              }
 
               currentWordDNA += codon;
               // Si ce mot est "à trou", ne pas décoder
@@ -1136,47 +1106,30 @@
           existingWord = originalSpan.textContent || "";
         }
 
-        // Diviser en triplets et décoder avec gestion de AAA
+        // Diviser en triplets et décoder
         const triplets = [];
         const decodedChars = [];
-        let nextIsCapital = false;
         let correctWord = ""; // Mot correct décodé
 
         for (let i = 0; i <= cleaned.length - 3; i += 3) {
           const triplet = cleaned.substring(i, i + 3);
           triplets.push(triplet);
 
-          if (triplet === "AAA") {
-            decodedChars.push({ char: "Majuscule", isMarker: true });
-            nextIsCapital = true;
+          const decodedChar = geneticCode[triplet];
+          if (decodedChar && decodedChar !== "START") {
+            let displayChar = decodedChar;
+            // Forcer les minuscules accentuées à s'afficher en majuscules
+            if (decodedChar === "é") displayChar = "É";
+            if (decodedChar === "è") displayChar = "È";
+            if (decodedChar === "ê") displayChar = "Ê";
+            if (decodedChar === "ë") displayChar = "Ë";
+            if (decodedChar === "ï") displayChar = "Ï";
+
+            decodedChars.push({ char: displayChar, isMarker: false });
+            // Construire le mot correct
+            correctWord += displayChar;
           } else {
-            const decodedChar = geneticCode[triplet];
-            if (decodedChar) {
-              let displayChar = decodedChar;
-              // Forcer les minuscules accentuées à s'afficher en majuscules
-              if (decodedChar === "é") displayChar = "É";
-              if (decodedChar === "è") displayChar = "È";
-              if (decodedChar === "ê") displayChar = "Ê";
-              if (decodedChar === "ë") displayChar = "Ë";
-              if (decodedChar === "ï") displayChar = "Ï";
-
-              // Appliquer la majuscule si AAA a été rencontré avant
-              if (
-                nextIsCapital &&
-                displayChar &&
-                displayChar.length === 1 &&
-                displayChar !== "Majuscule"
-              ) {
-                displayChar = displayChar.toUpperCase();
-                nextIsCapital = false;
-              }
-
-              decodedChars.push({ char: displayChar, isMarker: false });
-              // Construire le mot correct (sans les marqueurs)
-              correctWord += displayChar;
-            } else {
-              decodedChars.push({ char: "?", isMarker: false });
-            }
+            decodedChars.push({ char: "?", isMarker: false });
           }
         }
 
@@ -1190,30 +1143,25 @@
           cleaned +
           "</h3>";
 
-        // Première ligne : inputs pour les lettres (ou marqueur pour AAA)
+        // Première ligne : inputs pour les lettres
         html +=
           '<div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; justify-content: center; align-items: center;">';
         let existingWordIndex = 0; // Index pour parcourir le mot existant
         decodedChars.forEach((item, index) => {
-          if (item.isMarker) {
-            // Afficher "Maj" pour le marqueur AAA
-            html += `<div style="width: 40px; height: 40px; text-align: center; font-size: 0.8rem; border: 2px solid #ffa94d; border-radius: 6px; background: #fff4e6; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #ffa94d;">Maj</div>`;
-          } else {
-            // Préremplir avec la lettre existante si disponible
-            const existingLetter =
-              existingWord && existingWordIndex < existingWord.length
-                ? existingWord[existingWordIndex].toUpperCase()
-                : "";
-            existingWordIndex++;
+          // Préremplir avec la lettre existante si disponible
+          const existingLetter =
+            existingWord && existingWordIndex < existingWord.length
+              ? existingWord[existingWordIndex].toUpperCase()
+              : "";
+          existingWordIndex++;
 
-            html += `<input type="text" 
-                            id="letter-${index}" 
-                            maxlength="1" 
-                            value="${existingLetter}"
-                            style="width: 40px; height: 40px; text-align: center; font-size: 1.5rem; border: 2px solid #667eea; border-radius: 6px; font-weight: bold; text-transform: uppercase;"
-                            placeholder="?"
-                            oninput="this.value = this.value.toUpperCase()">`;
-          }
+          html += `<input type="text" 
+                          id="letter-${index}" 
+                          maxlength="1" 
+                          value="${existingLetter}"
+                          style="width: 40px; height: 40px; text-align: center; font-size: 1.5rem; border: 2px solid #667eea; border-radius: 6px; font-weight: bold; text-transform: uppercase;"
+                          placeholder="?"
+                          oninput="this.value = this.value.toUpperCase()">`;
         });
         html += "</div>";
 
@@ -1228,13 +1176,9 @@
           '<div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 30px; justify-content: center; font-family: monospace;">';
         triplets.forEach((triplet, index) => {
           const isStop = ["TAA", "TAG", "TGA"].includes(triplet);
-          const isAAA = triplet === "AAA";
           let bgColor = "#e0e0e0";
           if (isStop) bgColor = "#ffb3d9";
-          else if (isAAA) bgColor = "#fff4e6";
-          html += `<div style="width: 40px; height: 30px; text-align: center; padding-top: 5px; background: ${bgColor}; border-radius: 4px; font-size: 0.9rem; border: ${
-            isAAA ? "2px solid #ffa94d" : "none"
-          };">${triplet}</div>`;
+          html += `<div style="width: 40px; height: 30px; text-align: center; padding-top: 5px; background: ${bgColor}; border-radius: 4px; font-size: 0.9rem;">${triplet}</div>`;
         });
         html += "</div>";
 
@@ -1322,14 +1266,10 @@
           // Récupérer toutes les lettres saisies
           if (window.modalDecodedChars) {
             window.modalDecodedChars.forEach((item, index) => {
-              if (item.isMarker) {
-                // Pour AAA, on ne met rien (c'est juste un marqueur)
-              } else {
-                const input = document.getElementById(`letter-${index}`);
-                if (input) {
-                  const letter = input.value.trim().toUpperCase();
-                  userWord += letter || "?";
-                }
+              const input = document.getElementById(`letter-${index}`);
+              if (input) {
+                const letter = input.value.trim().toUpperCase();
+                userWord += letter || "?";
               }
             });
           }
@@ -1439,100 +1379,83 @@
             validateBtn.addEventListener("click", window.validateDecode);
           }
 
-          // Fonction pour trouver l'index de la prochaine case (en sautant les marqueurs)
+          // Fonction pour trouver l'index de la prochaine case
           function findNextInputIndex(currentIndex, direction) {
-            let nextIndex = currentIndex;
             const maxIndex = window.modalDecodedChars.length - 1;
-            const startIndex = currentIndex;
-            let iterations = 0;
-
-            do {
-              if (direction === 1) {
-                // Vers la droite
-                nextIndex = (nextIndex + 1) % (maxIndex + 1);
-              } else {
-                // Vers la gauche
-                nextIndex = (nextIndex - 1 + maxIndex + 1) % (maxIndex + 1);
-              }
-              iterations++;
-              // Protection contre les boucles infinies
-              if (iterations > maxIndex + 1) {
-                return currentIndex; // Retourner l'index actuel si on ne trouve rien
-              }
-            } while (
-              window.modalDecodedChars[nextIndex] &&
-              window.modalDecodedChars[nextIndex].isMarker &&
-              nextIndex !== startIndex
-            );
-
+            let nextIndex;
+            if (direction === 1) {
+              // Vers la droite
+              nextIndex = (currentIndex + 1) % (maxIndex + 1);
+            } else {
+              // Vers la gauche
+              nextIndex = (currentIndex - 1 + maxIndex + 1) % (maxIndex + 1);
+            }
             return nextIndex;
           }
 
           // Ajouter la gestion du clavier sur tous les inputs
           window.modalDecodedChars.forEach((item, index) => {
-            if (!item.isMarker) {
-              const input = document.getElementById(`letter-${index}`);
-              if (input) {
-                input.addEventListener("keydown", function (e) {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    // Passer à la case suivante
-                    const nextIndex = findNextInputIndex(index, 1);
-                    const nextInput = document.getElementById(
-                      `letter-${nextIndex}`
-                    );
-                    if (nextInput) {
-                      nextInput.focus();
-                      nextInput.select();
-                    }
-                  } else if (e.key === "ArrowRight") {
-                    e.preventDefault();
-                    // Aller à la case suivante
-                    const nextIndex = findNextInputIndex(index, 1);
-                    const nextInput = document.getElementById(
-                      `letter-${nextIndex}`
-                    );
-                    if (nextInput) {
-                      nextInput.focus();
-                      nextInput.select();
-                    }
-                  } else if (e.key === "ArrowLeft") {
-                    e.preventDefault();
-                    // Aller à la case précédente
-                    const prevIndex = findNextInputIndex(index, -1);
-                    const prevInput = document.getElementById(
-                      `letter-${prevIndex}`
-                    );
-                    if (prevInput) {
-                      prevInput.focus();
-                      prevInput.select();
-                    }
+            const input = document.getElementById(`letter-${index}`);
+            if (input) {
+              input.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  // Passer à la case suivante
+                  const nextIndex = findNextInputIndex(index, 1);
+                  const nextInput = document.getElementById(
+                    `letter-${nextIndex}`
+                  );
+                  if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
                   }
-                });
+                } else if (e.key === "ArrowRight") {
+                  e.preventDefault();
+                  // Aller à la case suivante
+                  const nextIndex = findNextInputIndex(index, 1);
+                  const nextInput = document.getElementById(
+                    `letter-${nextIndex}`
+                  );
+                  if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
+                  }
+                } else if (e.key === "ArrowLeft") {
+                  e.preventDefault();
+                  // Aller à la case précédente
+                  const prevIndex = findNextInputIndex(index, -1);
+                  const prevInput = document.getElementById(
+                    `letter-${prevIndex}`
+                  );
+                  if (prevInput) {
+                    prevInput.focus();
+                    prevInput.select();
+                  }
+                }
+              });
 
-                // Passer automatiquement à la case suivante quand une lettre est entrée
-                input.addEventListener("input", function (e) {
-                  const value = this.value.trim().toUpperCase();
-                  // Si une lettre a été entrée (pas vide, pas juste supprimée)
-                  if (
-                    value.length === 1 &&
-                    /[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞß]/.test(value)
-                  ) {
-                    // Passer à la case suivante
-                    const nextIndex = findNextInputIndex(index, 1);
-                    const nextInput = document.getElementById(
-                      `letter-${nextIndex}`
-                    );
-                    if (nextInput) {
-                      // Petit délai pour s'assurer que la valeur est bien mise à jour
-                      setTimeout(() => {
-                        nextInput.focus();
-                        nextInput.select();
-                      }, 10);
-                    }
+              // Passer automatiquement à la case suivante quand une lettre est entrée
+              input.addEventListener("input", function (e) {
+                const value = this.value.trim().toUpperCase();
+                // Si une lettre a été entrée (pas vide, pas juste supprimée)
+                if (
+                  value.length === 1 &&
+                  /[A-ZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞß]/.test(value)
+                ) {
+                  // Passer à la case suivante
+                  const nextIndex = findNextInputIndex(index, 1);
+                  const nextInput = document.getElementById(
+                    `letter-${nextIndex}`
+                  );
+                  if (nextInput) {
+                    // Petit délai pour s'assurer que la valeur est bien mise à jour
+                    setTimeout(() => {
+                      nextInput.focus();
+                      nextInput.select();
+                    }, 10);
                   }
-                });
-              }
+                }
+              });
             }
           });
         }, 10);
@@ -1701,7 +1624,6 @@
 
         for (let char of normalized) {
           let codonLength = 0;
-          let needsCapital = false; // Indique si le caractère doit être en majuscule
           // Gérer les caractères spéciaux en premier (ponctuation)
           if (char === ".") {
             dna += "TAA";
@@ -1762,51 +1684,38 @@
           }
           // Gérer les caractères accentués (toujours en majuscule)
           else if (char === "é" || char === "É") {
-            // É est toujours en majuscule, donc ajouter AAA
-            dna += "AAAAGG"; // AAA (majuscule) + AGG (É)
-            codonLength = 6;
+            dna += "AGG"; // AGG (É)
+            codonLength = 3;
             if (inWord) currentWordText += "É";
-            needsCapital = false;
             isStartOfSentence = false;
           } else if (char === "è" || char === "È") {
-            dna += "AAAAGT"; // AAA (majuscule) + AGT (È)
-            codonLength = 6;
+            dna += "AGT"; // AGT (È)
+            codonLength = 3;
             if (inWord) currentWordText += "È";
-            needsCapital = false;
             isStartOfSentence = false;
           } else if (char === "ê" || char === "Ê") {
-            dna += "AAAATA"; // AAA (majuscule) + ATA (Ê)
-            codonLength = 6;
+            dna += "ATA"; // ATA (Ê)
+            codonLength = 3;
             if (inWord) currentWordText += "Ê";
-            needsCapital = false;
             isStartOfSentence = false;
           } else if (char === "ë" || char === "Ë") {
-            dna += "AAAATC"; // AAA (majuscule) + ATC (Ë)
-            codonLength = 6;
+            dna += "ATC"; // ATC (Ë)
+            codonLength = 3;
             if (inWord) currentWordText += "Ë";
-            needsCapital = false;
             isStartOfSentence = false;
           } else if (char === "ï" || char === "Ï") {
-            dna += "AAACCG"; // AAA (majuscule) + CCG (Ï)
-            codonLength = 6;
+            dna += "CCG"; // CCG (Ï)
+            codonLength = 3;
             if (inWord) currentWordText += "Ï";
-            needsCapital = false;
             isStartOfSentence = false;
           }
           // Pour les autres caractères
           else {
             let upperChar = char.toUpperCase();
-            let lowerChar = char.toLowerCase();
-            // Détecter si c'est une majuscule ou le début d'une phrase
-            needsCapital =
-              (char === upperChar && char !== lowerChar) || isStartOfSentence;
 
             if (reverseCode[upperChar]) {
-              if (needsCapital) {
-                dna += "AAA"; // Marqueur de majuscule
-              }
               dna += reverseCode[upperChar][0];
-              codonLength = needsCapital ? 6 : 3;
+              codonLength = 3;
               if (inWord) currentWordText += upperChar;
               isStartOfSentence = false;
             }
@@ -2307,25 +2216,16 @@
                   .getAttribute("data-dna-base")
                   .substring(wordPos.start, wordPos.end);
                 let decodedWord = "";
-                let nextIsCapital = false;
                 for (let i = 0; i <= wordDNA.length - 3; i += 3) {
                   const codon = wordDNA.substring(i, i + 3);
-                  if (codon === "AAA") {
-                    nextIsCapital = true;
-                    continue;
-                  }
                   const char = geneticCode[codon];
-                  if (char && char !== "START" && char !== "Majuscule") {
+                  if (char && char !== "START") {
                     let displayChar = char;
                     if (char === "é") displayChar = "É";
                     if (char === "è") displayChar = "È";
                     if (char === "ê") displayChar = "Ê";
                     if (char === "ë") displayChar = "Ë";
                     if (char === "ï") displayChar = "Ï";
-                    if (nextIsCapital && displayChar.length === 1) {
-                      displayChar = displayChar.toUpperCase();
-                      nextIsCapital = false;
-                    }
                     decodedWord += displayChar;
                   }
                 }
