@@ -2636,13 +2636,27 @@
         html +=
           '<button id="paintToolBtn" onclick="selectTool(\'paint\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Pinceau">🖌️ Pinceau</button>';
         html +=
-          '<label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">Taille: <input type="number" id="brushSizeInput" min="1" max="10" value="1" style="width: 50px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" onchange="updateBrushSize()"></label>';
+          '<div id="brushSizeSelector" style="display: none; gap: 5px; align-items: center;">';
+        for (let i = 1; i <= 10; i++) {
+          html += `<button onclick="setBrushSize(${i})" class="sizeBtn" data-size="${i}" style="padding: 4px 8px; border: 2px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 0.9rem; background: ${
+            i === 1 ? "#667eea" : "white"
+          }; color: ${
+            i === 1 ? "white" : "#333"
+          };" title="Taille ${i}">${i}</button>`;
+        }
+        html += "</div>";
         html +=
           '<button id="eraseToolBtn" onclick="selectTool(\'erase\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Gomme">🧹 Gomme</button>';
         html +=
-          '<label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">Taille: <input type="number" id="eraserSizeInput" min="1" max="10" value="1" style="width: 50px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" onchange="updateEraserSize()"></label>';
-        html +=
-          '<button id="eraseToolBtn" onclick="selectTool(\'erase\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Gomme">🧹 Gomme</button>';
+          '<div id="eraserSizeSelector" style="display: none; gap: 5px; align-items: center;">';
+        for (let i = 1; i <= 10; i++) {
+          html += `<button onclick="setEraserSize(${i})" class="sizeBtn" data-size="${i}" style="padding: 4px 8px; border: 2px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 0.9rem; background: ${
+            i === 1 ? "#667eea" : "white"
+          }; color: ${
+            i === 1 ? "white" : "#333"
+          };" title="Taille ${i}">${i}</button>`;
+        }
+        html += "</div>";
         html +=
           '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
         html +=
@@ -2707,14 +2721,17 @@
             // Utiliser l'API Pointer Events pour une meilleure prise en charge des stylets et du tactile
             cell.addEventListener("pointerdown", function (e) {
               e.preventDefault();
-              // Accepter le pointeur (important pour les stylets)
-              this.setPointerCapture(e.pointerId);
               const row = parseInt(this.getAttribute("data-row"));
               const col = parseInt(this.getAttribute("data-col"));
 
               if (currentTool === "paint" || currentTool === "erase") {
                 isPainting = true;
                 paintPixel(row, col);
+                // Capturer le pointeur sur la grille pour une meilleure fluidité
+                const pixelGrid = document.getElementById("pixelGrid");
+                if (pixelGrid) {
+                  pixelGrid.setPointerCapture(e.pointerId);
+                }
               } else if (
                 currentTool === "circle" ||
                 currentTool === "square" ||
@@ -2726,40 +2743,19 @@
                 shapeStartPos = { row, col };
                 // Sauvegarder l'état actuel de la grille pour la prévisualisation
                 shapePreviewGrid = JSON.parse(JSON.stringify(pixelArtGrid));
-              }
-            });
-
-            cell.addEventListener("pointerenter", function (e) {
-              // Vérifier que le pointeur est actif (bouton pressé)
-              if (e.buttons === 1 && isPainting) {
-                const row = parseInt(this.getAttribute("data-row"));
-                const col = parseInt(this.getAttribute("data-col"));
-
-                if (currentTool === "paint" || currentTool === "erase") {
-                  paintPixel(row, col);
-                } else if (
-                  currentTool === "circle" ||
-                  currentTool === "square" ||
-                  currentTool === "triangle" ||
-                  currentTool === "star"
-                ) {
-                  // Restaurer la grille sauvegardée puis dessiner la forme
-                  if (shapePreviewGrid && shapeStartPos) {
-                    pixelArtGrid = JSON.parse(JSON.stringify(shapePreviewGrid));
-                    previewShape(
-                      shapeStartPos.row,
-                      shapeStartPos.col,
-                      row,
-                      col
-                    );
-                  }
+                // Capturer le pointeur sur la grille
+                const pixelGrid = document.getElementById("pixelGrid");
+                if (pixelGrid) {
+                  pixelGrid.setPointerCapture(e.pointerId);
                 }
               }
             });
 
+            // Utiliser pointermove sur la cellule pour une meilleure fluidité
             cell.addEventListener("pointermove", function (e) {
               // Vérifier que le pointeur est actif (bouton pressé)
               if (e.buttons === 1 && isPainting) {
+                e.preventDefault();
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
 
@@ -2786,8 +2782,11 @@
             });
 
             cell.addEventListener("pointerup", function (e) {
-              // Libérer le pointeur
-              this.releasePointerCapture(e.pointerId);
+              // Libérer le pointeur sur la grille
+              const pixelGrid = document.getElementById("pixelGrid");
+              if (pixelGrid) {
+                pixelGrid.releasePointerCapture(e.pointerId);
+              }
               if (isPainting) {
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
@@ -2826,9 +2825,45 @@
             });
           });
 
-          // Arrêter de peindre si le pointeur sort de la grille
+          // Gestionnaire pointermove sur la grille entière pour une meilleure fluidité
           const pixelGrid = document.getElementById("pixelGrid");
           if (pixelGrid) {
+            pixelGrid.addEventListener("pointermove", function (e) {
+              if (e.buttons === 1 && isPainting) {
+                e.preventDefault();
+                // Trouver la cellule sous le pointeur en utilisant elementFromPoint
+                const element = document.elementFromPoint(e.clientX, e.clientY);
+                if (element && element.classList.contains("pixel-cell")) {
+                  const row = parseInt(element.getAttribute("data-row"));
+                  const col = parseInt(element.getAttribute("data-col"));
+
+                  if (row >= 0 && row < 70 && col >= 0 && col < 70) {
+                    if (currentTool === "paint" || currentTool === "erase") {
+                      paintPixel(row, col);
+                    } else if (
+                      currentTool === "circle" ||
+                      currentTool === "square" ||
+                      currentTool === "triangle" ||
+                      currentTool === "star"
+                    ) {
+                      // Restaurer la grille sauvegardée puis dessiner la forme
+                      if (shapePreviewGrid && shapeStartPos) {
+                        pixelArtGrid = JSON.parse(
+                          JSON.stringify(shapePreviewGrid)
+                        );
+                        previewShape(
+                          shapeStartPos.row,
+                          shapeStartPos.col,
+                          row,
+                          col
+                        );
+                      }
+                    }
+                  }
+                }
+              }
+            });
+
             pixelGrid.addEventListener("pointerleave", function (e) {
               if (isPainting) {
                 if (currentTool === "paint" || currentTool === "erase") {
@@ -2861,6 +2896,11 @@
 
           // Arrêter de peindre si on relâche le pointeur n'importe où
           document.addEventListener("pointerup", function (e) {
+            // Libérer le pointeur sur la grille
+            const pixelGrid = document.getElementById("pixelGrid");
+            if (pixelGrid) {
+              pixelGrid.releasePointerCapture(e.pointerId);
+            }
             if (isPainting) {
               if (currentTool === "paint" || currentTool === "erase") {
                 isPainting = false;
@@ -2930,15 +2970,9 @@
           selectTool("paint");
           updateUndoRedoButtons();
 
-          // Initialiser les valeurs des tailles
-          const brushSizeInput = document.getElementById("brushSizeInput");
-          const eraserSizeInput = document.getElementById("eraserSizeInput");
-          if (brushSizeInput) {
-            brushSizeInput.value = brushSize;
-          }
-          if (eraserSizeInput) {
-            eraserSizeInput.value = eraserSize;
-          }
+          // Initialiser les boutons de taille
+          setBrushSize(brushSize);
+          setEraserSize(eraserSize);
         }, 10);
       }
 
@@ -3051,6 +3085,17 @@
             }
           }
         });
+
+        // Afficher/masquer les sélecteurs de taille
+        const brushSizeSelector = document.getElementById("brushSizeSelector");
+        const eraserSizeSelector =
+          document.getElementById("eraserSizeSelector");
+        if (brushSizeSelector) {
+          brushSizeSelector.style.display = tool === "paint" ? "flex" : "none";
+        }
+        if (eraserSizeSelector) {
+          eraserSizeSelector.style.display = tool === "erase" ? "flex" : "none";
+        }
 
         // Mettre à jour le message d'état
         const toolStatus = document.getElementById("toolStatus");
@@ -3175,25 +3220,45 @@
         }
       }
 
-      // Fonction pour mettre à jour la taille du pinceau
-      function updateBrushSize() {
-        const input = document.getElementById("brushSizeInput");
-        if (input) {
-          brushSize = parseInt(input.value) || 1;
-          if (brushSize < 1) brushSize = 1;
-          if (brushSize > 10) brushSize = 10;
-          input.value = brushSize;
+      // Fonction pour définir la taille du pinceau
+      function setBrushSize(size) {
+        brushSize = size;
+        // Mettre à jour l'affichage des boutons
+        const selector = document.getElementById("brushSizeSelector");
+        if (selector) {
+          selector.querySelectorAll(".sizeBtn").forEach((btn) => {
+            const btnSize = parseInt(btn.getAttribute("data-size"));
+            if (btnSize === size) {
+              btn.style.background = "#667eea";
+              btn.style.color = "white";
+              btn.style.borderColor = "#667eea";
+            } else {
+              btn.style.background = "white";
+              btn.style.color = "#333";
+              btn.style.borderColor = "#ccc";
+            }
+          });
         }
       }
 
-      // Fonction pour mettre à jour la taille de la gomme
-      function updateEraserSize() {
-        const input = document.getElementById("eraserSizeInput");
-        if (input) {
-          eraserSize = parseInt(input.value) || 1;
-          if (eraserSize < 1) eraserSize = 1;
-          if (eraserSize > 10) eraserSize = 10;
-          input.value = eraserSize;
+      // Fonction pour définir la taille de la gomme
+      function setEraserSize(size) {
+        eraserSize = size;
+        // Mettre à jour l'affichage des boutons
+        const selector = document.getElementById("eraserSizeSelector");
+        if (selector) {
+          selector.querySelectorAll(".sizeBtn").forEach((btn) => {
+            const btnSize = parseInt(btn.getAttribute("data-size"));
+            if (btnSize === size) {
+              btn.style.background = "#667eea";
+              btn.style.color = "white";
+              btn.style.borderColor = "#667eea";
+            } else {
+              btn.style.background = "white";
+              btn.style.color = "#333";
+              btn.style.borderColor = "#ccc";
+            }
+          });
         }
       }
 
