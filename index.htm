@@ -1213,11 +1213,26 @@
 
         output.innerHTML = html;
 
-        // Ajouter les événements double-clic sur les séquences ADN
+        // Ajouter les événements double-clic/double-tap sur les séquences ADN
         output.querySelectorAll(".decode-dna").forEach((span) => {
+          // Double-clic pour desktop
           span.addEventListener("dblclick", function () {
             const dnaSequence = this.getAttribute("data-dna");
             openDecodeModal(dnaSequence, this);
+          });
+
+          // Double-tap pour mobile/tactile
+          let lastTap = 0;
+          span.addEventListener("touchend", function (e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+              // Double tap détecté
+              e.preventDefault();
+              const dnaSequence = this.getAttribute("data-dna");
+              openDecodeModal(dnaSequence, this);
+            }
+            lastTap = currentTime;
           });
         });
       }
@@ -1491,10 +1506,24 @@
             newSpan.style.cursor = "pointer";
             newSpan.title = "Double-cliquez pour modifier";
 
-            // Ajouter l'événement de double-clic pour permettre de modifier à nouveau
+            // Ajouter l'événement de double-clic/double-tap pour permettre de modifier à nouveau
             newSpan.addEventListener("dblclick", function () {
               const dnaSequence = this.getAttribute("data-dna");
               openDecodeModal(dnaSequence, this);
+            });
+
+            // Double-tap pour mobile/tactile
+            let lastTap = 0;
+            newSpan.addEventListener("touchend", function (e) {
+              const currentTime = new Date().getTime();
+              const tapLength = currentTime - lastTap;
+              if (tapLength < 300 && tapLength > 0) {
+                // Double tap détecté
+                e.preventDefault();
+                const dnaSequence = this.getAttribute("data-dna");
+                openDecodeModal(dnaSequence, this);
+              }
+              lastTap = currentTime;
             });
 
             // Remplacer l'ancien span par le nouveau
@@ -2629,7 +2658,7 @@
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
 
         html +=
-          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 840px; max-height: 840px; overflow: auto; user-select: none;">';
+          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 840px; max-height: 840px; overflow: auto; user-select: none; touch-action: none;">';
 
         for (let i = 0; i < gridSize; i++) {
           for (let j = 0; j < gridSize; j++) {
@@ -2648,6 +2677,7 @@
                 background: ${color}; 
                 cursor: crosshair;
                 border: 1px solid rgba(0,0,0,0.1);
+                touch-action: none;
               "
             ></div>`;
           }
@@ -2674,8 +2704,11 @@
           let isPainting = false;
 
           pixelCells.forEach((cell) => {
-            cell.addEventListener("mousedown", function (e) {
+            // Utiliser l'API Pointer Events pour une meilleure prise en charge des stylets et du tactile
+            cell.addEventListener("pointerdown", function (e) {
               e.preventDefault();
+              // Accepter le pointeur (important pour les stylets)
+              this.setPointerCapture(e.pointerId);
               const row = parseInt(this.getAttribute("data-row"));
               const col = parseInt(this.getAttribute("data-col"));
 
@@ -2696,8 +2729,9 @@
               }
             });
 
-            cell.addEventListener("mouseenter", function (e) {
-              if (isPainting) {
+            cell.addEventListener("pointerenter", function (e) {
+              // Vérifier que le pointeur est actif (bouton pressé)
+              if (e.buttons === 1 && isPainting) {
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
 
@@ -2723,7 +2757,37 @@
               }
             });
 
-            cell.addEventListener("mouseup", function () {
+            cell.addEventListener("pointermove", function (e) {
+              // Vérifier que le pointeur est actif (bouton pressé)
+              if (e.buttons === 1 && isPainting) {
+                const row = parseInt(this.getAttribute("data-row"));
+                const col = parseInt(this.getAttribute("data-col"));
+
+                if (currentTool === "paint" || currentTool === "erase") {
+                  paintPixel(row, col);
+                } else if (
+                  currentTool === "circle" ||
+                  currentTool === "square" ||
+                  currentTool === "triangle" ||
+                  currentTool === "star"
+                ) {
+                  // Restaurer la grille sauvegardée puis dessiner la forme
+                  if (shapePreviewGrid && shapeStartPos) {
+                    pixelArtGrid = JSON.parse(JSON.stringify(shapePreviewGrid));
+                    previewShape(
+                      shapeStartPos.row,
+                      shapeStartPos.col,
+                      row,
+                      col
+                    );
+                  }
+                }
+              }
+            });
+
+            cell.addEventListener("pointerup", function (e) {
+              // Libérer le pointeur
+              this.releasePointerCapture(e.pointerId);
               if (isPainting) {
                 const row = parseInt(this.getAttribute("data-row"));
                 const col = parseInt(this.getAttribute("data-col"));
@@ -2753,12 +2817,19 @@
                 }
               }
             });
+
+            cell.addEventListener("pointerleave", function (e) {
+              // Libérer le pointeur si on sort de la cellule
+              if (e.pointerId !== undefined) {
+                this.releasePointerCapture(e.pointerId);
+              }
+            });
           });
 
-          // Arrêter de peindre si la souris sort de la grille
+          // Arrêter de peindre si le pointeur sort de la grille
           const pixelGrid = document.getElementById("pixelGrid");
           if (pixelGrid) {
-            pixelGrid.addEventListener("mouseleave", function () {
+            pixelGrid.addEventListener("pointerleave", function (e) {
               if (isPainting) {
                 if (currentTool === "paint" || currentTool === "erase") {
                   isPainting = false;
@@ -2788,8 +2859,8 @@
             });
           }
 
-          // Arrêter de peindre si on relâche la souris n'importe où
-          document.addEventListener("mouseup", function () {
+          // Arrêter de peindre si on relâche le pointeur n'importe où
+          document.addEventListener("pointerup", function (e) {
             if (isPainting) {
               if (currentTool === "paint" || currentTool === "erase") {
                 isPainting = false;
@@ -2817,6 +2888,29 @@
               }
             }
           });
+
+          // Désactiver les actions par défaut du navigateur (zoom, sélection, etc.)
+          if (pixelGrid) {
+            pixelGrid.addEventListener(
+              "touchstart",
+              function (e) {
+                if (e.touches.length > 1) {
+                  e.preventDefault(); // Empêcher le zoom à deux doigts
+                }
+              },
+              { passive: false }
+            );
+
+            pixelGrid.addEventListener(
+              "touchmove",
+              function (e) {
+                if (e.touches.length > 1) {
+                  e.preventDefault(); // Empêcher le zoom à deux doigts
+                }
+              },
+              { passive: false }
+            );
+          }
 
           // Raccourcis clavier pour undo/redo
           document.addEventListener("keydown", function (e) {
