@@ -2505,6 +2505,8 @@
       let currentTool = "paint"; // Outil actuel : "paint", "erase", "circle", "square", "triangle", "star"
       let shapeStartPos = null; // Position de départ pour les formes
       let shapePreviewGrid = null; // Grille sauvegardée avant le dessin de forme (pour prévisualisation)
+      let brushSize = 1; // Taille du pinceau (en pixels)
+      let eraserSize = 1; // Taille de la gomme (en pixels)
 
       // Fonction pour ouvrir l'éditeur pixel art
       function openPixelArtEditor() {
@@ -2599,21 +2601,29 @@
         html +=
           '<button id="redoBtn" onclick="redoPixelArt()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Refaire (Ctrl+Y)">↷ Refaire</button>';
         html +=
+          '<button id="clearBtn" onclick="clearPixelArt()" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Effacer toute la grille">🧼 Page blanche</button>';
+        html +=
           '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
         html +=
           '<button id="paintToolBtn" onclick="selectTool(\'paint\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Pinceau">🖌️ Pinceau</button>';
+        html +=
+          '<label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">Taille: <input type="number" id="brushSizeInput" min="1" max="10" value="1" style="width: 50px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" onchange="updateBrushSize()"></label>';
+        html +=
+          '<button id="eraseToolBtn" onclick="selectTool(\'erase\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Gomme">🧹 Gomme</button>';
+        html +=
+          '<label style="display: flex; align-items: center; gap: 5px; font-size: 0.9rem;">Taille: <input type="number" id="eraserSizeInput" min="1" max="10" value="1" style="width: 50px; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" onchange="updateEraserSize()"></label>';
         html +=
           '<button id="eraseToolBtn" onclick="selectTool(\'erase\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Gomme">🧹 Gomme</button>';
         html +=
           '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
         html +=
-          '<button id="circleToolBtn" onclick="selectTool(\'circle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Cercle (2 clics)">⭕ Cercle</button>';
+          '<button id="circleToolBtn" onclick="selectTool(\'circle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Cercle - Cliquez et glissez">⭕ Cercle</button>';
         html +=
-          '<button id="squareToolBtn" onclick="selectTool(\'square\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Carré (2 clics)">⬜ Carré</button>';
+          '<button id="squareToolBtn" onclick="selectTool(\'square\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Carré - Cliquez et glissez">⬜ Carré</button>';
         html +=
-          '<button id="triangleToolBtn" onclick="selectTool(\'triangle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Triangle (2 clics)">🔺 Triangle</button>';
+          '<button id="triangleToolBtn" onclick="selectTool(\'triangle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Triangle - Cliquez et glissez">🔺 Triangle</button>';
         html +=
-          '<button id="starToolBtn" onclick="selectTool(\'star\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Étoile (2 clics)">⭐ Étoile</button>';
+          '<button id="starToolBtn" onclick="selectTool(\'star\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Étoile - Cliquez et glissez">⭐ Étoile</button>';
         html += "</div>";
         html +=
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
@@ -2825,6 +2835,16 @@
           // Initialiser les boutons d'outils
           selectTool("paint");
           updateUndoRedoButtons();
+
+          // Initialiser les valeurs des tailles
+          const brushSizeInput = document.getElementById("brushSizeInput");
+          const eraserSizeInput = document.getElementById("eraserSizeInput");
+          if (brushSizeInput) {
+            brushSizeInput.value = brushSize;
+          }
+          if (eraserSizeInput) {
+            eraserSizeInput.value = eraserSize;
+          }
         }, 10);
       }
 
@@ -2981,28 +3001,50 @@
         }
       }
 
-      // Fonction pour peindre un pixel
+      // Fonction pour peindre un pixel (ou une zone selon la taille)
       function paintPixel(row, col, skipHistory = false) {
         if (currentTool === "paint") {
           if (window.selectedColorIndex === undefined) return;
-          pixelArtGrid[row][col] = window.selectedColorIndex;
+          const size = brushSize;
+          const halfSize = Math.floor(size / 2);
+          // Peindre un carré centré sur le pixel
+          for (
+            let i = Math.max(0, row - halfSize);
+            i <= Math.min(69, row + halfSize);
+            i++
+          ) {
+            for (
+              let j = Math.max(0, col - halfSize);
+              j <= Math.min(69, col + halfSize);
+              j++
+            ) {
+              pixelArtGrid[i][j] = window.selectedColorIndex;
+            }
+          }
         } else if (currentTool === "erase") {
-          pixelArtGrid[row][col] = 0; // Blanc (AAA)
+          const size = eraserSize;
+          const halfSize = Math.floor(size / 2);
+          // Effacer un carré centré sur le pixel
+          for (
+            let i = Math.max(0, row - halfSize);
+            i <= Math.min(69, row + halfSize);
+            i++
+          ) {
+            for (
+              let j = Math.max(0, col - halfSize);
+              j <= Math.min(69, col + halfSize);
+              j++
+            ) {
+              pixelArtGrid[i][j] = 0; // Blanc (AAA)
+            }
+          }
         } else {
           // Pour les formes, on gère différemment
           return;
         }
 
-        const colorIndex = pixelArtGrid[row][col];
-        const color = colorPalette[colorIndex];
-
-        // Mettre à jour l'affichage du pixel
-        const pixel = document.querySelector(
-          `.pixel-cell[data-row="${row}"][data-col="${col}"]`
-        );
-        if (pixel) {
-          pixel.style.background = color;
-        }
+        // Rafraîchir l'affichage de toute la zone affectée
+        refreshPixelGrid();
 
         // Mettre à jour la séquence ADN
         updateDNASequence();
@@ -3014,6 +3056,50 @@
           window.paintTimeout = setTimeout(() => {
             saveToHistory();
           }, 100);
+        }
+      }
+
+      // Fonction pour effacer toute la grille (page blanche)
+      function clearPixelArt() {
+        if (
+          confirm(
+            "Voulez-vous effacer toute la grille ? Cette action ne peut pas être annulée."
+          )
+        ) {
+          const gridSize = 70;
+          for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+              pixelArtGrid[i][j] = 0; // Blanc (AAA)
+            }
+          }
+          refreshPixelGrid();
+          updateDNASequence();
+          // Réinitialiser l'historique avec cette nouvelle grille
+          pixelArtHistory = [JSON.parse(JSON.stringify(pixelArtGrid))];
+          pixelArtHistoryIndex = 0;
+          updateUndoRedoButtons();
+        }
+      }
+
+      // Fonction pour mettre à jour la taille du pinceau
+      function updateBrushSize() {
+        const input = document.getElementById("brushSizeInput");
+        if (input) {
+          brushSize = parseInt(input.value) || 1;
+          if (brushSize < 1) brushSize = 1;
+          if (brushSize > 10) brushSize = 10;
+          input.value = brushSize;
+        }
+      }
+
+      // Fonction pour mettre à jour la taille de la gomme
+      function updateEraserSize() {
+        const input = document.getElementById("eraserSizeInput");
+        if (input) {
+          eraserSize = parseInt(input.value) || 1;
+          if (eraserSize < 1) eraserSize = 1;
+          if (eraserSize > 10) eraserSize = 10;
+          input.value = eraserSize;
         }
       }
 
