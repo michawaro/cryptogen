@@ -947,15 +947,34 @@
               currentWord = "";
               currentWordDNA = "";
             }
-            // Ajouter un point seulement si le dernier élément n'est pas déjà un point
-            if (
-              words.length === 0 ||
-              words[words.length - 1].type !== "punctuation"
-            ) {
+            // Ajouter un point seulement si le dernier élément ajouté n'est pas déjà un point
+            // Ignorer les codons stop consécutifs
+            let shouldAddPoint = true;
+            if (words.length > 0) {
+              const lastElement = words[words.length - 1];
+              // Ne pas ajouter de point si le dernier élément est déjà un point
+              if (
+                lastElement.type === "punctuation" &&
+                lastElement.content === "."
+              ) {
+                shouldAddPoint = false;
+              }
+            }
+
+            if (shouldAddPoint) {
               words.push({ type: "punctuation", content: "." });
             }
             foundStopCodon = true;
             // Ne pas break, continuer après le codon stop
+            // Ignorer les codons stop consécutifs en sautant directement au prochain codon non-stop
+            while (i + 3 <= input.length - 3) {
+              const nextCodon = input.substring(i + 3, i + 6);
+              if (["TAA", "TAG", "TGA"].includes(nextCodon)) {
+                i += 3; // Sauter ce codon stop aussi
+              } else {
+                break; // Prochain codon n'est pas un stop, continuer normalement
+              }
+            }
             wordIndex++; // Passer au mot suivant après le point
           }
 
@@ -2061,16 +2080,10 @@
       // Fonction pour charger la séquence de test
       function loadTestSequence() {
         const testText =
-          "La transgenèse montre l'universalité de la structure de l'ADN, de la transcription ainsi que de la traduction en protéines. Ce sont autant d'arguments en faveur de l'existence d'un ancêtre commun, constitué d'une cellule, possédant de l'ADN contenant une information génétique assurant la production des protéines.";
+          "Science sans conscience n'est que ruine de l'âme. François Rabelais";
 
         // Mots à garder en séquence ADN (à trou)
-        const wordsToKeepAsDNA = [
-          "transgenèse",
-          "structure",
-          "transcription",
-          "traduction",
-          "ancêtre commun",
-        ];
+        const wordsToKeepAsDNA = ["conscience", "ruine", "rabelais"];
 
         // Mettre le texte dans le champ d'encodage
         const textInput = document.getElementById("textInput");
@@ -2165,64 +2178,13 @@
                 .trim();
 
               // Vérifier si ce mot doit être gardé en ADN
-              // Pour "ancêtre commun", vérifier si les deux mots consécutifs le forment
-              let shouldKeep = false;
               for (const wordToKeep of wordsToKeepAsDNA) {
                 const normalizedWordToKeep =
                   normalizeText(wordToKeep).toLowerCase();
                 if (normalizedDecoded === normalizedWordToKeep) {
-                  shouldKeep = true;
+                  selectedWordIndices.add(index);
                   break;
                 }
-                // Pour "ancêtre commun", vérifier si on a "ancêtre" et le mot suivant est "commun"
-                if (normalizedWordToKeep === "ancêtre commun") {
-                  if (
-                    normalizedDecoded === "ancêtre" &&
-                    index + 1 < wordPositions.length
-                  ) {
-                    const nextWordPos = wordPositions[index + 1];
-                    if (nextWordPos && nextWordPos.type === "word") {
-                      const nextWordDNA = output
-                        .getAttribute("data-dna-base")
-                        .substring(nextWordPos.start, nextWordPos.end);
-                      let nextDecodedWord = "";
-                      let nextIsCapital = false;
-                      for (let i = 0; i <= nextWordDNA.length - 3; i += 3) {
-                        const codon = nextWordDNA.substring(i, i + 3);
-                        if (codon === "AAA") {
-                          nextIsCapital = true;
-                          continue;
-                        }
-                        const char = geneticCode[codon];
-                        if (char && char !== "START" && char !== "Majuscule") {
-                          let displayChar = char;
-                          if (char === "é") displayChar = "É";
-                          if (char === "è") displayChar = "È";
-                          if (char === "ê") displayChar = "Ê";
-                          if (char === "ë") displayChar = "Ë";
-                          if (char === "ï") displayChar = "Ï";
-                          if (nextIsCapital && displayChar.length === 1) {
-                            displayChar = displayChar.toUpperCase();
-                            nextIsCapital = false;
-                          }
-                          nextDecodedWord += displayChar;
-                        }
-                      }
-                      const normalizedNext = normalizeText(nextDecodedWord)
-                        .toLowerCase()
-                        .trim();
-                      if (normalizedNext === "commun") {
-                        shouldKeep = true;
-                        selectedWordIndices.add(index + 1); // Ajouter aussi le mot suivant
-                        break;
-                      }
-                    }
-                  }
-                }
-              }
-
-              if (shouldKeep) {
-                selectedWordIndices.add(index);
               }
             }
           });
