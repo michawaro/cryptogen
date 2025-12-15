@@ -437,6 +437,12 @@
         >
           Exporter .fasta
         </button>
+        <button
+          onclick="openPixelArtEditor()"
+          style="margin-left: 10px; background: #9b59b6; color: white"
+        >
+          Pixel art
+        </button>
         <div class="output" id="dnaOutput"></div>
       </div>
 
@@ -493,6 +499,61 @@
           </thead>
           <tbody id="codeTable"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Fenêtre modale pour le pixel art -->
+    <div
+      id="pixelArtModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1001;
+        overflow-y: auto;
+      "
+    >
+      <div
+        style="
+          background: white;
+          margin: 20px auto;
+          padding: 30px;
+          border-radius: 12px;
+          max-width: 95%;
+          max-height: 95vh;
+          overflow-y: auto;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          "
+        >
+          <h2 style="margin: 0; color: #667eea">Éditeur Pixel Art</h2>
+          <button
+            id="closePixelArtModal"
+            style="
+              background: #ff6b6b;
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1.2rem;
+            "
+          >
+            ✕ Fermer
+          </button>
+        </div>
+        <div id="pixelArtContent"></div>
       </div>
     </div>
 
@@ -2310,6 +2371,271 @@
           "https://www.dropbox.com/scl/fi/5tp7jra3qf1ycya8j3jqs/Th-1A-C3-Rosalind-Message-final.mp4?rlkey=qwg9xohhya7c7t29cmrwi585f&raw=1";
         window.open(url, "_blank", "noopener,noreferrer");
       }
+
+      // Fonction pour générer tous les triplets possibles (64 triplets)
+      function generateAllTriplets() {
+        const bases = ["A", "T", "C", "G"];
+        const triplets = [];
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            for (let k = 0; k < 4; k++) {
+              triplets.push(bases[i] + bases[j] + bases[k]);
+            }
+          }
+        }
+        return triplets;
+      }
+
+      // Fonction pour générer 64 couleurs distinctes
+      function generate64Colors() {
+        const colors = [];
+        // Générer des couleurs variées en utilisant différentes teintes
+        const hueStep = 360 / 64;
+        for (let i = 0; i < 64; i++) {
+          const hue = (i * hueStep) % 360;
+          const saturation = 60 + (i % 3) * 15; // Entre 60% et 90%
+          const lightness = 40 + (i % 4) * 10; // Entre 40% et 70%
+          colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+        }
+        return colors;
+      }
+
+      // Variables globales pour le pixel art
+      let pixelArtGrid = []; // Grille 50x50 stockant les indices de couleur
+      let tripletToColorMap = {}; // Mapping triplet -> couleur
+      let colorToTripletMap = {}; // Mapping couleur -> triplet
+      let colorPalette = []; // Palette de 64 couleurs
+
+      // Fonction pour ouvrir l'éditeur pixel art
+      function openPixelArtEditor() {
+        const modal = document.getElementById("pixelArtModal");
+        const content = document.getElementById("pixelArtContent");
+
+        // Générer les triplets et les couleurs
+        const triplets = generateAllTriplets();
+        const colors = generate64Colors();
+        colorPalette = colors;
+
+        // Créer les mappings
+        triplets.forEach((triplet, index) => {
+          tripletToColorMap[triplet] = colors[index];
+          colorToTripletMap[colors[index]] = triplet;
+        });
+
+        // Initialiser la grille avec AAA (blanc) pour tous les carreaux
+        const gridSize = 50;
+        pixelArtGrid = [];
+        for (let i = 0; i < gridSize; i++) {
+          pixelArtGrid[i] = [];
+          for (let j = 0; j < gridSize; j++) {
+            pixelArtGrid[i][j] = 0; // Index 0 = AAA (première couleur)
+          }
+        }
+
+        // Initialiser la séquence dans dnaOutput avec 7500 A (2500 × AAA)
+        const initialSequence = "AAA".repeat(gridSize * gridSize);
+        const dnaOutput = document.getElementById("dnaOutput");
+        dnaOutput.textContent = initialSequence;
+        dnaOutput.setAttribute("data-dna-sequence", initialSequence);
+
+        // Créer l'interface
+        let html = '<div style="display: flex; gap: 20px; flex-wrap: wrap;">';
+
+        // Palette de couleurs (64 couleurs)
+        html += '<div style="flex: 0 0 200px;">';
+        html +=
+          '<h3 style="margin-top: 0; color: #667eea;">Palette de couleurs</h3>';
+        html +=
+          '<div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin-bottom: 20px;">';
+        colors.forEach((color, index) => {
+          const triplet = triplets[index];
+          html += `<div 
+            class="color-swatch" 
+            data-color-index="${index}"
+            data-triplet="${triplet}"
+            style="
+              width: 20px; 
+              height: 20px; 
+              background: ${color}; 
+              border: 2px solid #333; 
+              cursor: pointer;
+              border-radius: 3px;
+            "
+            title="${triplet} - ${color}"
+            onclick="selectColor(${index})"
+          ></div>`;
+        });
+        html += "</div>";
+        html +=
+          '<div id="selectedColorInfo" style="padding: 10px; background: #f0f0f0; border-radius: 6px; margin-top: 10px;">';
+        html +=
+          '<strong>Triplet sélectionné:</strong> <span id="selectedTriplet">AAA</span>';
+        html += "</div>";
+        html += "</div>";
+
+        // Grille de pixel art
+        html += '<div style="flex: 1; min-width: 500px;">';
+        html += '<h3 style="margin-top: 0; color: #667eea;">Grille 50×50</h3>';
+        html +=
+          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(50, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 600px; max-height: 600px; overflow: auto; user-select: none;">';
+
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            const colorIndex = pixelArtGrid[i][j];
+            const color = colors[colorIndex];
+            html += `<div 
+              class="pixel-cell" 
+              data-row="${i}" 
+              data-col="${j}"
+              style="
+                width: 10px; 
+                height: 10px; 
+                background: ${color}; 
+                cursor: crosshair;
+                border: 1px solid rgba(0,0,0,0.1);
+              "
+            ></div>`;
+          }
+        }
+        html += "</div>";
+        html += "</div>";
+
+        html += "</div>";
+
+        content.innerHTML = html;
+        modal.style.display = "block";
+
+        // Initialiser la couleur sélectionnée
+        window.selectedColorIndex = 0;
+        updateSelectedColorDisplay();
+        updateDNASequence();
+
+        // Ajouter les event listeners pour les pixels
+        setTimeout(() => {
+          const pixelCells = document.querySelectorAll(".pixel-cell");
+          let isPainting = false;
+
+          pixelCells.forEach((cell) => {
+            cell.addEventListener("mousedown", function (e) {
+              e.preventDefault();
+              isPainting = true;
+              const row = parseInt(this.getAttribute("data-row"));
+              const col = parseInt(this.getAttribute("data-col"));
+              paintPixel(row, col);
+            });
+
+            cell.addEventListener("mouseenter", function (e) {
+              if (isPainting) {
+                const row = parseInt(this.getAttribute("data-row"));
+                const col = parseInt(this.getAttribute("data-col"));
+                paintPixel(row, col);
+              }
+            });
+
+            cell.addEventListener("mouseup", function () {
+              isPainting = false;
+            });
+          });
+
+          // Arrêter de peindre si la souris sort de la grille
+          const pixelGrid = document.getElementById("pixelGrid");
+          if (pixelGrid) {
+            pixelGrid.addEventListener("mouseleave", function () {
+              isPainting = false;
+            });
+          }
+
+          // Arrêter de peindre si on relâche la souris n'importe où
+          document.addEventListener("mouseup", function () {
+            isPainting = false;
+          });
+        }, 10);
+      }
+
+      // Fonction pour sélectionner une couleur
+      function selectColor(colorIndex) {
+        window.selectedColorIndex = colorIndex;
+        updateSelectedColorDisplay();
+
+        // Mettre à jour l'affichage des swatches
+        document.querySelectorAll(".color-swatch").forEach((swatch, index) => {
+          if (index === colorIndex) {
+            swatch.style.border = "3px solid #667eea";
+            swatch.style.transform = "scale(1.1)";
+          } else {
+            swatch.style.border = "2px solid #333";
+            swatch.style.transform = "scale(1)";
+          }
+        });
+      }
+
+      // Fonction pour mettre à jour l'affichage de la couleur sélectionnée
+      function updateSelectedColorDisplay() {
+        const selectedTripletSpan = document.getElementById("selectedTriplet");
+        if (selectedTripletSpan && window.selectedColorIndex !== undefined) {
+          const triplets = generateAllTriplets();
+          selectedTripletSpan.textContent = triplets[window.selectedColorIndex];
+        }
+      }
+
+      // Fonction pour peindre un pixel
+      function paintPixel(row, col) {
+        if (window.selectedColorIndex === undefined) return;
+
+        pixelArtGrid[row][col] = window.selectedColorIndex;
+        const color = colorPalette[window.selectedColorIndex];
+
+        // Mettre à jour l'affichage du pixel
+        const pixel = document.querySelector(
+          `.pixel-cell[data-row="${row}"][data-col="${col}"]`
+        );
+        if (pixel) {
+          pixel.style.background = color;
+        }
+
+        // Mettre à jour la séquence ADN
+        updateDNASequence();
+      }
+
+      // Fonction pour mettre à jour la séquence ADN dans dnaOutput
+      function updateDNASequence() {
+        const triplets = generateAllTriplets();
+        let sequence = "";
+
+        // Parcourir la grille ligne par ligne
+        for (let i = 0; i < 50; i++) {
+          for (let j = 0; j < 50; j++) {
+            const colorIndex = pixelArtGrid[i][j];
+            const triplet = triplets[colorIndex];
+            sequence += triplet;
+          }
+        }
+
+        // Mettre à jour dnaOutput
+        const dnaOutput = document.getElementById("dnaOutput");
+        dnaOutput.textContent = sequence;
+        dnaOutput.setAttribute("data-dna-sequence", sequence);
+      }
+
+      // Fermer la modale pixel art
+      document.addEventListener("DOMContentLoaded", function () {
+        const closeBtn = document.getElementById("closePixelArtModal");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", function () {
+            document.getElementById("pixelArtModal").style.display = "none";
+          });
+        }
+
+        // Fermer en cliquant en dehors
+        const modal = document.getElementById("pixelArtModal");
+        if (modal) {
+          modal.addEventListener("click", function (e) {
+            if (e.target === this) {
+              this.style.display = "none";
+            }
+          });
+        }
+      });
 
       // Fonction pour exporter le code génétique en CSV
       function exportGeneticCode() {
