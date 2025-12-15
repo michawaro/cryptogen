@@ -301,13 +301,23 @@
           >.
         </p>
         <p class="subtitle" style="margin-top: 10px; font-size: 1rem">
-          Pour contacter le créateur de cette page (pour un feedback ou une
-          proposition de modification) écrire à
-          <a
-            href="mailto:michawaro.mail@gmail.com"
-            style="color: #667eea; text-decoration: underline"
-            >michawaro.mail@gmail.com</a
-          >.
+          Retour ou suggestions ?
+          <span
+            id="emailIcon"
+            style="
+              display: inline-block;
+              margin-left: 8px;
+              font-size: 1.2rem;
+              cursor: pointer;
+              transition: transform 0.2s ease, opacity 0.2s ease;
+              opacity: 0.8;
+            "
+            title="michawaro.mail@gmail.com"
+            onclick="copyEmailToClipboard()"
+            onmouseover="this.style.opacity='1'; this.style.transform='scale(1.15)'"
+            onmouseout="this.style.opacity='0.8'; this.style.transform='scale(1)'"
+            >📧</span
+          >
         </p>
       </header>
 
@@ -2223,6 +2233,28 @@
         const dnaInput = document.getElementById("dnaInput");
         dnaInput.textContent = fullSequence;
         colorizeDNAInput();
+      }
+
+      // Fonction pour copier l'adresse email dans le presse-papier
+      function copyEmailToClipboard() {
+        const email = "michawaro.mail@gmail.com";
+        navigator.clipboard
+          .writeText(email)
+          .then(() => {
+            // Feedback visuel temporaire
+            const icon = document.getElementById("emailIcon");
+            const originalTitle = icon.title;
+            icon.title = "Copié !";
+            icon.style.transform = "scale(1.2)";
+            setTimeout(() => {
+              icon.title = originalTitle;
+              icon.style.transform = "scale(1)";
+            }, 1000);
+          })
+          .catch((err) => {
+            console.error("Erreur lors de la copie :", err);
+            alert("Erreur lors de la copie de l'adresse email");
+          });
       }
 
       // Fonction pour exporter le code génétique en CSV
