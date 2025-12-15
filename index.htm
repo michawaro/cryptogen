@@ -732,7 +732,7 @@
 
         if (trouModeActive) {
           btn.classList.add("trou-mode-active");
-          btn.textContent = "Mode à trou actif (double-cliquez sur les mots)";
+          btn.textContent = "Double-cliquez sur les mots";
           // Réencoder pour permettre la sélection
           if (textInput.value.trim()) {
             encodeText();
@@ -997,6 +997,13 @@
         }
         // Nettoyer pour le décodage (enlever tout sauf A, T, C, G)
         let input = rawInput.toUpperCase().replace(/[^ATCG]/g, "");
+
+        // Détecter si c'est une image pixel art (7500 nucléotides = 2500 triplets pour une grille 50x50)
+        if (input.length === 7500) {
+          // C'est une image pixel art, ouvrir l'éditeur avec cette séquence
+          loadPixelArtFromSequence(input);
+          return;
+        }
 
         // Extraire les positions "à trou" AVANT de retirer le marqueur (chercher TGGTGG)
         const trouIndices = decodeTrouPositions(input);
@@ -2422,13 +2429,15 @@
           colorToTripletMap[colors[index]] = triplet;
         });
 
-        // Initialiser la grille avec AAA (blanc) pour tous les carreaux
+        // Initialiser la grille avec AAA (blanc) pour tous les carreaux si elle n'existe pas déjà
         const gridSize = 50;
-        pixelArtGrid = [];
-        for (let i = 0; i < gridSize; i++) {
-          pixelArtGrid[i] = [];
-          for (let j = 0; j < gridSize; j++) {
-            pixelArtGrid[i][j] = 0; // Index 0 = AAA (première couleur)
+        if (pixelArtGrid.length === 0 || pixelArtGrid.length !== gridSize) {
+          pixelArtGrid = [];
+          for (let i = 0; i < gridSize; i++) {
+            pixelArtGrid[i] = [];
+            for (let j = 0; j < gridSize; j++) {
+              pixelArtGrid[i][j] = 0; // Index 0 = AAA (première couleur)
+            }
           }
         }
 
@@ -2437,6 +2446,12 @@
         const dnaOutput = document.getElementById("dnaOutput");
         dnaOutput.textContent = initialSequence;
         dnaOutput.setAttribute("data-dna-sequence", initialSequence);
+
+        // Afficher les boutons d'export
+        const exportEDIBtn = document.getElementById("exportEDIBtn");
+        const exportFASTABtn = document.getElementById("exportFASTABtn");
+        if (exportEDIBtn) exportEDIBtn.style.display = "inline-block";
+        if (exportFASTABtn) exportFASTABtn.style.display = "inline-block";
 
         // Créer l'interface
         let html = '<div style="display: flex; gap: 20px; flex-wrap: wrap;">';
@@ -2481,7 +2496,10 @@
 
         for (let i = 0; i < gridSize; i++) {
           for (let j = 0; j < gridSize; j++) {
-            const colorIndex = pixelArtGrid[i][j];
+            const colorIndex =
+              pixelArtGrid[i] && pixelArtGrid[i][j] !== undefined
+                ? pixelArtGrid[i][j]
+                : 0;
             const color = colors[colorIndex];
             html += `<div 
               class="pixel-cell" 
@@ -2499,6 +2517,9 @@
         }
         html += "</div>";
         html += "</div>";
+
+        // Mettre à jour la séquence ADN avec la grille actuelle
+        updateDNASequence();
 
         html += "</div>";
 
@@ -2615,6 +2636,49 @@
         const dnaOutput = document.getElementById("dnaOutput");
         dnaOutput.textContent = sequence;
         dnaOutput.setAttribute("data-dna-sequence", sequence);
+
+        // Afficher les boutons d'export
+        const exportEDIBtn = document.getElementById("exportEDIBtn");
+        const exportFASTABtn = document.getElementById("exportFASTABtn");
+        if (exportEDIBtn) exportEDIBtn.style.display = "inline-block";
+        if (exportFASTABtn) exportFASTABtn.style.display = "inline-block";
+      }
+
+      // Fonction pour charger une séquence ADN dans l'éditeur pixel art
+      function loadPixelArtFromSequence(sequence) {
+        const triplets = generateAllTriplets();
+        const gridSize = 50;
+
+        // Vérifier que la séquence a la bonne longueur
+        if (sequence.length !== 7500) {
+          alert(
+            "La séquence doit faire exactement 7500 nucléotides (2500 triplets) pour être une image pixel art."
+          );
+          return;
+        }
+
+        // Extraire les triplets et trouver leurs indices dans la palette
+        pixelArtGrid = [];
+        for (let i = 0; i < gridSize; i++) {
+          pixelArtGrid[i] = [];
+          for (let j = 0; j < gridSize; j++) {
+            const tripletIndex = i * gridSize + j;
+            const triplet = sequence.substring(
+              tripletIndex * 3,
+              tripletIndex * 3 + 3
+            );
+            const colorIndex = triplets.indexOf(triplet);
+            if (colorIndex === -1) {
+              // Triplet non trouvé, utiliser AAA par défaut
+              pixelArtGrid[i][j] = 0;
+            } else {
+              pixelArtGrid[i][j] = colorIndex;
+            }
+          }
+        }
+
+        // Ouvrir l'éditeur avec la grille chargée
+        openPixelArtEditor();
       }
 
       // Fermer la modale pixel art
