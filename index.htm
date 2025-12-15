@@ -370,6 +370,12 @@
           <button onclick="loadTestSequence()" style="background: #b3ffb3">
             Tester
           </button>
+          <button
+            onclick="openScenarioVideo()"
+            style="background: #a76cf5; color: white; margin-left: 10px"
+          >
+            Scénario
+          </button>
         </div>
         <div
           id="dnaInput"
@@ -2297,6 +2303,13 @@
             console.error("Erreur lors de la copie :", err);
             alert("Erreur lors de la copie de l'adresse email");
           });
+      }
+
+      // Ouvrir la vidéo du scénario (Dropbox - mode lecture directe)
+      function openScenarioVideo() {
+        const url =
+          "https://www.dropbox.com/scl/fi/5tp7jra3qf1ycya8j3jqs/Th-1A-C3-Rosalind-Message-final.mp4?rlkey=qwg9xohhya7c7t29cmrwi585f&raw=1";
+        window.open(url, "_blank", "noopener,noreferrer");
       }
 
       // Fonction pour exporter le code génétique en CSV
