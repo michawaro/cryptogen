@@ -3364,6 +3364,140 @@
         return colors;
       }
 
+      // Fonction pour générer la palette Gustav Klimt (64 couleurs)
+      // L'index 0 (GGG) doit toujours être blanc pour que la feuille reste blanche lors du changement de palette
+      // RÈGLES STRICTES :
+      // - Exactement 64 codes HEX uniques
+      // - Aucun doublon strict (#RRGGBB)
+      // - Chaque couleur différente d'au moins 5 unités RGB de toute autre
+      function generateKlimtColors() {
+        const colors = [
+          // BLANC (1 couleur) - index 0 doit être blanc pour que la feuille reste blanche
+          "#FFFFFF", // 0 - GGG (blanc pour que la feuille reste blanche)
+
+          // COULEURS GUSTAV KLIMT (63 couleurs fournies, numérotées 1-64 dans la liste originale)
+          // Les 63 premières couleurs de la liste (1-63)
+          "#E0A125", // 1 (couleur 2 de la liste originale)
+          "#C48409", // 2 (couleur 3)
+          "#A8590D", // 3 (couleur 4)
+          "#AB6A23", // 4 (couleur 5)
+          "#CCA35A", // 5 (couleur 6)
+          "#C69B64", // 6 (couleur 7)
+          "#EDD4B1", // 7 (couleur 8)
+          "#B57F2C", // 8 (couleur 9)
+          "#C58D29", // 9 (couleur 10)
+          "#BF7A07", // 10 (couleur 11)
+          "#8E460C", // 11 (couleur 12)
+          "#833E18", // 12 (couleur 13)
+          "#AF864C", // 13 (couleur 14)
+          "#93723F", // 14 (couleur 15)
+          "#A59162", // 15 (couleur 16)
+          "#B67E1A", // 16 (couleur 17)
+          "#B18223", // 17 (couleur 18)
+          "#A95D07", // 18 (couleur 19)
+          "#80320F", // 19 (couleur 20)
+          "#712E17", // 20 (couleur 21)
+          "#8A6B33", // 21 (couleur 22)
+          "#575515", // 22 (couleur 23)
+          "#4E4C15", // 23 (couleur 24)
+          "#986623", // 24 (couleur 25)
+          "#A47C23", // 25 (couleur 26)
+          "#A35A0E", // 26 (couleur 27)
+          "#7E3325", // 27 (couleur 28)
+          "#AB865B", // 28 (couleur 29)
+          "#6D6531", // 29 (couleur 30)
+          "#334014", // 30 (couleur 31)
+          "#243615", // 31 (couleur 32)
+          "#7F4E19", // 32 (couleur 33)
+          "#C88625", // 33 (couleur 34)
+          "#CF8306", // 34 (couleur 35)
+          "#5D2929", // 35 (couleur 36)
+          "#613423", // 36 (couleur 37)
+          "#8F7121", // 37 (couleur 38)
+          "#40561C", // 38 (couleur 39)
+          "#2A5126", // 39 (couleur 40)
+          "#794B20", // 40 (couleur 41)
+          "#934A0C", // 41 (couleur 42)
+          "#975A0B", // 42 (couleur 43)
+          "#781B1A", // 43 (couleur 44)
+          "#3D2735", // 44 (couleur 45)
+          "#3A533C", // 45 (couleur 46)
+          "#18453D", // 46 (couleur 47)
+          "#22454E", // 47 (couleur 48)
+          "#773612", // 48 (couleur 49)
+          "#B26915", // 49 (couleur 50)
+          "#A56607", // 50 (couleur 51)
+          "#3B1E1C", // 51 (couleur 52)
+          "#252841", // 52 (couleur 53)
+          "#615833", // 53 (couleur 54)
+          "#2E3E36", // 54 (couleur 55)
+          "#2A2F34", // 55 (couleur 56)
+          "#721F11", // 56 (couleur 57)
+          "#CB8008", // 57 (couleur 58)
+          "#1F1915", // 58 (couleur 59)
+          "#A68E5F", // 59 (couleur 60)
+          "#17151E", // 60 (couleur 61)
+          "#795920", // 61 (couleur 62)
+          "#3C2F22", // 62 (couleur 63)
+          "#1C1E23", // 63 (couleur 64)
+          // Note: La couleur #B7811E (couleur 1 de la liste originale) est remplacée par #FFFFFF à l'index 0
+        ];
+
+        // Vérification stricte : exactement 64 couleurs uniques
+        const uniqueColors = new Set(colors);
+        if (colors.length !== 64) {
+          console.error(
+            `ERREUR: la palette Gustav Klimt contient ${colors.length} couleurs au lieu de 64`
+          );
+        }
+        if (uniqueColors.size !== 64) {
+          console.error(
+            `ERREUR: la palette Gustav Klimt contient ${
+              colors.length - uniqueColors.size
+            } doublons`
+          );
+        }
+
+        // Vérification de la distance RGB minimale (5 unités)
+        function hexToRgb(hex) {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          return result
+            ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16),
+              }
+            : null;
+        }
+
+        function rgbDistance(color1, color2) {
+          const rgb1 = hexToRgb(color1);
+          const rgb2 = hexToRgb(color2);
+          if (!rgb1 || !rgb2) return Infinity;
+          return Math.sqrt(
+            Math.pow(rgb1.r - rgb2.r, 2) +
+              Math.pow(rgb1.g - rgb2.g, 2) +
+              Math.pow(rgb1.b - rgb2.b, 2)
+          );
+        }
+
+        // Vérifier que chaque couleur est à au moins 5 unités de distance des autres
+        for (let i = 0; i < colors.length; i++) {
+          for (let j = i + 1; j < colors.length; j++) {
+            const distance = rgbDistance(colors[i], colors[j]);
+            if (distance < 5) {
+              console.warn(
+                `ATTENTION: Les couleurs ${colors[i]} et ${
+                  colors[j]
+                } sont trop proches (distance: ${distance.toFixed(2)})`
+              );
+            }
+          }
+        }
+
+        return colors;
+      }
+
       // Variables globales pour le pixel art
       let pixelArtGrid = []; // Grille 50x50 stockant les indices de couleur
       let currentPaletteType = "AAA"; // Type de palette actuelle : "AAA" (classique) ou "CCC" (Van Gogh)
@@ -3451,6 +3585,9 @@
         if (currentPaletteType === "CCC") {
           colors = generateVanGoghColors();
           paletteName = "Palette Van Gogh";
+        } else if (currentPaletteType === "GGG") {
+          colors = generateKlimtColors();
+          paletteName = "Palette Gustav Klimt";
         } else {
           colors = generate64Colors();
           paletteName = "Palette classique";
@@ -3518,6 +3655,9 @@
         html += `<option value="CCC" ${
           currentPaletteType === "CCC" ? "selected" : ""
         }>Palette Van Gogh (CCC)</option>`;
+        html += `<option value="GGG" ${
+          currentPaletteType === "GGG" ? "selected" : ""
+        }>Palette Gustav Klimt (GGG)</option>`;
         html += "</select>";
 
         // Afficher un message d'avertissement si un dessin existe
@@ -4863,7 +5003,19 @@
           // La séquence contient le triplet de palette au début
           paletteTriplet = sequence.substring(0, 3);
           imageSequence = sequence.substring(3); // Le reste de la séquence (14700 nucléotides)
-          currentPaletteType = paletteTriplet;
+          // Valider que le triplet de palette est valide (AAA, CCC, ou GGG)
+          if (
+            paletteTriplet === "AAA" ||
+            paletteTriplet === "CCC" ||
+            paletteTriplet === "GGG"
+          ) {
+            currentPaletteType = paletteTriplet;
+          } else {
+            alert(
+              `Triplet de palette invalide : ${paletteTriplet}. Utilisation de la palette classique (AAA) par défaut.`
+            );
+            currentPaletteType = "AAA";
+          }
         } else if (sequence.length === 14700) {
           // Pas de triplet de palette, utiliser AAA par défaut
           currentPaletteType = "AAA";
