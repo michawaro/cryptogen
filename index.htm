@@ -1391,8 +1391,10 @@
         // Nettoyer pour le décodage (enlever tout sauf A, T, C, G)
         let input = rawInput.toUpperCase().replace(/[^ATCG]/g, "");
 
-        // Détecter si c'est une image pixel art (14700 nucléotides = 4900 triplets pour une grille 70x70)
-        if (input.length === 14700) {
+        // Détecter si c'est une image pixel art (14700 ou 14703 nucléotides)
+        // 14700 = 4900 triplets pour une grille 70x70 (palette classique par défaut)
+        // 14703 = 1 triplet de palette + 4900 triplets pour une grille 70x70
+        if (input.length === 14700 || input.length === 14703) {
           // C'est une image pixel art, ouvrir l'éditeur avec cette séquence
           loadPixelArtFromSequence(input);
           return;
@@ -3215,8 +3217,90 @@
         return colors;
       }
 
+      // Fonction pour générer la palette Van Gogh (64 couleurs)
+      function generateVanGoghColors() {
+        const colors = [
+          "#060C14", // 0 - CCC (première couleur)
+          "#0449AF", // 1
+          "#043896", // 2
+          "#09346C", // 3
+          "#0D72CD", // 4
+          "#0E2649", // 5
+          "#253769", // 6
+          "#292923", // 7
+          "#2B3B18", // 8
+          "#32476D", // 9
+          "#354B85", // 10
+          "#39403C", // 11
+          "#3A81C0", // 12
+          "#404D57", // 13
+          "#47679B", // 14
+          "#4D5D6A", // 15
+          "#506989", // 16
+          "#6985A6", // 17
+          "#6D99C7", // 18
+          "#79877D", // 19
+          "#7D94A9", // 20
+          "#83A6CD", // 21
+          "#8E800D", // 22
+          "#8F8346", // 23
+          "#8F9065", // 24
+          "#95B4D7", // 25
+          "#A7A881", // 26
+          "#BFB97D", // 27
+          "#BD9C26", // 28
+          "#BF7808", // 29
+          "#C89608", // 30
+          "#D8A506", // 31
+          "#1A1F2B", // 32
+          "#22314F", // 33
+          "#2E5F9E", // 34
+          "#375E9C", // 35
+          "#4A6FAE", // 36
+          "#5C7FA8", // 37
+          "#6B8FB8", // 38
+          "#7FA2C9", // 39
+          "#8BB0D6", // 40
+          "#9FC0DE", // 41
+          "#102030", // 42
+          "#1C2E44", // 43
+          "#263B5C", // 44
+          "#314A73", // 45
+          "#3D5A8A", // 46
+          "#496AA1", // 47
+          "#557AB8", // 48
+          "#618ACF", // 49
+          "#6D9AE6", // 50
+          "#142A1A", // 51
+          "#2F4F2F", // 52
+          "#4B6B4B", // 53
+          "#678767", // 54
+          "#83A383", // 55
+          // Compléter avec des couleurs supplémentaires pour atteindre 64
+          "#060C14", // 56
+          "#0449AF", // 57
+          "#043896", // 58
+          "#09346C", // 59
+          "#0D72CD", // 60
+          "#0E2649", // 61
+          "#253769", // 62
+          "#292923", // 63
+          "#2B3B18", // 64 - dernière couleur pour compléter
+        ];
+
+        // S'assurer qu'on a exactement 64 couleurs
+        if (colors.length !== 64) {
+          console.warn(
+            `Attention: la palette Van Gogh contient ${colors.length} couleurs au lieu de 64`
+          );
+        }
+
+        return colors;
+      }
+
       // Variables globales pour le pixel art
       let pixelArtGrid = []; // Grille 50x50 stockant les indices de couleur
+      let currentPaletteType = "AAA"; // Type de palette actuelle : "AAA" (classique) ou "CCC" (Van Gogh)
       let tripletToColorMap = {}; // Mapping triplet -> couleur
       let colorToTripletMap = {}; // Mapping couleur -> triplet
       let colorPalette = []; // Palette de 64 couleurs
@@ -3250,14 +3334,30 @@
         openSaveFileModal("fasta");
       }
 
+      // Fonction pour changer de palette
+      function changePalette(paletteType) {
+        currentPaletteType = paletteType;
+        // Recharger l'éditeur avec la nouvelle palette
+        openPixelArtEditor();
+      }
+
       // Fonction pour ouvrir l'éditeur pixel art
       function openPixelArtEditor() {
         const modal = document.getElementById("pixelArtModal");
         const content = document.getElementById("pixelArtContent");
 
-        // Générer les triplets et les couleurs
+        // Générer les triplets et les couleurs selon la palette sélectionnée
         const triplets = generateAllTriplets();
-        const colors = generate64Colors();
+        let colors;
+        let paletteName;
+        if (currentPaletteType === "CCC") {
+          colors = generateVanGoghColors();
+          paletteName = "Palette Van Gogh";
+        } else {
+          colors = generate64Colors();
+          paletteName = "Palette classique";
+          currentPaletteType = "AAA"; // S'assurer que c'est AAA par défaut
+        }
         colorPalette = colors;
 
         // Créer les mappings
@@ -3266,20 +3366,22 @@
           colorToTripletMap[colors[index]] = triplet;
         });
 
-        // Initialiser la grille avec AAA (blanc) pour tous les carreaux si elle n'existe pas déjà
+        // Initialiser la grille avec la première couleur de la palette pour tous les carreaux si elle n'existe pas déjà
         const gridSize = 70;
         if (pixelArtGrid.length === 0 || pixelArtGrid.length !== gridSize) {
           pixelArtGrid = [];
           for (let i = 0; i < gridSize; i++) {
             pixelArtGrid[i] = [];
             for (let j = 0; j < gridSize; j++) {
-              pixelArtGrid[i][j] = 0; // Index 0 = AAA (première couleur)
+              pixelArtGrid[i][j] = 0; // Index 0 = première couleur de la palette
             }
           }
         }
 
-        // Initialiser la séquence dans dnaOutput avec 14700 A (4900 × AAA)
-        const initialSequence = "AAA".repeat(gridSize * gridSize);
+        // Initialiser la séquence dans dnaOutput avec le triplet de palette + 14700 triplets (4900 × 3)
+        const paletteTriplet = currentPaletteType;
+        const gridTriplets = currentPaletteType.repeat(gridSize * gridSize);
+        const initialSequence = paletteTriplet + gridTriplets;
         const dnaOutput = document.getElementById("dnaOutput");
         dnaOutput.textContent = initialSequence;
         dnaOutput.setAttribute("data-dna-sequence", initialSequence);
@@ -3299,8 +3401,20 @@
 
         // Palette de couleurs (64 couleurs)
         html += '<div style="flex: 0 0 200px;">';
+        html += '<div style="margin-bottom: 15px;">';
         html +=
-          '<h3 style="margin-top: 0; color: #667eea;">Palette de couleurs</h3>';
+          '<label style="display: block; margin-bottom: 5px; font-weight: bold; color: #667eea;">Sélectionner la palette :</label>';
+        html +=
+          '<select id="paletteSelector" onchange="changePalette(this.value)" style="padding: 8px; border: 2px solid #667eea; border-radius: 6px; font-size: 1rem; width: 100%;">';
+        html += `<option value="AAA" ${
+          currentPaletteType === "AAA" ? "selected" : ""
+        }>Palette classique (AAA)</option>`;
+        html += `<option value="CCC" ${
+          currentPaletteType === "CCC" ? "selected" : ""
+        }>Palette Van Gogh (CCC)</option>`;
+        html += "</select>";
+        html += "</div>";
+        html += `<h3 style="margin-top: 0; color: #667eea;">${paletteName}</h3>`;
         html +=
           '<div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin-bottom: 20px;">';
         colors.forEach((color, index) => {
@@ -3414,6 +3528,12 @@
 
         content.innerHTML = html;
         modal.style.display = "block";
+
+        // Mettre à jour le sélecteur de palette
+        const paletteSelector = document.getElementById("paletteSelector");
+        if (paletteSelector) {
+          paletteSelector.value = currentPaletteType;
+        }
 
         // Initialiser la couleur sélectionnée (noir par défaut, index 56)
         window.selectedColorIndex = 56;
@@ -4547,10 +4667,13 @@
           }
         }
 
+        // Ajouter le triplet de palette au début (14703 nucléotides au total)
+        const fullSequence = currentPaletteType + sequence;
+
         // Mettre à jour dnaOutput
         const dnaOutput = document.getElementById("dnaOutput");
-        dnaOutput.textContent = sequence;
-        dnaOutput.setAttribute("data-dna-sequence", sequence);
+        dnaOutput.textContent = fullSequence;
+        dnaOutput.setAttribute("data-dna-sequence", fullSequence);
 
         // Afficher le bouton d'export
         const exportBtn = document.getElementById("exportBtn");
@@ -4562,10 +4685,22 @@
         const triplets = generateAllTriplets();
         const gridSize = 70;
 
-        // Vérifier que la séquence a la bonne longueur
-        if (sequence.length !== 14700) {
+        // Vérifier que la séquence a la bonne longueur (14700 ou 14703 nucléotides)
+        let paletteTriplet = "AAA"; // Par défaut
+        let imageSequence = sequence;
+
+        if (sequence.length === 14703) {
+          // La séquence contient le triplet de palette au début
+          paletteTriplet = sequence.substring(0, 3);
+          imageSequence = sequence.substring(3); // Le reste de la séquence (14700 nucléotides)
+          currentPaletteType = paletteTriplet;
+        } else if (sequence.length === 14700) {
+          // Pas de triplet de palette, utiliser AAA par défaut
+          currentPaletteType = "AAA";
+          imageSequence = sequence;
+        } else {
           alert(
-            "La séquence doit faire exactement 14700 nucléotides (4900 triplets) pour être une image pixel art."
+            "La séquence doit faire exactement 14700 nucléotides (4900 triplets) ou 14703 nucléotides (1 triplet de palette + 4900 triplets) pour être une image pixel art."
           );
           return;
         }
@@ -4576,13 +4711,13 @@
           pixelArtGrid[i] = [];
           for (let j = 0; j < gridSize; j++) {
             const tripletIndex = i * gridSize + j;
-            const triplet = sequence.substring(
+            const triplet = imageSequence.substring(
               tripletIndex * 3,
               tripletIndex * 3 + 3
             );
             const colorIndex = triplets.indexOf(triplet);
             if (colorIndex === -1) {
-              // Triplet non trouvé, utiliser AAA par défaut
+              // Triplet non trouvé, utiliser l'index 0 par défaut
               pixelArtGrid[i][j] = 0;
             } else {
               pixelArtGrid[i][j] = colorIndex;
