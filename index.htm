@@ -3400,8 +3400,40 @@
         openSaveFileModal("fasta");
       }
 
+      // Fonction pour vérifier si un dessin existe (au moins un pixel n'est pas blanc)
+      function hasDrawing() {
+        const gridSize = 70;
+        if (pixelArtGrid.length === 0) return false;
+
+        for (let i = 0; i < gridSize; i++) {
+          if (!pixelArtGrid[i]) continue;
+          for (let j = 0; j < gridSize; j++) {
+            if (pixelArtGrid[i][j] !== undefined && pixelArtGrid[i][j] !== 0) {
+              return true; // Au moins un pixel n'est pas blanc (index 0)
+            }
+          }
+        }
+        return false; // Tous les pixels sont blancs
+      }
+
       // Fonction pour changer de palette
       function changePalette(paletteType) {
+        // Vérifier si un dessin existe
+        if (hasDrawing()) {
+          alert(
+            "Impossible de changer de palette !\n\n" +
+              "Un dessin a déjà été commencé avec la palette actuelle.\n" +
+              "Vous devez terminer ou effacer votre dessin avant de pouvoir changer de palette."
+          );
+          // Remettre le sélecteur à la palette actuelle
+          const paletteSelector = document.getElementById("paletteSelector");
+          if (paletteSelector) {
+            paletteSelector.value = currentPaletteType;
+          }
+          return; // Empêcher le changement
+        }
+
+        // Si pas de dessin, permettre le changement
         currentPaletteType = paletteType;
         // Recharger l'éditeur avec la nouvelle palette
         openPixelArtEditor();
@@ -3468,10 +3500,18 @@
         // Palette de couleurs (64 couleurs)
         html += '<div style="flex: 0 0 200px;">';
         html += '<div style="margin-bottom: 15px;">';
+
+        // Vérifier si un dessin existe
+        const drawingExists = hasDrawing();
+        const disabledStyle = drawingExists
+          ? "padding: 8px; border: 2px solid #ccc; border-radius: 6px; font-size: 1rem; width: 100%; background-color: #f5f5f5; color: #999; cursor: not-allowed;"
+          : "padding: 8px; border: 2px solid #667eea; border-radius: 6px; font-size: 1rem; width: 100%;";
+
         html +=
           '<label style="display: block; margin-bottom: 5px; font-weight: bold; color: #667eea;">Sélectionner la palette :</label>';
-        html +=
-          '<select id="paletteSelector" onchange="changePalette(this.value)" style="padding: 8px; border: 2px solid #667eea; border-radius: 6px; font-size: 1rem; width: 100%;">';
+        html += `<select id="paletteSelector" onchange="changePalette(this.value)" ${
+          drawingExists ? "disabled" : ""
+        } style="${disabledStyle}">`;
         html += `<option value="AAA" ${
           currentPaletteType === "AAA" ? "selected" : ""
         }>Palette classique (AAA)</option>`;
@@ -3479,6 +3519,16 @@
           currentPaletteType === "CCC" ? "selected" : ""
         }>Palette Van Gogh (CCC)</option>`;
         html += "</select>";
+
+        // Afficher un message d'avertissement si un dessin existe
+        if (drawingExists) {
+          html +=
+            '<div style="margin-top: 8px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 0.85rem; color: #856404;">';
+          html +=
+            "⚠️ Impossible de changer de palette : un dessin a déjà été commencé.";
+          html += "</div>";
+        }
+
         html += "</div>";
         html += `<h3 style="margin-top: 0; color: #667eea;">${paletteName}</h3>`;
         html +=
@@ -3600,6 +3650,11 @@
         if (paletteSelector) {
           paletteSelector.value = currentPaletteType;
         }
+
+        // Mettre à jour l'état du sélecteur (actif/désactivé selon si un dessin existe)
+        setTimeout(() => {
+          updatePaletteSelectorState();
+        }, 100);
 
         // Initialiser la couleur sélectionnée (noir par défaut, index 56)
         window.selectedColorIndex = 56;
@@ -4048,6 +4103,8 @@
           pixelArtHistoryIndex--;
         }
         updateUndoRedoButtons();
+        // Mettre à jour l'état du sélecteur de palette après chaque modification
+        updatePaletteSelectorState();
       }
 
       // Fonction pour annuler
@@ -4060,6 +4117,8 @@
           refreshPixelGrid();
           updateDNASequence();
           updateUndoRedoButtons();
+          // Mettre à jour l'état du sélecteur de palette
+          updatePaletteSelectorState();
         }
       }
 
@@ -4073,6 +4132,8 @@
           refreshPixelGrid();
           updateDNASequence();
           updateUndoRedoButtons();
+          // Mettre à jour l'état du sélecteur de palette
+          updatePaletteSelectorState();
         }
       }
 
@@ -4278,6 +4339,47 @@
       }
 
       // Fonction pour effacer toute la grille (page blanche)
+      // Fonction pour mettre à jour l'état du sélecteur de palette
+      function updatePaletteSelectorState() {
+        const paletteSelector = document.getElementById("paletteSelector");
+        if (!paletteSelector) return;
+
+        const drawingExists = hasDrawing();
+        if (drawingExists) {
+          paletteSelector.disabled = true;
+          paletteSelector.style.border = "2px solid #ccc";
+          paletteSelector.style.backgroundColor = "#f5f5f5";
+          paletteSelector.style.color = "#999";
+          paletteSelector.style.cursor = "not-allowed";
+
+          // Vérifier si le message d'avertissement existe déjà
+          let warningMsg =
+            paletteSelector.parentElement.querySelector(".palette-warning");
+          if (!warningMsg) {
+            warningMsg = document.createElement("div");
+            warningMsg.className = "palette-warning";
+            warningMsg.style.cssText =
+              "margin-top: 8px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 0.85rem; color: #856404;";
+            warningMsg.textContent =
+              "⚠️ Impossible de changer de palette : un dessin a déjà été commencé.";
+            paletteSelector.parentElement.appendChild(warningMsg);
+          }
+        } else {
+          paletteSelector.disabled = false;
+          paletteSelector.style.border = "2px solid #667eea";
+          paletteSelector.style.backgroundColor = "";
+          paletteSelector.style.color = "";
+          paletteSelector.style.cursor = "";
+
+          // Supprimer le message d'avertissement
+          const warningMsg =
+            paletteSelector.parentElement.querySelector(".palette-warning");
+          if (warningMsg) {
+            warningMsg.remove();
+          }
+        }
+      }
+
       function clearPixelArt() {
         if (
           confirm(
@@ -4296,6 +4398,8 @@
           pixelArtHistory = [JSON.parse(JSON.stringify(pixelArtGrid))];
           pixelArtHistoryIndex = 0;
           updateUndoRedoButtons();
+          // Réactiver le sélecteur de palette car le dessin est effacé
+          updatePaletteSelectorState();
         }
       }
 
@@ -4793,6 +4897,10 @@
 
         // Ouvrir l'éditeur avec la grille chargée
         openPixelArtEditor();
+        // Mettre à jour l'état du sélecteur de palette après le chargement
+        setTimeout(() => {
+          updatePaletteSelectorState();
+        }, 100);
       }
 
       // Fermer la modale pixel art
