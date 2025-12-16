@@ -3498,6 +3498,140 @@
         return colors;
       }
 
+      // Fonction pour générer la palette Claude Monet (64 couleurs)
+      // L'index 0 (TTT) doit toujours être blanc pour que la feuille reste blanche lors du changement de palette
+      // RÈGLES STRICTES :
+      // - Exactement 64 codes HEX uniques
+      // - Aucun doublon strict (#RRGGBB)
+      // - Chaque couleur différente d'au moins 5 unités RGB de toute autre
+      function generateMonetColors() {
+        const colors = [
+          // BLANC (1 couleur) - index 0 doit être blanc pour que la feuille reste blanche
+          "#FFFFFF", // 0 - TTT (blanc pour que la feuille reste blanche)
+
+          // COULEURS CLAUDE MONET (63 couleurs fournies, numérotées 1-64 dans la liste)
+          // Utilisation des couleurs 2-64 de la liste (la couleur 1 #B94C43 est remplacée par #FFFFFF)
+          "#A8635C", // 1 (couleur 2 de la liste)
+          "#FFE4E1", // 2 (couleur 3)
+          "#9E4737", // 3 (couleur 4)
+          "#9A6141", // 4 (couleur 5)
+          "#7C6556", // 5 (couleur 6)
+          "#FFF5EE", // 6 (couleur 7)
+          "#805B39", // 7 (couleur 8)
+          "#FFE4C4", // 8 (couleur 9)
+          "#FAEBD7", // 9 (couleur 10)
+          "#FFEBCD", // 10 (couleur 11)
+          "#FFEFD5", // 11 (couleur 12)
+          "#867543", // 12 (couleur 13)
+          "#736B46", // 13 (couleur 14)
+          "#FFFACD", // 14 (couleur 15)
+          "#736D35", // 15 (couleur 16)
+          "#666341", // 16 (couleur 17)
+          "#656133", // 17 (couleur 18)
+          "#FFFDD0", // 18 (couleur 19)
+          "#949261", // 19 (couleur 20)
+          "#767556", // 20 (couleur 21)
+          "#7A7B67", // 21 (couleur 22)
+          "#718235", // 22 (couleur 23)
+          "#545D36", // 23 (couleur 24)
+          "#666E50", // 24 (couleur 25)
+          "#607139", // 25 (couleur 26)
+          "#414937", // 26 (couleur 27)
+          "#4F6A3E", // 27 (couleur 28)
+          "#3F6138", // 28 (couleur 29)
+          "#F5FFF5", // 29 (couleur 30)
+          "#F0FFF0", // 30 (couleur 31)
+          "#88A589", // 31 (couleur 32)
+          "#303C32", // 32 (couleur 33)
+          "#2C5738", // 33 (couleur 34)
+          "#B6D0C0", // 34 (couleur 35)
+          "#F5FFFA", // 35 (couleur 36)
+          "#2A2C2B", // 36 (couleur 37)
+          "#95B7AD", // 37 (couleur 38)
+          "#B8D6D7", // 38 (couleur 39)
+          "#9FC5CA", // 39 (couleur 40)
+          "#425A5E", // 40 (couleur 41)
+          "#8DBBC4", // 41 (couleur 42)
+          "#A7CDD9", // 42 (couleur 43)
+          "#125E7A", // 43 (couleur 44)
+          "#73B1CB", // 44 (couleur 45)
+          "#52A0C5", // 45 (couleur 46)
+          "#8CBED6", // 46 (couleur 47)
+          "#B1D5E9", // 47 (couleur 48)
+          "#3598D5", // 48 (couleur 49)
+          "#96C5E2", // 49 (couleur 50)
+          "#138FDF", // 50 (couleur 51)
+          "#7AB8E2", // 51 (couleur 52)
+          "#C2DFF3", // 52 (couleur 53)
+          "#A2CDEB", // 53 (couleur 54)
+          "#65AEE3", // 54 (couleur 55)
+          "#4FA4E2", // 55 (couleur 56)
+          "#F8F8FF", // 56 (couleur 57)
+          "#E6E6FA", // 57 (couleur 58)
+          "#F0E6FF", // 58 (couleur 59)
+          "#FFF0F5", // 59 (couleur 60)
+          "#FFDAE0", // 60 (couleur 61)
+          "#DF1A33", // 61 (couleur 62)
+          "#D63645", // 62 (couleur 63)
+          "#BE2D32", // 63 (couleur 64)
+          // Note: La couleur #B94C43 (couleur 1 de la liste) est remplacée par #FFFFFF à l'index 0
+        ];
+
+        // Vérification stricte : exactement 64 couleurs uniques
+        const uniqueColors = new Set(colors);
+        if (colors.length !== 64) {
+          console.error(
+            `ERREUR: la palette Claude Monet contient ${colors.length} couleurs au lieu de 64`
+          );
+        }
+        if (uniqueColors.size !== 64) {
+          console.error(
+            `ERREUR: la palette Claude Monet contient ${
+              colors.length - uniqueColors.size
+            } doublons`
+          );
+        }
+
+        // Vérification de la distance RGB minimale (5 unités)
+        function hexToRgb(hex) {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          return result
+            ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16),
+              }
+            : null;
+        }
+
+        function rgbDistance(color1, color2) {
+          const rgb1 = hexToRgb(color1);
+          const rgb2 = hexToRgb(color2);
+          if (!rgb1 || !rgb2) return Infinity;
+          return Math.sqrt(
+            Math.pow(rgb1.r - rgb2.r, 2) +
+              Math.pow(rgb1.g - rgb2.g, 2) +
+              Math.pow(rgb1.b - rgb2.b, 2)
+          );
+        }
+
+        // Vérifier que chaque couleur est à au moins 5 unités de distance des autres
+        for (let i = 0; i < colors.length; i++) {
+          for (let j = i + 1; j < colors.length; j++) {
+            const distance = rgbDistance(colors[i], colors[j]);
+            if (distance < 5) {
+              console.warn(
+                `ATTENTION: Les couleurs ${colors[i]} et ${
+                  colors[j]
+                } sont trop proches (distance: ${distance.toFixed(2)})`
+              );
+            }
+          }
+        }
+
+        return colors;
+      }
+
       // Variables globales pour le pixel art
       let pixelArtGrid = []; // Grille 50x50 stockant les indices de couleur
       let currentPaletteType = "AAA"; // Type de palette actuelle : "AAA" (classique) ou "CCC" (Van Gogh)
@@ -3588,6 +3722,9 @@
         } else if (currentPaletteType === "GGG") {
           colors = generateKlimtColors();
           paletteName = "Palette Gustav Klimt";
+        } else if (currentPaletteType === "TTT") {
+          colors = generateMonetColors();
+          paletteName = "Palette Claude Monet";
         } else {
           colors = generate64Colors();
           paletteName = "Palette classique";
@@ -3658,6 +3795,9 @@
         html += `<option value="GGG" ${
           currentPaletteType === "GGG" ? "selected" : ""
         }>Palette Gustav Klimt (GGG)</option>`;
+        html += `<option value="TTT" ${
+          currentPaletteType === "TTT" ? "selected" : ""
+        }>Palette Claude Monet (TTT)</option>`;
         html += "</select>";
 
         // Afficher un message d'avertissement si un dessin existe
@@ -5003,11 +5143,12 @@
           // La séquence contient le triplet de palette au début
           paletteTriplet = sequence.substring(0, 3);
           imageSequence = sequence.substring(3); // Le reste de la séquence (14700 nucléotides)
-          // Valider que le triplet de palette est valide (AAA, CCC, ou GGG)
+          // Valider que le triplet de palette est valide (AAA, CCC, GGG, ou TTT)
           if (
             paletteTriplet === "AAA" ||
             paletteTriplet === "CCC" ||
-            paletteTriplet === "GGG"
+            paletteTriplet === "GGG" ||
+            paletteTriplet === "TTT"
           ) {
             currentPaletteType = paletteTriplet;
           } else {
