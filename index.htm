@@ -3219,86 +3219,144 @@
 
       // Fonction pour générer la palette Van Gogh (64 couleurs)
       // L'index 0 (CCC) doit toujours être blanc pour que la feuille reste blanche lors du changement de palette
+      // RÈGLES STRICTES :
+      // - Exactement 64 codes HEX uniques
+      // - Aucun doublon strict (#RRGGBB)
+      // - Chaque couleur différente d'au moins 5 unités RGB de toute autre
+      // - Ordre : Blancs, Bleus nuits, Jaunes/Oranges, Blancs chauds/crèmes, Gris/Noirs, Marrons/Terres, Violets/Pourpres
       function generateVanGoghColors() {
         const colors = [
+          // BLANCS (1 couleur)
           "#FFFFFF", // 0 - CCC (blanc pour que la feuille reste blanche)
-          // Bleus
+
+          // BLEUS NUITS (13 couleurs)
           "#0B1D51", // 1
-          "#102A8C", // 2
-          "#132FA3", // 3
-          "#1636C8", // 4
-          "#1A3BFF", // 5
-          "#2346A1", // 6
-          "#2C3E9F", // 7
-          "#304FFE", // 8
-          "#3949AB", // 9
-          "#1A237E", // 10
-          // Jaunes/Oranges
-          "#FFD200", // 11
-          "#FFEA00", // 12
-          "#FFC300", // 13
-          "#FFB000", // 14
-          "#FFA000", // 15
-          "#FF9F00", // 16
-          "#FFCC33", // 17
-          "#FFE066", // 18
-          "#F4D03F", // 19
-          "#EAC100", // 20
-          // Blancs/Crèmes
-          "#FFFDF7", // 21
-          "#FFF9E6", // 22
-          "#FFF6CC", // 23
-          "#FFF2B3", // 24
-          "#FDF5E6", // 25
-          "#FAF3DD", // 26
-          "#FFFBEA", // 27
-          // Gris
-          "#1C1C1C", // 28
-          "#2B2B2B", // 29
-          "#3A3A3A", // 30
-          "#555555", // 31
-          // Marrons
-          "#4A2C1D", // 32
-          "#6B3E26", // 33
-          "#8B5A2B", // 34
-          "#A97142", // 35
-          "#5C4033", // 36
-          // Violets/Magentas
-          "#4B3B6E", // 37
-          "#5E2D79", // 38
-          "#6A1B9A", // 39
-          "#7B1FA2", // 40
-          "#8E24AA", // 41
-          "#5A2040", // 42
-          "#7A003C", // 43
-          "#9C2542", // 44
-          // Compléter avec des variations pour atteindre 64
-          "#0B1D51", // 45 - bleu foncé
-          "#102A8C", // 46 - bleu
-          "#1636C8", // 47 - bleu clair
-          "#1A3BFF", // 48 - bleu vif
-          "#FFD200", // 49 - jaune vif
-          "#FFC300", // 50 - jaune-orange
-          "#FFB000", // 51 - orange
-          "#FFFDF7", // 52 - blanc cassé
-          "#FFF9E6", // 53 - crème
-          "#1C1C1C", // 54 - gris foncé
-          "#3A3A3A", // 55 - gris moyen
-          "#4A2C1D", // 56 - marron foncé
-          "#8B5A2B", // 57 - marron
-          "#4B3B6E", // 58 - violet foncé
-          "#6A1B9A", // 59 - violet
-          "#8E24AA", // 60 - violet vif
-          "#5A2040", // 61 - magenta foncé
-          "#9C2542", // 62 - magenta
-          "#FFFFFF", // 63 - blanc (répétition)
+          "#0E245F", // 2
+          "#102A8C", // 3
+          "#132FA3", // 4
+          "#1636C8", // 5
+          "#1A3BFF", // 6
+          "#213FAE", // 7
+          "#2346A1", // 8
+          "#2C3E9F", // 9
+          "#304FFE", // 10
+          "#3949AB", // 11
+          "#1A237E", // 12
+          "#0D1B7E", // 13 - nouveau bleu nuit unique
+
+          // JAUNES / ORANGES (11 couleurs)
+          "#FFD200", // 14
+          "#FFEA00", // 15
+          "#FFC300", // 16
+          "#FFB000", // 17
+          "#FFA000", // 18
+          "#FF9500", // 19
+          "#FF9F00", // 20
+          "#FFCC33", // 21
+          "#FFE066", // 22
+          "#F4D03F", // 23
+          "#EAC100", // 24
+
+          // BLANCS CHAUDS / CRÈMES (8 couleurs)
+          "#FFFDF7", // 25
+          "#FFF9E6", // 26
+          "#FFF6CC", // 27
+          "#FFF2B3", // 28
+          "#FDF5E6", // 29
+          "#FAF3DD", // 30
+          "#FFFBEA", // 31
+          "#FFF8DC", // 32
+
+          // GRIS / NOIRS (6 couleurs)
+          "#141414", // 33
+          "#1C1C1C", // 34
+          "#2B2B2B", // 35
+          "#3A3A3A", // 36
+          "#555555", // 37
+          "#666666", // 38 - nouveau gris unique
+
+          // MARRONS / TERRES (7 couleurs)
+          "#4A2C1D", // 39
+          "#5C4033", // 40
+          "#6B3E26", // 41
+          "#7A4A2E", // 42
+          "#8B5A2B", // 43
+          "#A97142", // 44
+          "#9B6A3B", // 45 - nouveau marron unique
+
+          // VIOLETS / POURPRES (9 couleurs)
+          "#3E2A5A", // 46
+          "#4B3B6E", // 47
+          "#5E2D79", // 48
+          "#6A1B9A", // 49
+          "#7B1FA2", // 50
+          "#8E24AA", // 51
+          "#5A2040", // 52
+          "#7A003C", // 53
+          "#9C2542", // 54
+
+          // COMPLÉMENT POUR ATTEINDRE 64 (10 couleurs supplémentaires uniques)
+          "#0A1A4A", // 55 - bleu nuit très foncé
+          "#1E4AB8", // 56 - bleu moyen
+          "#FF8C00", // 57 - orange foncé
+          "#FFD700", // 58 - or
+          "#FFFACD", // 59 - crème très clair
+          "#F5F5DC", // 60 - beige
+          "#444444", // 61 - gris moyen-foncé
+          "#8B4513", // 62 - marron selle
+          "#9370DB", // 63 - violet moyen
         ];
 
-        // S'assurer qu'on a exactement 64 couleurs
+        // Vérification stricte : exactement 64 couleurs uniques
+        const uniqueColors = new Set(colors);
         if (colors.length !== 64) {
-          console.warn(
-            `Attention: la palette Van Gogh contient ${colors.length} couleurs au lieu de 64`
+          console.error(
+            `ERREUR: la palette Van Gogh contient ${colors.length} couleurs au lieu de 64`
           );
+        }
+        if (uniqueColors.size !== 64) {
+          console.error(
+            `ERREUR: la palette Van Gogh contient ${
+              colors.length - uniqueColors.size
+            } doublons`
+          );
+        }
+
+        // Vérification de la distance RGB minimale (5 unités)
+        function hexToRgb(hex) {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          return result
+            ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16),
+              }
+            : null;
+        }
+
+        function rgbDistance(color1, color2) {
+          const rgb1 = hexToRgb(color1);
+          const rgb2 = hexToRgb(color2);
+          if (!rgb1 || !rgb2) return Infinity;
+          return Math.sqrt(
+            Math.pow(rgb1.r - rgb2.r, 2) +
+              Math.pow(rgb1.g - rgb2.g, 2) +
+              Math.pow(rgb1.b - rgb2.b, 2)
+          );
+        }
+
+        // Vérifier que chaque couleur est à au moins 5 unités de distance des autres
+        for (let i = 0; i < colors.length; i++) {
+          for (let j = i + 1; j < colors.length; j++) {
+            const distance = rgbDistance(colors[i], colors[j]);
+            if (distance < 5) {
+              console.warn(
+                `ATTENTION: Les couleurs ${colors[i]} et ${
+                  colors[j]
+                } sont trop proches (distance: ${distance.toFixed(2)})`
+              );
+            }
+          }
         }
 
         return colors;
