@@ -655,6 +655,9 @@
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 1.2rem;
+                touch-action: manipulation;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
               "
             >
               💾 Enregistrer
@@ -2820,37 +2823,20 @@
         // On exporte juste la séquence ADN, le format .edi sera reconnu par l'import
         const ediFile = fullSequence;
 
-        // Si un répertoire a été sélectionné, utiliser l'API File System Access
-        if (selectedDirectoryHandle && "showDirectoryPicker" in window) {
-          try {
-            const fileHandle = await selectedDirectoryHandle.getFileHandle(
-              fileName,
-              { create: true }
-            );
-            const writable = await fileHandle.createWritable();
-            await writable.write(ediFile);
-            await writable.close();
-            alert(`Fichier enregistré : ${fileName}`);
-            return;
-          } catch (error) {
-            console.error("Erreur lors de l'enregistrement:", error);
-            alert(
-              "Erreur lors de l'enregistrement. Le fichier sera téléchargé à la place."
-            );
-          }
-        }
-
-        // Sinon, télécharger normalement
+        // Télécharger directement (compatible mobile/tablette, pas de message d'avertissement)
         const blob = new Blob([ediFile], { type: "text/plain;charset=utf-8;" });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
         link.setAttribute("download", fileName);
+        link.style.display = "none";
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
       }
 
       // Fonction pour exporter la séquence ADN en format .fasta
@@ -2870,27 +2856,7 @@
         const sequenceLines = fullSequence.match(/.{1,60}/g) || [fullSequence];
         const fastaFile = fastaContent + sequenceLines.join("\n") + "\n";
 
-        // Si un répertoire a été sélectionné, utiliser l'API File System Access
-        if (selectedDirectoryHandle && "showDirectoryPicker" in window) {
-          try {
-            const fileHandle = await selectedDirectoryHandle.getFileHandle(
-              fileName,
-              { create: true }
-            );
-            const writable = await fileHandle.createWritable();
-            await writable.write(fastaFile);
-            await writable.close();
-            alert(`Fichier enregistré : ${fileName}`);
-            return;
-          } catch (error) {
-            console.error("Erreur lors de l'enregistrement:", error);
-            alert(
-              "Erreur lors de l'enregistrement. Le fichier sera téléchargé à la place."
-            );
-          }
-        }
-
-        // Sinon, télécharger normalement
+        // Télécharger directement (compatible mobile/tablette, pas de message d'avertissement)
         const blob = new Blob([fastaFile], {
           type: "text/plain;charset=utf-8;",
         });
@@ -2898,11 +2864,14 @@
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
         link.setAttribute("download", fileName);
+        link.style.display = "none";
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
       }
 
       const tbody = document.getElementById("codeTable");
@@ -3776,7 +3745,7 @@
       let eraserSize = 1; // Taille de la gomme (en pixels)
 
       // Fonction pour enregistrer le pixel art (export direct en .fasta)
-      function savePixelArt() {
+      async function savePixelArt() {
         // Vérifier que la séquence existe dans dnaOutput
         const output = document.getElementById("dnaOutput");
         if (!output) {
@@ -3792,8 +3761,41 @@
           return;
         }
 
-        // Ouvrir la modale de sauvegarde avec le format FASTA
-        openSaveFileModal("fasta");
+        // Télécharger directement sans passer par la modale (compatible mobile/tablette)
+        try {
+          // Format FASTA : en-tête suivi de la séquence (60 caractères par ligne)
+          const fastaContent = `>Sequence_ADN_encodee\n`;
+          const sequenceLines = fullSequence.match(/.{1,60}/g) || [
+            fullSequence,
+          ];
+          const fastaFile = fastaContent + sequenceLines.join("\n") + "\n";
+
+          // Créer un Blob avec le contenu
+          const blob = new Blob([fastaFile], {
+            type: "text/plain;charset=utf-8;",
+          });
+
+          // Créer un lien de téléchargement
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "sequence_encodée.fasta";
+          link.style.display = "none";
+          link.style.visibility = "hidden";
+
+          // Ajouter au DOM, cliquer, puis supprimer
+          document.body.appendChild(link);
+          link.click();
+
+          // Nettoyer après un court délai
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
+        } catch (error) {
+          console.error("Erreur lors de l'enregistrement:", error);
+          alert("Erreur lors de l'enregistrement du fichier.");
+        }
       }
 
       // Fonction pour vérifier si un dessin existe (au moins un pixel n'est pas blanc)
@@ -3812,6 +3814,40 @@
         return false; // Tous les pixels sont blancs
       }
 
+      // Fonction pour améliorer le bouton d'enregistrement sur mobile/tablette
+      function setupSaveButton() {
+        const saveBtn = document.getElementById("savePixelArtBtn");
+        if (!saveBtn) return;
+
+        // Empêcher le double déclenchement
+        let isSaving = false;
+        const handleSave = async function (e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+
+          if (isSaving) return;
+          isSaving = true;
+
+          try {
+            await savePixelArt();
+          } finally {
+            setTimeout(() => {
+              isSaving = false;
+            }, 500);
+          }
+        };
+
+        // Supprimer les anciens event listeners pour éviter les doublons
+        const newSaveBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+
+        // Ajouter les événements pour mobile et desktop
+        newSaveBtn.addEventListener("click", handleSave);
+        newSaveBtn.addEventListener("touchend", handleSave, { passive: false });
+      }
+
       // Fonction pour changer de palette
       function changePalette(paletteType) {
         // Vérifier si un dessin existe
@@ -3819,7 +3855,7 @@
           alert(
             "Impossible de changer de palette !\n\n" +
               "Un dessin a déjà été commencé avec la palette actuelle.\n" +
-              "Vous devez terminer ou effacer votre dessin avant de pouvoir changer de palette."
+              "Vous devez terminer ou effacer votre dessin (page blanche) avant de pouvoir changer de palette."
           );
           // Remettre le sélecteur à la palette actuelle
           const paletteSelector = document.getElementById("paletteSelector");
@@ -4058,6 +4094,9 @@
 
         content.innerHTML = html;
         modal.style.display = "block";
+
+        // Configurer le bouton d'enregistrement pour mobile/tablette
+        setupSaveButton();
 
         // Mettre à jour le sélecteur de palette
         const paletteSelector = document.getElementById("paletteSelector");
