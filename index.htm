@@ -3781,13 +3781,17 @@
           }
         }
 
-        // Initialiser la séquence dans dnaOutput avec le triplet de palette + 14700 triplets (4900 × 3)
-        const paletteTriplet = currentPaletteType;
-        const gridTriplets = currentPaletteType.repeat(gridSize * gridSize);
-        const initialSequence = paletteTriplet + gridTriplets;
+        // Initialiser la séquence dans dnaOutput seulement si un dessin existe déjà
+        // Sinon, laisser dnaOutput vide pour afficher le message par défaut
         const dnaOutput = document.getElementById("dnaOutput");
-        dnaOutput.textContent = initialSequence;
-        dnaOutput.setAttribute("data-dna-sequence", initialSequence);
+        if (hasDrawing()) {
+          // Si un dessin existe, mettre à jour la séquence
+          updateDNASequence();
+        } else {
+          // Si pas de dessin, vider dnaOutput pour afficher le message par défaut
+          dnaOutput.textContent = "";
+          dnaOutput.removeAttribute("data-dna-sequence");
+        }
 
         // Afficher le bouton d'export
         const exportBtn = document.getElementById("exportBtn");
