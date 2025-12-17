@@ -416,9 +416,40 @@
         </button>
         <button
           onclick="openPixelArtEditor()"
-          style="margin-left: 10px; background: #9b59b6; color: white"
+          id="pixelArtBtn"
+          style="
+            margin-left: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #333;
+          "
         >
-          Pixel art
+          <span
+            style="
+              position: relative;
+              z-index: 2;
+              color: white;
+              text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+              font-weight: bold;
+            "
+            >Pixel art</span
+          >
+          <div
+            id="pixelArtMosaic"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              z-index: 1;
+              display: grid;
+              grid-template-columns: repeat(8, 1fr);
+              grid-template-rows: repeat(4, 1fr);
+              gap: 1px;
+              background: #9b59b6;
+            "
+          ></div>
         </button>
         <div class="output" id="dnaOutput"></div>
       </div>
@@ -3934,8 +3965,24 @@
         }
 
         // Mettre à jour l'état du sélecteur (actif/désactivé selon si un dessin existe)
+        // Ne pas appeler updatePaletteSelectorState() ici car le message est déjà dans le HTML
+        // On met juste à jour l'état du sélecteur sans recréer le message
         setTimeout(() => {
-          updatePaletteSelectorState();
+          const drawingExists = hasDrawing();
+          if (paletteSelector) {
+            paletteSelector.disabled = drawingExists;
+            if (drawingExists) {
+              paletteSelector.style.border = "2px solid #ccc";
+              paletteSelector.style.backgroundColor = "#f5f5f5";
+              paletteSelector.style.color = "#999";
+              paletteSelector.style.cursor = "not-allowed";
+            } else {
+              paletteSelector.style.border = "2px solid #667eea";
+              paletteSelector.style.backgroundColor = "";
+              paletteSelector.style.color = "";
+              paletteSelector.style.cursor = "";
+            }
+          }
         }, 100);
 
         // Initialiser la couleur sélectionnée (noir par défaut, index 56)
@@ -4673,9 +4720,12 @@
           paletteSelector.style.color = "#999";
           paletteSelector.style.cursor = "not-allowed";
 
-          // Vérifier si le message d'avertissement existe déjà
+          // Vérifier si le message d'avertissement existe déjà (soit dans le HTML généré, soit créé dynamiquement)
           let warningMsg =
-            paletteSelector.parentElement.querySelector(".palette-warning");
+            paletteSelector.parentElement.querySelector(".palette-warning") ||
+            paletteSelector.parentElement.querySelector(
+              'div[style*="background-color: #fff3cd"]'
+            );
           if (!warningMsg) {
             warningMsg = document.createElement("div");
             warningMsg.className = "palette-warning";
@@ -4692,9 +4742,12 @@
           paletteSelector.style.color = "";
           paletteSelector.style.cursor = "";
 
-          // Supprimer le message d'avertissement
+          // Supprimer le message d'avertissement (soit créé dynamiquement, soit dans le HTML)
           const warningMsg =
-            paletteSelector.parentElement.querySelector(".palette-warning");
+            paletteSelector.parentElement.querySelector(".palette-warning") ||
+            paletteSelector.parentElement.querySelector(
+              'div[style*="background-color: #fff3cd"]'
+            );
           if (warningMsg) {
             warningMsg.remove();
           }
@@ -5232,30 +5285,82 @@
         // Ouvrir l'éditeur avec la grille chargée
         openPixelArtEditor();
         // Mettre à jour l'état du sélecteur de palette après le chargement
+        // Ne pas appeler updatePaletteSelectorState() car le message est déjà dans le HTML généré
+        // On met juste à jour l'état du sélecteur sans recréer le message
         setTimeout(() => {
-          updatePaletteSelectorState();
+          const paletteSelector = document.getElementById("paletteSelector");
+          if (paletteSelector) {
+            const drawingExists = hasDrawing();
+            paletteSelector.disabled = drawingExists;
+            if (drawingExists) {
+              paletteSelector.style.border = "2px solid #ccc";
+              paletteSelector.style.backgroundColor = "#f5f5f5";
+              paletteSelector.style.color = "#999";
+              paletteSelector.style.cursor = "not-allowed";
+            } else {
+              paletteSelector.style.border = "2px solid #667eea";
+              paletteSelector.style.backgroundColor = "";
+              paletteSelector.style.color = "";
+              paletteSelector.style.cursor = "";
+            }
+          }
         }, 100);
       }
 
-      // Fermer la modale pixel art
-      document.addEventListener("DOMContentLoaded", function () {
-        const closeBtn = document.getElementById("closePixelArtModal");
-        if (closeBtn) {
-          closeBtn.addEventListener("click", function () {
-            document.getElementById("pixelArtModal").style.display = "none";
-          });
-        }
+      // Fonction pour créer les mosaïques colorées sur le bouton pixel art
+      function createPixelArtMosaic() {
+        const mosaicContainer = document.getElementById("pixelArtMosaic");
+        if (!mosaicContainer) return;
 
-        // Fermer en cliquant en dehors
-        const modal = document.getElementById("pixelArtModal");
-        if (modal) {
-          modal.addEventListener("click", function (e) {
-            if (e.target === this) {
-              this.style.display = "none";
-            }
-          });
+        // Couleurs variées pour les mosaïques
+        const mosaicColors = [
+          "#FF6B6B",
+          "#4ECDC4",
+          "#45B7D1",
+          "#FFA07A",
+          "#98D8C8",
+          "#F7DC6F",
+          "#BB8FCE",
+          "#85C1E2",
+          "#F8B739",
+          "#E74C3C",
+          "#3498DB",
+          "#2ECC71",
+          "#9B59B6",
+          "#1ABC9C",
+          "#E67E22",
+          "#34495E",
+          "#FFD700",
+          "#FF6347",
+          "#00CED1",
+          "#9370DB",
+          "#FF1493",
+          "#00FF7F",
+          "#FF4500",
+          "#1E90FF",
+          "#FF69B4",
+          "#32CD32",
+          "#FF8C00",
+          "#8A2BE2",
+          "#DC143C",
+          "#00FA9A",
+          "#FFD700",
+          "#FF1493",
+          "#00CED1",
+          "#9370DB",
+          "#FF6347",
+          "#00FF7F",
+        ];
+
+        // Créer 32 carreaux (8x4)
+        for (let i = 0; i < 32; i++) {
+          const tile = document.createElement("div");
+          const colorIndex = Math.floor(Math.random() * mosaicColors.length);
+          tile.style.backgroundColor = mosaicColors[colorIndex];
+          tile.style.border = "none";
+          mosaicContainer.appendChild(tile);
         }
-      });
+      }
 
       // Fonction pour exporter le code génétique en CSV
       function exportGeneticCode() {
@@ -5411,6 +5516,14 @@
           }
         };
         reader.readAsText(file);
+      }
+
+      // Initialiser les mosaïques du bouton pixel art au chargement
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", createPixelArtMosaic);
+      } else {
+        // Le DOM est déjà chargé
+        createPixelArtMosaic();
       }
     </script>
   </body>
