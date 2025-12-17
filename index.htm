@@ -31,32 +31,52 @@
       header {
         text-align: center;
         margin-bottom: 60px;
-        padding: 40px 20px;
+        padding: 40px 180px 40px 20px;
         background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(10px);
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 120px;
       }
       .header-logo {
         position: absolute;
-        top: 20px;
+        top: 50%;
         right: 20px;
+        transform: translateY(-50%);
         width: 150px;
         height: auto;
         cursor: pointer;
         transition: transform 0.3s ease, opacity 0.3s ease;
+        z-index: 1;
       }
       .header-logo:hover {
-        transform: scale(1.05);
+        transform: translateY(-50%) scale(1.05);
         opacity: 0.9;
       }
       @media (max-width: 768px) {
+        header {
+          flex-direction: column;
+          padding: 20px;
+          min-height: auto;
+        }
         .header-logo {
           position: static;
+          transform: none;
           display: block;
-          margin: 20px auto 0;
+          margin: 0 auto 20px auto;
           width: 120px;
+          order: -1;
+        }
+        .header-logo:hover {
+          transform: scale(1.05);
+        }
+        header h1 {
+          margin-top: 0;
+          padding-right: 0;
         }
       }
       h1 {
@@ -672,6 +692,9 @@
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 1.2rem;
+                touch-action: manipulation;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
               "
             >
               ✕ Fermer
@@ -3814,6 +3837,14 @@
         return false; // Tous les pixels sont blancs
       }
 
+      // Fonction pour fermer le modal pixel art
+      function closePixelArtModal() {
+        const modal = document.getElementById("pixelArtModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
       // Fonction pour améliorer le bouton d'enregistrement sur mobile/tablette
       function setupSaveButton() {
         const saveBtn = document.getElementById("savePixelArtBtn");
@@ -3846,6 +3877,42 @@
         // Ajouter les événements pour mobile et desktop
         newSaveBtn.addEventListener("click", handleSave);
         newSaveBtn.addEventListener("touchend", handleSave, { passive: false });
+      }
+
+      // Fonction pour améliorer le bouton de fermeture sur mobile/tablette
+      function setupCloseButton() {
+        const closeBtn = document.getElementById("closePixelArtModal");
+        if (!closeBtn) return;
+
+        // Empêcher le double déclenchement
+        let isClosing = false;
+        const handleClose = function (e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+
+          if (isClosing) return;
+          isClosing = true;
+
+          try {
+            closePixelArtModal();
+          } finally {
+            setTimeout(() => {
+              isClosing = false;
+            }, 300);
+          }
+        };
+
+        // Supprimer les anciens event listeners pour éviter les doublons
+        const newCloseBtn = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+
+        // Ajouter les événements pour mobile et desktop
+        newCloseBtn.addEventListener("click", handleClose);
+        newCloseBtn.addEventListener("touchend", handleClose, {
+          passive: false,
+        });
       }
 
       // Fonction pour changer de palette
@@ -4095,8 +4162,9 @@
         content.innerHTML = html;
         modal.style.display = "block";
 
-        // Configurer le bouton d'enregistrement pour mobile/tablette
+        // Configurer les boutons pour mobile/tablette
         setupSaveButton();
+        setupCloseButton();
 
         // Mettre à jour le sélecteur de palette
         const paletteSelector = document.getElementById("paletteSelector");
@@ -5665,6 +5733,41 @@
         // Le DOM est déjà chargé
         createPixelArtMosaic();
       }
+    </script>
+
+    <!-- Raccourci clavier global : Ctrl+J pour ouvrir le dossier de téléchargements -->
+    <script>
+      document.addEventListener("keydown", function (e) {
+        // Ctrl+J (ou Cmd+J sur Mac) pour ouvrir le dossier de téléchargements
+        if ((e.ctrlKey || e.metaKey) && e.key === "j") {
+          e.preventDefault();
+
+          // Essayer d'ouvrir le dossier de téléchargements selon le navigateur
+          const userAgent = navigator.userAgent.toLowerCase();
+
+          if (userAgent.includes("chrome") || userAgent.includes("edge")) {
+            // Chrome/Edge : ouvrir la page des téléchargements
+            window.open("chrome://downloads", "_blank");
+          } else if (userAgent.includes("firefox")) {
+            // Firefox : ouvrir la page des téléchargements
+            window.open("about:downloads", "_blank");
+          } else if (userAgent.includes("safari")) {
+            // Safari : afficher un message car on ne peut pas ouvrir directement
+            alert(
+              "Sur Safari, vous pouvez ouvrir le dossier de téléchargements via le menu Édition > Afficher les téléchargements (ou Cmd+Option+L)"
+            );
+          } else {
+            // Autres navigateurs : essayer chrome://downloads ou afficher un message
+            try {
+              window.open("chrome://downloads", "_blank");
+            } catch (err) {
+              alert(
+                "Pour ouvrir le dossier de téléchargements, utilisez le raccourci de votre navigateur ou accédez-y manuellement depuis le menu."
+              );
+            }
+          }
+        }
+      });
     </script>
   </body>
 </html>
