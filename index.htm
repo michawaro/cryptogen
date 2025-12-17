@@ -36,6 +36,28 @@
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(10px);
+        position: relative;
+      }
+      .header-logo {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 150px;
+        height: auto;
+        cursor: pointer;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+      }
+      .header-logo:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
+      @media (max-width: 768px) {
+        .header-logo {
+          position: static;
+          display: block;
+          margin: 20px auto 0;
+          width: 120px;
+        }
       }
       h1 {
         font-size: 3rem;
@@ -287,6 +309,74 @@
   <body>
     <div class="container">
       <header>
+        <a
+          href="https://michawaro.github.io/michawaro/"
+          target="_blank"
+          title="Aller sur la page Michawaro"
+        >
+          <img
+            src="https://michawaro.github.io/michawaro/logo.png"
+            alt="Logo Michawaro"
+            class="header-logo"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+          />
+          <div
+            class="header-logo"
+            style="
+              display: none;
+              width: 150px;
+              height: 150px;
+              background: linear-gradient(135deg, #e84e9b 0%, #ff6b9d 100%);
+              border-radius: 50%;
+              position: relative;
+              overflow: hidden;
+            "
+          >
+            <div
+              style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: white;
+                font-weight: bold;
+                font-size: 1.2rem;
+                z-index: 2;
+              "
+            >
+              <div style="font-size: 1.5rem; margin-bottom: 5px">MICHAWARO</div>
+              <div style="font-size: 0.9rem; color: #fce86e">
+                APPRENDRE, ENSEIGNER, PARTAGER
+              </div>
+            </div>
+            <svg
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0.3;
+              "
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M50,10 Q30,30 20,50 Q30,70 50,90 Q70,70 80,50 Q70,30 50,10"
+                stroke="#8B4A9B"
+                stroke-width="2"
+                fill="none"
+              />
+              <path
+                d="M50,15 Q35,30 25,50 Q35,70 50,85 Q65,70 75,50 Q65,30 50,15"
+                stroke="#8B4A9B"
+                stroke-width="1.5"
+                fill="none"
+              />
+            </svg>
+          </div>
+        </a>
         <h1>Cryptogen - Encodeur / Décodeur ADN</h1>
         <p class="subtitle">
           Colle une séquence ADN ou un texte, et encode ou décode avec le même
@@ -379,11 +469,7 @@
           Dans le cas où certains mots s'affichent sous forme de séquence de
           nucléotides, double cliquez dessus pour les déchiffrer.
         </p>
-        <div
-          class="output"
-          id="output"
-          style="word-wrap: break-word; overflow-wrap: break-word"
-        ></div>
+        <div class="output" id="output"></div>
       </div>
 
       <div class="section">
