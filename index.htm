@@ -3335,8 +3335,63 @@
         reader.readAsText(file);
       }
 
-      // Fonction pour charger la séquence de test
-      function loadTestSequence() {
+      // Fonction pour charger la séquence de test depuis Dropbox
+      async function loadTestSequence() {
+        const dropboxUrl =
+          "https://www.dropbox.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&st=l6i8puxb&raw=1";
+
+        try {
+          // Afficher un message de chargement
+          const dnaInput = document.getElementById("dnaInput");
+          dnaInput.textContent = "Chargement...";
+
+          // Télécharger le fichier depuis Dropbox
+          const response = await fetch(dropboxUrl);
+          if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+          }
+
+          const text = await response.text();
+
+          // Parser le fichier FASTA (même logique que importFASTAFile)
+          const lines = text.split("\n");
+          let sequences = [];
+
+          for (let line of lines) {
+            line = line.trim();
+            // Ignorer les lignes d'en-tête (commencent par >)
+            if (line && !line.startsWith(">")) {
+              // Extraire uniquement les caractères A, T, C, G (ignorer les espaces, retours à la ligne, etc.)
+              const sequence = line.replace(/[^ATCGatcg]/g, "").toUpperCase();
+              if (sequence.length > 0) {
+                sequences.push(sequence);
+              }
+            }
+          }
+
+          if (sequences.length > 0) {
+            // Concaténer toutes les séquences trouvées
+            const dnaSequence = sequences.join("");
+            dnaInput.textContent = dnaSequence;
+            colorizeDNAInput();
+            alert("Fichier .fasta importé avec succès depuis Dropbox !");
+          } else {
+            alert("Aucune séquence ADN trouvée dans le fichier .fasta");
+            dnaInput.textContent = "";
+          }
+        } catch (error) {
+          console.error("Erreur lors du téléchargement:", error);
+          alert(
+            "Erreur lors du téléchargement du fichier .fasta depuis Dropbox : " +
+              error.message
+          );
+          const dnaInput = document.getElementById("dnaInput");
+          dnaInput.textContent = "";
+        }
+      }
+
+      // Fonction pour charger la séquence de test (ancienne version - conservée pour référence)
+      function loadTestSequenceOld() {
         // Séquence ADN de test à mettre directement dans le champ de décodage
         let baseSequence =
           "ATGGGCACACCCACTCTTACAACTTTTGGCAAACTTGGCTTTACAGACCTTGGCACACCCACTCTTACAACTTTTCTTTTCACTGGCGTATTTGCCGTGACTTTTGCTGTGCCCCTTACTTTTACGACTTTTCGTTTCAAGCTCACTTAATTTATTGCTAAACTTACCGACCCCGGCTTTGCTAAAAATACTCGTAAACCCGGCTAA";
