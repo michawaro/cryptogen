@@ -2036,9 +2036,9 @@
               : "";
           existingWordIndex++;
 
-          html += `<input type="text" 
-                          id="letter-${index}" 
-                          maxlength="1" 
+          html += `<input type="text"
+                          id="letter-${index}"
+                          maxlength="1"
                           value="${existingLetter}"
                           style="width: 40px; height: 40px; text-align: center; font-size: 1.5rem; border: 2px solid #667eea; border-radius: 6px; font-weight: bold; text-transform: uppercase;"
                           placeholder="?"
@@ -2813,8 +2813,43 @@
       }
 
       // Fonction pour ouvrir le sélecteur de fichier selon le format choisi
-      function openImportFormat(format) {
+      async function openImportFormat(format) {
         closeImportModal();
+
+        // Essayer d'utiliser l'API File System Access pour ouvrir le dossier de téléchargements
+        if ("showOpenFilePicker" in window) {
+          try {
+            const acceptTypes =
+              format === "edi"
+                ? { "text/plain": [".edi"] }
+                : { "text/plain": [".fasta", ".fa", ".fas"] };
+
+            const [fileHandle] = await window.showOpenFilePicker({
+              types: [{ accept: acceptTypes }],
+              multiple: false,
+              startIn: "downloads", // Suggère le dossier de téléchargements
+            });
+
+            const file = await fileHandle.getFile();
+            const event = { target: { files: [file] } };
+
+            if (format === "edi") {
+              importEDIFile(event);
+            } else if (format === "fasta") {
+              importFASTAFile(event);
+            }
+            return;
+          } catch (error) {
+            // Si l'utilisateur annule ou si l'API échoue, utiliser l'input file classique
+            if (error.name !== "AbortError") {
+              console.log(
+                "API File System Access non disponible, utilisation de l'input file classique"
+              );
+            }
+          }
+        }
+
+        // Fallback : utiliser l'input file classique
         if (format === "edi") {
           document.getElementById("ediFileInput").click();
         } else if (format === "fasta") {
@@ -4183,15 +4218,15 @@
           '<div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin-bottom: 20px;">';
         colors.forEach((color, index) => {
           const triplet = triplets[index];
-          html += `<div 
-            class="color-swatch" 
+          html += `<div
+            class="color-swatch"
             data-color-index="${index}"
             data-triplet="${triplet}"
             style="
-              width: 20px; 
-              height: 20px; 
-              background: ${color}; 
-              border: 2px solid #333; 
+              width: 20px;
+              height: 20px;
+              background: ${color};
+              border: 2px solid #333;
               cursor: pointer;
               border-radius: 3px;
             "
@@ -4273,14 +4308,14 @@
                 ? pixelArtGrid[i][j]
                 : 0;
             const color = colors[colorIndex];
-            html += `<div 
-              class="pixel-cell" 
-              data-row="${i}" 
+            html += `<div
+              class="pixel-cell"
+              data-row="${i}"
               data-col="${j}"
               style="
-                width: 10px; 
-                height: 10px; 
-                background: ${color}; 
+                width: 10px;
+                height: 10px;
+                background: ${color};
                 cursor: crosshair;
                 border: 1px solid ${pixelBorderColor};
                 touch-action: none;
