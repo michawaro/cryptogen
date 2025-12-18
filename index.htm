@@ -3891,6 +3891,7 @@
       let colorToTripletMap = {}; // Mapping couleur -> triplet
       let colorPalette = []; // Palette de 64 couleurs
       let pixelArtHistory = []; // Historique pour undo/redo
+      let pixelBorderColor = "black"; // Couleur de bordure des pixels : "black" ou "white"
       let pixelArtHistoryIndex = -1; // Index actuel dans l'historique
       let currentTool = "paint"; // Outil actuel : "paint", "spray", "erase", "eyedropper", "circle", "square", "triangle", "star"
       let shapeStartPos = null; // Position de départ pour les formes
@@ -4220,6 +4221,10 @@
         html +=
           '<button id="clearBtn" onclick="clearPixelArt()" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Effacer toute la grille">🧼 Page blanche</button>';
         html +=
+          '<button id="toggleBorderBtn" onclick="togglePixelBorder()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Basculer entre contour blanc et noir">⚫ Contour ' +
+          (pixelBorderColor === "black" ? "noir" : "blanc") +
+          "</button>";
+        html +=
           '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
         html +=
           '<button id="paintToolBtn" onclick="openSizeModal(\'brush\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Pinceau (Taille: ' +
@@ -4277,7 +4282,7 @@
                 height: 10px; 
                 background: ${color}; 
                 cursor: crosshair;
-                border: 1px solid rgba(0,0,0,0.1);
+                border: 1px solid ${pixelBorderColor};
                 touch-action: none;
               "
             ></div>`;
@@ -4903,8 +4908,29 @@
                   ? pixelArtGrid[i][j]
                   : 0;
               pixel.style.background = colorPalette[colorIndex];
+              pixel.style.border = `1px solid ${pixelBorderColor}`;
             }
           }
+        }
+      }
+
+      // Fonction pour basculer la couleur de bordure des pixels
+      function togglePixelBorder() {
+        // Basculer entre noir et blanc
+        pixelBorderColor = pixelBorderColor === "black" ? "white" : "black";
+
+        // Mettre à jour tous les pixels
+        const pixels = document.querySelectorAll(".pixel-cell");
+        pixels.forEach((pixel) => {
+          pixel.style.border = `1px solid ${pixelBorderColor}`;
+        });
+
+        // Mettre à jour le texte du bouton
+        const toggleBtn = document.getElementById("toggleBorderBtn");
+        if (toggleBtn) {
+          toggleBtn.textContent = `⚫ Contour ${
+            pixelBorderColor === "black" ? "noir" : "blanc"
+          }`;
         }
       }
 
