@@ -160,6 +160,9 @@
         opacity: 0.9;
       }
       @media (max-width: 768px) {
+        .container {
+          padding: 15px 10px;
+        }
         header {
           padding: 20px;
           min-height: auto;
@@ -199,6 +202,14 @@
         }
         header > *:not(.header-logo) {
           width: 100%;
+        }
+        .section {
+          width: 100%;
+          max-width: 100%;
+          padding: 20px 15px;
+          margin-left: 0;
+          margin-right: 0;
+          box-sizing: border-box;
         }
       }
       h1 {
@@ -280,6 +291,12 @@
           0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        touch-action: manipulation;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
       }
       button:hover {
         transform: translateY(-2px);
@@ -1060,10 +1077,12 @@
       <div
         style="
           background: white;
-          margin: 100px auto;
+          margin: 50px auto;
           padding: 30px;
           border-radius: 12px;
           max-width: 500px;
+          max-height: 80vh;
+          overflow-y: auto;
           box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         "
       >
@@ -2998,6 +3017,56 @@
       }
 
       // Fonction pour exporter la séquence ADN en format .edi
+      // Fonction utilitaire pour télécharger un fichier (compatible mobile et desktop)
+      function downloadFile(blob, fileName) {
+        const isMobile =
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+          ) || window.innerWidth <= 768;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", fileName);
+
+        if (isMobile) {
+          // Pour mobile : utiliser une approche plus compatible
+          link.style.position = "fixed";
+          link.style.top = "-1000px";
+          link.style.left = "-1000px";
+          link.style.opacity = "0";
+        } else {
+          // Pour desktop : méthode standard
+          link.style.display = "none";
+          link.style.visibility = "hidden";
+        }
+
+        document.body.appendChild(link);
+
+        // Déclencher le téléchargement avec plusieurs méthodes pour compatibilité maximale
+        try {
+          link.click();
+        } catch (e) {
+          // Si click() ne fonctionne pas, essayer avec un événement de souris
+          const clickEvent = new MouseEvent("click", {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+          });
+          link.dispatchEvent(clickEvent);
+        }
+
+        // Nettoyer après un délai (plus long pour mobile)
+        setTimeout(
+          () => {
+            if (document.body.contains(link)) {
+              document.body.removeChild(link);
+            }
+            URL.revokeObjectURL(url);
+          },
+          isMobile ? 1000 : 100
+        );
+      }
+
       async function exportEDIFile(fileName = "sequence_encodée.edi") {
         const output = document.getElementById("dnaOutput");
         const fullSequence = output.getAttribute("data-dna-sequence");
@@ -3015,18 +3084,7 @@
 
         // Télécharger directement (compatible mobile/tablette, pas de message d'avertissement)
         const blob = new Blob([ediFile], { type: "text/plain;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", fileName);
-        link.style.display = "none";
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }, 100);
+        downloadFile(blob, fileName);
       }
 
       // Fonction pour exporter la séquence ADN en format .fasta
@@ -3050,18 +3108,7 @@
         const blob = new Blob([fastaFile], {
           type: "text/plain;charset=utf-8;",
         });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", fileName);
-        link.style.display = "none";
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }, 100);
+        downloadFile(blob, fileName);
       }
 
       const tbody = document.getElementById("codeTable");
@@ -3966,23 +4013,8 @@
             type: "text/plain;charset=utf-8;",
           });
 
-          // Créer un lien de téléchargement
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "sequence_encodée.fasta";
-          link.style.display = "none";
-          link.style.visibility = "hidden";
-
-          // Ajouter au DOM, cliquer, puis supprimer
-          document.body.appendChild(link);
-          link.click();
-
-          // Nettoyer après un court délai
-          setTimeout(() => {
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          }, 100);
+          // Utiliser la fonction utilitaire pour télécharger
+          downloadFile(blob, "sequence_encodée.fasta");
         } catch (error) {
           console.error("Erreur lors de l'enregistrement:", error);
           alert("Erreur lors de l'enregistrement du fichier.");
@@ -4080,6 +4112,57 @@
         newCloseBtn.addEventListener("click", handleClose);
         newCloseBtn.addEventListener("touchend", handleClose, {
           passive: false,
+        });
+      }
+
+      // Fonction pour améliorer tous les boutons pour mobile/tablette
+      function setupAllButtonsForMobile() {
+        // Sélectionner tous les boutons
+        const allButtons = document.querySelectorAll("button");
+
+        allButtons.forEach((button) => {
+          // Éviter de traiter plusieurs fois le même bouton
+          if (button.dataset.mobileSetup === "true") return;
+          button.dataset.mobileSetup = "true";
+
+          // Ajouter les styles CSS pour mobile
+          button.style.touchAction = "manipulation";
+          button.style.userSelect = "none";
+          button.style.webkitUserSelect = "none";
+          button.style.mozUserSelect = "none";
+          button.style.msUserSelect = "none";
+          button.style.webkitTapHighlightColor = "transparent";
+
+          // S'assurer que le bouton a un cursor pointer
+          if (!button.style.cursor || button.style.cursor === "auto") {
+            button.style.cursor = "pointer";
+          }
+
+          // Ajouter un gestionnaire touchend pour mobile
+          // Empêcher le double déclenchement
+          let isHandling = false;
+
+          const handleTouch = function (e) {
+            if (isHandling) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+
+            isHandling = true;
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Déclencher le clic programmatiquement
+            button.click();
+
+            setTimeout(() => {
+              isHandling = false;
+            }, 300);
+          };
+
+          // Ajouter l'événement touchend
+          button.addEventListener("touchend", handleTouch, { passive: false });
         });
       }
 
@@ -4337,6 +4420,9 @@
         // Configurer les boutons pour mobile/tablette
         setupSaveButton();
         setupCloseButton();
+
+        // Configurer tous les autres boutons du modal pour mobile/tablette
+        setTimeout(setupAllButtonsForMobile, 100);
 
         // Mettre à jour le sélecteur de palette
         const paletteSelector = document.getElementById("paletteSelector");
@@ -5784,14 +5870,7 @@
         const blob = new Blob([csvContent], {
           type: "text/csv;charset=utf-8;",
         });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "code_genetique.csv");
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        downloadFile(blob, "code_genetique.csv");
       }
 
       // Fonction pour importer le code génétique depuis un CSV
@@ -5921,11 +6000,18 @@
 
       // Initialiser les mosaïques du bouton pixel art au chargement
       if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", createPixelArtMosaic);
+        document.addEventListener("DOMContentLoaded", function () {
+          createPixelArtMosaic();
+          setupAllButtonsForMobile();
+        });
       } else {
         // Le DOM est déjà chargé
         createPixelArtMosaic();
+        setupAllButtonsForMobile();
       }
+
+      // Réappliquer la configuration des boutons après un court délai pour les boutons créés dynamiquement
+      setTimeout(setupAllButtonsForMobile, 1000);
     </script>
 
     <!-- Raccourci clavier global : Ctrl+J pour ouvrir le dossier de téléchargements -->
@@ -5964,4 +6050,3 @@
     </script>
   </body>
 </html>
-
