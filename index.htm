@@ -784,7 +784,23 @@
           id="textInput"
           placeholder="Ecris ou colle un texte que tu souhaites encoder dans de l'ADN. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
         ></textarea>
-        <button onclick="encodeText()">Encoder</button>
+        <button
+          onclick="encodeText()"
+          style="
+            background-image: url('https://www.dropbox.com/scl/fi/1covqkpg610vvsmnpvhgd/Bouton-Encoder.png?rlkey=wkbzvci3ac9fp7vg4ghfjb7cw&st=zgk9jkfz&raw=1');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+            text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
+              1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
+              1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
+              0 0 5px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+          "
+        >
+          Encoder
+        </button>
         <button
           id="trouModeBtn"
           onclick="toggleTrouMode()"
