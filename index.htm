@@ -4689,14 +4689,19 @@
         html +=
           '<strong>Triplet sélectionné:</strong> <span id="selectedTriplet">AAA</span>';
         html += "</div>";
+        // Ajouter l'image de la fabrique en dessous de la palette
+        html +=
+          '<div class="pixel-art-illustration" id="fabriqueImageContainer" style="flex-shrink: 0; max-width: 100%; width: 100%; margin-top: 20px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; min-height: 200px;">';
+        html +=
+          '<span style="color: #666; font-size: 0.9rem;">Chargement de l\'image...</span>';
+        html += "</div>";
         html += "</div>";
 
-        // Grille de pixel art avec image
-        html += '<div style="flex: 1; min-width: 500px;">';
+        // Grille de pixel art (image maintenant sous la palette)
+        html += '<div style="flex: 1; min-width: 500px; width: 100%;">';
         html += '<h3 style="margin-top: 0; color: #667eea;">Grille 70×70</h3>';
-        html += '<div class="pixel-art-image-container">';
         html +=
-          '<div class="pixel-art-grid-wrapper" style="display: flex; flex-direction: column;">';
+          '<div style="display: flex; flex-direction: column; width: 100%;">';
 
         // Barre d'outils
         html +=
@@ -4750,15 +4755,7 @@
         html +=
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
 
-        // Conteneur pour l'image et la grille côte à côte (image à gauche)
-        html +=
-          '<div class="pixel-grid-image-wrapper" style="display: flex; align-items: flex-start; gap: 10px; flex-wrap: nowrap;">';
-        // Ajouter l'image de la fabrique à gauche de la grille
-        html +=
-          '<div class="pixel-art-illustration" id="fabriqueImageContainer" style="flex-shrink: 0; max-width: 460px; width: auto; height: auto; align-self: flex-start; object-fit: contain; min-height: 200px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px;">';
-        html +=
-          '<span style="color: #666; font-size: 0.9rem;">Chargement de l\'image...</span>';
-        html += "</div>";
+        // Conteneur pour la grille (image maintenant sous la palette)
         html +=
           '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); grid-template-rows: repeat(70, 1fr); gap: 0; background: ' +
           pixelBorderColor +
@@ -4794,9 +4791,7 @@
           }
         }
         html += "</div>"; // Fin de pixelGrid
-        html += "</div>"; // Fin du conteneur flex image + grille
-        html += "</div>"; // Fin de pixel-art-grid-wrapper
-        html += "</div>"; // Fin de pixel-art-image-container
+        html += "</div>"; // Fin du conteneur flex de la grille
         html += "</div>"; // Fin du conteneur flex principal
 
         // Mettre à jour la séquence ADN avec la grille actuelle
