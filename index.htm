@@ -3337,21 +3337,48 @@
 
       // Fonction pour charger la séquence de test depuis Dropbox
       async function loadTestSequence() {
-        const dropboxUrl =
-          "https://www.dropbox.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&raw=1";
+        const baseUrl =
+          "https://www.dropbox.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&st=y3huk9e9";
+
+        // Essayer plusieurs formats d'URL Dropbox (comme pour l'image)
+        const urls = [
+          baseUrl + "&raw=1",
+          baseUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com") +
+            "&dl=1",
+          "https://dl.dropboxusercontent.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&st=y3huk9e9&dl=1",
+        ];
 
         try {
           // Afficher un message de chargement
           const dnaInput = document.getElementById("dnaInput");
           dnaInput.textContent = "Chargement...";
 
-          // Télécharger le fichier depuis Dropbox
-          const response = await fetch(dropboxUrl);
-          if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
+          let text = null;
+          let lastError = null;
+
+          // Essayer chaque URL jusqu'à ce qu'une fonctionne
+          for (const url of urls) {
+            try {
+              const response = await fetch(url);
+              if (response.ok) {
+                text = await response.text();
+                break; // Succès, sortir de la boucle
+              } else {
+                lastError = new Error(`Erreur HTTP: ${response.status}`);
+              }
+            } catch (err) {
+              console.log("Tentative avec URL échouée:", url, err);
+              lastError = err;
+              continue; // Essayer l'URL suivante
+            }
           }
 
-          const text = await response.text();
+          if (!text) {
+            throw (
+              lastError ||
+              new Error("Impossible de télécharger le fichier depuis Dropbox")
+            );
+          }
 
           // Parser le fichier FASTA (même logique que importFASTAFile)
           const lines = text.split("\n");
