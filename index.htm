@@ -159,6 +159,74 @@
         transform: translateY(-50%) scale(1.05);
         opacity: 0.9;
       }
+      /* Styles pour l'image de la fabrique dans l'éditeur Pixel Art */
+      .pixel-art-image-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: nowrap;
+      }
+      .pixel-art-grid-wrapper {
+        flex: 1;
+        min-width: 500px;
+      }
+      .pixel-grid-image-wrapper {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: nowrap;
+      }
+      .pixel-art-illustration {
+        flex-shrink: 0;
+        max-width: 400px;
+        width: auto;
+        height: auto;
+        align-self: flex-start;
+        object-fit: contain;
+      }
+      /* Media query pour mobile en mode portrait */
+      @media (max-width: 768px) and (orientation: portrait) {
+        .pixel-art-image-container {
+          flex-direction: column;
+        }
+        .pixel-art-grid-wrapper {
+          min-width: 100%;
+          width: 100%;
+        }
+        .pixel-grid-image-wrapper {
+          flex-direction: column !important;
+          flex-wrap: wrap;
+        }
+        .pixel-art-illustration {
+          max-width: 100%;
+          width: 100%;
+          margin-top: 20px;
+          align-self: center;
+          order: 2;
+        }
+        #pixelGrid {
+          order: 1;
+        }
+      }
+      @media (max-width: 768px) {
+        .pixel-art-image-container {
+          flex-direction: column;
+        }
+        .pixel-art-grid-wrapper {
+          min-width: 100%;
+          width: 100%;
+        }
+        .pixel-grid-image-wrapper {
+          flex-direction: column !important;
+          flex-wrap: wrap;
+        }
+        .pixel-art-illustration {
+          max-width: 100%;
+          width: 100%;
+          margin-top: 20px;
+          align-self: center;
+        }
+      }
       @media (max-width: 768px) {
         .container {
           padding: 15px 10px;
@@ -619,7 +687,10 @@
             onchange="importFASTAFile(event)"
           />
           <button onclick="loadTestSequence()" style="background: #b3ffb3">
-            Tester
+            Tester texte
+          </button>
+          <button onclick="loadTestSequence()" style="background: #b3ffb3">
+            Tester image
           </button>
           <button
             onclick="openScenarioVideo()"
@@ -4325,9 +4396,12 @@
         html += "</div>";
         html += "</div>";
 
-        // Grille de pixel art
+        // Grille de pixel art avec image
         html += '<div style="flex: 1; min-width: 500px;">';
         html += '<h3 style="margin-top: 0; color: #667eea;">Grille 70×70</h3>';
+        html += '<div class="pixel-art-image-container">';
+        html +=
+          '<div class="pixel-art-grid-wrapper" style="display: flex; flex-direction: column;">';
 
         // Barre d'outils
         html +=
@@ -4381,8 +4455,11 @@
         html +=
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
 
+        // Conteneur pour la grille et l'image côte à côte
         html +=
-          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 840px; max-height: 840px; overflow: auto; user-select: none; touch-action: none;">';
+          '<div class="pixel-grid-image-wrapper" style="display: flex; align-items: flex-start; gap: 20px; flex-wrap: nowrap;">';
+        html +=
+          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; max-width: 840px; max-height: 840px; overflow: auto; user-select: none; touch-action: none; flex: 1;">';
 
         for (let i = 0; i < gridSize; i++) {
           for (let j = 0; j < gridSize; j++) {
@@ -4406,8 +4483,14 @@
             ></div>`;
           }
         }
-        html += "</div>";
-        html += "</div>";
+        html += "</div>"; // Fin de pixelGrid
+        // Ajouter l'image de la fabrique à droite de la grille
+        html +=
+          '<img src="https://www.dropbox.com/scl/fi/dubr39pke2v6k2xo48o4m/La-fabrique-images.png?rlkey=ms3wb24udc2hfk6gjd78siid2&st=z4lzeiyy&dl=0" alt="La fabrique" class="pixel-art-illustration" />';
+        html += "</div>"; // Fin du conteneur flex grille + image
+        html += "</div>"; // Fin de pixel-art-grid-wrapper
+        html += "</div>"; // Fin de pixel-art-image-container
+        html += "</div>"; // Fin du conteneur flex principal
 
         // Mettre à jour la séquence ADN avec la grille actuelle
         updateDNASequence();
