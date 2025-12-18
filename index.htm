@@ -169,6 +169,7 @@
       .pixel-art-grid-wrapper {
         flex: 1;
         min-width: 500px;
+        width: 100%;
       }
       .pixel-grid-image-wrapper {
         display: flex;
@@ -219,12 +220,20 @@
         .pixel-grid-image-wrapper {
           flex-direction: column !important;
           flex-wrap: wrap;
+          width: 100%;
         }
         .pixel-art-illustration {
           max-width: 100%;
           width: 100%;
-          margin-top: 20px;
+          margin-bottom: 20px;
           align-self: center;
+          order: 1;
+        }
+        #pixelGrid {
+          order: 2;
+          width: 100% !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
         }
       }
       @media (max-width: 768px) {
@@ -4327,6 +4336,73 @@
         }
       }
 
+      // Fonction pour configurer le zoom pinch sur la grille (mobile)
+      function setupPixelGridZoom() {
+        const pixelGrid = document.getElementById("pixelGrid");
+        if (!pixelGrid) return;
+
+        let initialDistance = 0;
+        let currentScale = 1;
+        let minScale = 0.5;
+        let maxScale = 3;
+
+        // Calculer la distance entre deux points tactiles
+        function getDistance(touch1, touch2) {
+          const dx = touch2.clientX - touch1.clientX;
+          const dy = touch2.clientY - touch1.clientY;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        pixelGrid.addEventListener(
+          "touchstart",
+          function (e) {
+            if (e.touches.length === 2) {
+              e.preventDefault();
+              initialDistance = getDistance(e.touches[0], e.touches[1]);
+            }
+          },
+          { passive: false }
+        );
+
+        pixelGrid.addEventListener(
+          "touchmove",
+          function (e) {
+            if (e.touches.length === 2) {
+              e.preventDefault();
+              const currentDistance = getDistance(e.touches[0], e.touches[1]);
+              if (initialDistance > 0) {
+                const scale = currentDistance / initialDistance;
+                const newScale = Math.max(
+                  minScale,
+                  Math.min(maxScale, currentScale * scale)
+                );
+
+                pixelGrid.style.transform = `scale(${newScale})`;
+                pixelGrid.style.transformOrigin = "center center";
+              }
+            }
+          },
+          { passive: false }
+        );
+
+        pixelGrid.addEventListener(
+          "touchend",
+          function (e) {
+            if (e.touches.length < 2 && initialDistance > 0) {
+              if (pixelGrid.style.transform) {
+                const match =
+                  pixelGrid.style.transform.match(/scale\(([^)]+)\)/);
+                if (match) {
+                  currentScale = parseFloat(match[1]);
+                }
+              }
+              initialDistance = 0;
+            }
+          },
+          { passive: false }
+        );
+      }
+
       // Fonction pour fermer le modal pixel art
       function closePixelArtModal() {
         const modal = document.getElementById("pixelArtModal");
@@ -4674,13 +4750,19 @@
         html +=
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
 
-        // Conteneur pour la grille et l'image côte à côte
+        // Conteneur pour l'image et la grille côte à côte (image à gauche)
         html +=
           '<div class="pixel-grid-image-wrapper" style="display: flex; align-items: flex-start; gap: 10px; flex-wrap: nowrap;">';
+        // Ajouter l'image de la fabrique à gauche de la grille
+        html +=
+          '<div class="pixel-art-illustration" id="fabriqueImageContainer" style="flex-shrink: 0; max-width: 460px; width: auto; height: auto; align-self: flex-start; object-fit: contain; min-height: 200px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px;">';
+        html +=
+          '<span style="color: #666; font-size: 0.9rem;">Chargement de l\'image...</span>';
+        html += "</div>";
         html +=
           '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); grid-template-rows: repeat(70, 1fr); gap: 0; background: ' +
           pixelBorderColor +
-          '; border: 2px solid #333; padding: 0; width: 100%; aspect-ratio: 1; max-width: 100%; user-select: none; touch-action: none; flex: 1;">';
+          '; border: 2px solid #333; padding: 0; width: 100%; aspect-ratio: 1; max-width: 100%; user-select: none; touch-action: pan-x pan-y pinch-zoom; flex: 1; overflow: visible; transition: transform 0.1s ease-out;">';
 
         for (let i = 0; i < gridSize; i++) {
           for (let j = 0; j < gridSize; j++) {
@@ -4712,14 +4794,7 @@
           }
         }
         html += "</div>"; // Fin de pixelGrid
-        // Ajouter l'image de la fabrique à droite de la grille
-        // Utiliser un proxy CORS ou charger via fetch pour contourner les restrictions Dropbox
-        html +=
-          '<div class="pixel-art-illustration" id="fabriqueImageContainer" style="flex-shrink: 0; max-width: 460px; width: auto; height: auto; align-self: flex-start; object-fit: contain; min-height: 200px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px;">';
-        html +=
-          '<span style="color: #666; font-size: 0.9rem;">Chargement de l\'image...</span>';
-        html += "</div>";
-        html += "</div>"; // Fin du conteneur flex grille + image
+        html += "</div>"; // Fin du conteneur flex image + grille
         html += "</div>"; // Fin de pixel-art-grid-wrapper
         html += "</div>"; // Fin de pixel-art-image-container
         html += "</div>"; // Fin du conteneur flex principal
@@ -4734,6 +4809,9 @@
 
         // Charger l'image de la fabrique depuis Dropbox
         loadFabriqueImage();
+
+        // Configurer le zoom pinch pour la grille sur mobile
+        setupPixelGridZoom();
 
         // Configurer les boutons pour mobile/tablette
         setupSaveButton();
