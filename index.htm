@@ -354,9 +354,9 @@
         cursor: pointer;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5),
-          0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5),
-          0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3);
+        text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7),
+          0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7),
+          0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         touch-action: manipulation;
@@ -519,9 +519,9 @@
       th {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5),
-          0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5),
-          0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3);
+        text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7),
+          0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7),
+          0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.85rem;
@@ -696,7 +696,10 @@
               background-position: center;
               background-repeat: no-repeat;
               color: #fff;
-              text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+              text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7),
+                0.8px -0.8px 0 rgba(0, 0, 0, 0.7),
+                -0.8px 0.8px 0 rgba(0, 0, 0, 0.7),
+                0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);
               border: 1px solid rgba(255, 255, 255, 0.3);
             "
           >
@@ -710,7 +713,10 @@
               background-position: center;
               background-repeat: no-repeat;
               color: #fff;
-              text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+              text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7),
+                0.8px -0.8px 0 rgba(0, 0, 0, 0.7),
+                -0.8px 0.8px 0 rgba(0, 0, 0, 0.7),
+                0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);
               border: 1px solid rgba(255, 255, 255, 0.3);
             "
           >
@@ -2163,7 +2169,7 @@
         // Bouton de validation
         html += '<div style="text-align: center; margin: 20px 0;">';
         html +=
-          '<button id="validateDecode" style="background: #51cf66; color: white; text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5), 0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3); border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">Valider</button>';
+          '<button id="validateDecode" style="background: #51cf66; color: white; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5); border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">Valider</button>';
         html += "</div>";
 
         // Deuxième ligne : les triplets
@@ -2188,9 +2194,9 @@
         html += "<thead><tr>";
         for (let i = 0; i < 4; i++) {
           html +=
-            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5), 0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3); padding: 10px; text-align: center;">Codon</th>';
+            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5); padding: 10px; text-align: center;">Codon</th>';
           html +=
-            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -0.5px -0.5px 0 rgba(0, 0, 0, 0.5), 0.5px -0.5px 0 rgba(0, 0, 0, 0.5), -0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0.5px 0.5px 0 rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3); padding: 10px; text-align: center;">Symbole</th>';
+            '<th style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5); padding: 10px; text-align: center;">Symbole</th>';
         }
         html += "</tr></thead><tbody>";
 
@@ -4576,33 +4582,33 @@
         html +=
           '<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">';
         html +=
-          '<button id="undoBtn" onclick="undoPixelArt()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Annuler (Ctrl+Z)">↶ Annuler</button>';
+          '<button id="undoBtn" onclick="undoPixelArt()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Annuler (Ctrl+Z)">↶ Annuler</button>';
         html +=
-          '<button id="redoBtn" onclick="redoPixelArt()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Refaire (Ctrl+Y)">↷ Refaire</button>';
+          '<button id="redoBtn" onclick="redoPixelArt()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Refaire (Ctrl+Y)">↷ Refaire</button>';
         html +=
-          '<button id="clearBtn" onclick="clearPixelArt()" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Effacer toute la grille">🧼 Page blanche</button>';
+          '<button id="clearBtn" onclick="clearPixelArt()" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Effacer toute la grille">🧼 Page blanche</button>';
         html +=
-          '<button id="toggleBorderBtn" onclick="togglePixelBorder()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Basculer entre contour blanc et noir">⚫ Contour ' +
+          '<button id="toggleBorderBtn" onclick="togglePixelBorder()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Basculer entre contour blanc et noir">⚫ Contour ' +
           (pixelBorderColor === "black" ? "noir" : "blanc") +
           "</button>";
         html +=
           '<div style="width: 1px; height: 30px; background: #ccc; margin: 0 5px;"></div>';
         html +=
-          '<button id="paintToolBtn" onclick="openSizeModal(\'brush\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Pinceau (Taille: ' +
+          '<button id="paintToolBtn" onclick="openSizeModal(\'brush\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Pinceau (Taille: ' +
           brushSize +
           ') - Cliquez pour changer la taille">🖌️ Pinceau (' +
           brushSize +
           ")</button>";
         html +=
-          '<button id="sprayToolBtn" onclick="openSizeModal(\'spray\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Aérographe (Taille: ' +
+          '<button id="sprayToolBtn" onclick="openSizeModal(\'spray\')" style="padding: 8px 16px; background: #51cf66; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Aérographe (Taille: ' +
           spraySize +
           ') - Cliquez pour changer la taille">🎨 Aérographe (' +
           spraySize +
           ")</button>";
         html +=
-          '<button id="eyedropperToolBtn" onclick="selectTool(\'eyedropper\')" style="padding: 8px 16px; background: #9b59b6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Pipette - Cliquez sur un pixel pour prélever sa couleur">💧 Pipette</button>';
+          '<button id="eyedropperToolBtn" onclick="selectTool(\'eyedropper\')" style="padding: 8px 16px; background: #9b59b6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Pipette - Cliquez sur un pixel pour prélever sa couleur">💧 Pipette</button>';
         html +=
-          '<button id="eraseToolBtn" onclick="openSizeModal(\'eraser\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Gomme (Taille: ' +
+          '<button id="eraseToolBtn" onclick="openSizeModal(\'eraser\')" style="padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Gomme (Taille: ' +
           eraserSize +
           ') - Cliquez pour changer la taille">🧹 Gomme (' +
           eraserSize +
@@ -4613,13 +4619,13 @@
         html +=
           '<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">';
         html +=
-          '<button id="circleToolBtn" onclick="selectTool(\'circle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Cercle - Cliquez et glissez">⭕ Cercle</button>';
+          '<button id="circleToolBtn" onclick="selectTool(\'circle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Cercle - Cliquez et glissez">⭕ Cercle</button>';
         html +=
-          '<button id="squareToolBtn" onclick="selectTool(\'square\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Carré - Cliquez et glissez">⬜ Carré</button>';
+          '<button id="squareToolBtn" onclick="selectTool(\'square\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Carré - Cliquez et glissez">⬜ Carré</button>';
         html +=
-          '<button id="triangleToolBtn" onclick="selectTool(\'triangle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Triangle - Cliquez et glissez">🔺 Triangle</button>';
+          '<button id="triangleToolBtn" onclick="selectTool(\'triangle\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Triangle - Cliquez et glissez">🔺 Triangle</button>';
         html +=
-          '<button id="starToolBtn" onclick="selectTool(\'star\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;" title="Étoile - Cliquez et glissez">⭐ Étoile</button>';
+          '<button id="starToolBtn" onclick="selectTool(\'star\')" style="padding: 8px 16px; background: #ffa94d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-shadow: -0.8px -0.8px 0 rgba(0, 0, 0, 0.7), 0.8px -0.8px 0 rgba(0, 0, 0, 0.7), -0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0.8px 0.8px 0 rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.5);" title="Étoile - Cliquez et glissez">⭐ Étoile</button>';
         html += "</div>";
         html +=
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
