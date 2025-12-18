@@ -670,7 +670,7 @@
             onclick="openImportModal()"
             style="background: #4dabf7; margin-right: 10px"
           >
-            Importer
+            Importer de l'ADN
           </button>
           <input
             type="file"
@@ -686,11 +686,11 @@
             style="display: none"
             onchange="importFASTAFile(event)"
           />
-          <button onclick="loadTestSequence()" style="background: #b3ffb3">
-            Tester texte
+          <button onclick="loadTestTextSequence()" style="background: #fff9c4">
+            Tester texte 📖
           </button>
-          <button onclick="loadTestSequence()" style="background: #b3ffb3">
-            Tester image
+          <button onclick="loadTestImageSequence()" style="background: #b3ffb3">
+            Tester image ⛰️
           </button>
           <button
             onclick="openScenarioVideo()"
@@ -900,7 +900,7 @@
                 -webkit-tap-highlight-color: transparent;
               "
             >
-              💾 Enregistrer
+              💾 Enregistrer dans l'ADN
             </button>
             <button
               id="closePixelArtModal"
@@ -3335,8 +3335,13 @@
         reader.readAsText(file);
       }
 
-      // Fonction pour charger la séquence de test depuis Dropbox
-      async function loadTestSequence() {
+      // Fonction pour charger la séquence de test texte (ancienne logique)
+      function loadTestTextSequence() {
+        loadTestSequenceOld();
+      }
+
+      // Fonction pour charger la séquence de test image depuis Dropbox
+      async function loadTestImageSequence() {
         const baseUrl =
           "https://www.dropbox.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&st=y3huk9e9";
 
