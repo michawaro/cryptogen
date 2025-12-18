@@ -4634,9 +4634,11 @@
 
         // Conteneur pour la grille et l'image côte à côte
         html +=
-          '<div class="pixel-grid-image-wrapper" style="display: flex; align-items: flex-start; gap: 20px; flex-wrap: nowrap;">';
+          '<div class="pixel-grid-image-wrapper" style="display: flex; align-items: flex-start; gap: 10px; flex-wrap: nowrap;">';
         html +=
-          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); grid-template-rows: repeat(70, 1fr); gap: 1px; background: #ddd; border: 2px solid #333; padding: 2px; width: 100%; aspect-ratio: 1; max-width: 100%; user-select: none; touch-action: none; flex: 1;">';
+          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); grid-template-rows: repeat(70, 1fr); gap: 0; background: ' +
+          pixelBorderColor +
+          '; border: 2px solid #333; padding: 0; width: 100%; aspect-ratio: 1; max-width: 100%; user-select: none; touch-action: none; flex: 1;">';
 
         for (let i = 0; i < gridSize; i++) {
           for (let j = 0; j < gridSize; j++) {
@@ -4645,6 +4647,11 @@
                 ? pixelArtGrid[i][j]
                 : 0;
             const color = colors[colorIndex];
+            // Bordures uniquement sur le côté droit et le bas pour créer un seul trait entre les pixels
+            const borderRight =
+              j < gridSize - 1 ? `1px solid ${pixelBorderColor}` : "none";
+            const borderBottom =
+              i < gridSize - 1 ? `1px solid ${pixelBorderColor}` : "none";
             html += `<div
               class="pixel-cell"
               data-row="${i}"
@@ -4655,7 +4662,8 @@
                 aspect-ratio: 1;
                 background: ${color};
                 cursor: crosshair;
-                border: 1px solid ${pixelBorderColor};
+                border-right: ${borderRight};
+                border-bottom: ${borderBottom};
                 touch-action: none;
               "
             ></div>`;
@@ -5308,11 +5316,27 @@
         // Basculer entre noir et blanc
         pixelBorderColor = pixelBorderColor === "black" ? "white" : "black";
 
-        // Mettre à jour tous les pixels
+        // Mettre à jour tous les pixels avec les nouvelles bordures (droite et bas uniquement)
         const pixels = document.querySelectorAll(".pixel-cell");
+        const gridSize = 70;
         pixels.forEach((pixel) => {
-          pixel.style.border = `1px solid ${pixelBorderColor}`;
+          const row = parseInt(pixel.getAttribute("data-row"));
+          const col = parseInt(pixel.getAttribute("data-col"));
+          const borderRight =
+            col < gridSize - 1 ? `1px solid ${pixelBorderColor}` : "none";
+          const borderBottom =
+            row < gridSize - 1 ? `1px solid ${pixelBorderColor}` : "none";
+          pixel.style.borderRight = borderRight;
+          pixel.style.borderBottom = borderBottom;
+          pixel.style.borderTop = "none";
+          pixel.style.borderLeft = "none";
         });
+
+        // Mettre à jour le fond de la grille pour correspondre à la couleur de bordure
+        const pixelGrid = document.getElementById("pixelGrid");
+        if (pixelGrid) {
+          pixelGrid.style.background = pixelBorderColor;
+        }
 
         // Mettre à jour le texte du bouton
         const toggleBtn = document.getElementById("toggleBorderBtn");
