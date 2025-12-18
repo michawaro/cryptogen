@@ -3338,7 +3338,7 @@
       // Fonction pour charger la séquence de test depuis Dropbox
       async function loadTestSequence() {
         const dropboxUrl =
-          "https://www.dropbox.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&st=l6i8puxb&raw=1";
+          "https://www.dropbox.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&raw=1";
 
         try {
           // Afficher un message de chargement
@@ -4163,6 +4163,64 @@
         return false; // Tous les pixels sont blancs
       }
 
+      // Fonction pour charger l'image de la fabrique depuis Dropbox
+      async function loadFabriqueImage() {
+        const container = document.getElementById("fabriqueImageContainer");
+        if (!container) return;
+
+        const dropboxUrl =
+          "https://www.dropbox.com/scl/fi/dubr39pke2v6k2xo48o4m/La-fabrique-images.png?rlkey=ms3wb24udc2hfk6gjd78siid2&st=z4lzeiyy&raw=1";
+
+        try {
+          // Essayer plusieurs formats d'URL Dropbox
+          const urls = [
+            dropboxUrl,
+            dropboxUrl
+              .replace("www.dropbox.com", "dl.dropboxusercontent.com")
+              .replace("&raw=1", "&dl=1"),
+            "https://dl.dropboxusercontent.com/scl/fi/dubr39pke2v6k2xo48o4m/La-fabrique-images.png?rlkey=ms3wb24udc2hfk6gjd78siid2&st=z4lzeiyy&dl=1",
+          ];
+
+          let imageLoaded = false;
+          for (const url of urls) {
+            try {
+              const response = await fetch(url);
+              if (response.ok) {
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+                const img = document.createElement("img");
+                img.src = imageUrl;
+                img.alt = "La fabrique";
+                img.className = "pixel-art-illustration";
+                img.style.maxWidth = "100%";
+                img.style.height = "auto";
+                img.onload = () => {
+                  container.innerHTML = "";
+                  container.appendChild(img);
+                  imageLoaded = true;
+                };
+                img.onerror = () => {
+                  URL.revokeObjectURL(imageUrl);
+                };
+                break;
+              }
+            } catch (err) {
+              console.log("Tentative avec URL échouée:", url, err);
+              continue;
+            }
+          }
+
+          if (!imageLoaded) {
+            container.innerHTML =
+              '<span style="color: #999; font-size: 0.85rem;">Image non disponible</span>';
+          }
+        } catch (error) {
+          console.error("Erreur lors du chargement de l'image:", error);
+          container.innerHTML =
+            '<span style="color: #999; font-size: 0.85rem;">Erreur de chargement</span>';
+        }
+      }
+
       // Fonction pour fermer le modal pixel art
       function closePixelArtModal() {
         const modal = document.getElementById("pixelArtModal");
@@ -4540,8 +4598,12 @@
         }
         html += "</div>"; // Fin de pixelGrid
         // Ajouter l'image de la fabrique à droite de la grille
+        // Utiliser un proxy CORS ou charger via fetch pour contourner les restrictions Dropbox
         html +=
-          '<img src="https://www.dropbox.com/scl/fi/dubr39pke2v6k2xo48o4m/La-fabrique-images.png?rlkey=ms3wb24udc2hfk6gjd78siid2&st=z4lzeiyy&raw=1" alt="La fabrique" class="pixel-art-illustration" onerror="console.error(\'Erreur de chargement de l\\\'image\', this.src); this.style.display=\'none\';" />';
+          '<div class="pixel-art-illustration" id="fabriqueImageContainer" style="flex-shrink: 0; max-width: 400px; width: auto; height: auto; align-self: flex-start; object-fit: contain; min-height: 200px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px;">';
+        html +=
+          '<span style="color: #666; font-size: 0.9rem;">Chargement de l\'image...</span>';
+        html += "</div>";
         html += "</div>"; // Fin du conteneur flex grille + image
         html += "</div>"; // Fin de pixel-art-grid-wrapper
         html += "</div>"; // Fin de pixel-art-image-container
@@ -4554,6 +4616,9 @@
 
         content.innerHTML = html;
         modal.style.display = "block";
+
+        // Charger l'image de la fabrique depuis Dropbox
+        loadFabriqueImage();
 
         // Configurer les boutons pour mobile/tablette
         setupSaveButton();
