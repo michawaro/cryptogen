@@ -744,38 +744,70 @@
           <span style="color: #333; font-size: 1rem; font-weight: 500">
             Je préfère dessiner et encoder ce dessin en séquence ADN :
           </span>
-          <button
-            onclick="openPixelArtEditor()"
-            id="pixelArtBtn"
-            style="position: relative; overflow: hidden; border: 2px solid #333"
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              flex-wrap: wrap;
+            "
           >
-            <span
+            <button
+              onclick="openPixelArtEditor()"
+              id="pixelArtBtn"
               style="
                 position: relative;
-                z-index: 2;
-                color: white;
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-                font-weight: bold;
+                overflow: hidden;
+                border: 2px solid #333;
               "
-              >Pixel art</span
             >
-            <div
-              id="pixelArtMosaic"
+              <span
+                style="
+                  position: relative;
+                  z-index: 2;
+                  color: white;
+                  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                  font-weight: bold;
+                "
+                >Pixel art</span
+              >
+              <div
+                id="pixelArtMosaic"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  z-index: 1;
+                  display: grid;
+                  grid-template-columns: repeat(8, 1fr);
+                  grid-template-rows: repeat(4, 1fr);
+                  gap: 1px;
+                  background: #9b59b6;
+                "
+              ></div>
+            </button>
+            <button
+              id="exportBtn"
+              onclick="openExportModal()"
               style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 1;
-                display: grid;
-                grid-template-columns: repeat(8, 1fr);
-                grid-template-rows: repeat(4, 1fr);
-                gap: 1px;
-                background: #9b59b6;
+                background-image: url('https://www.dropbox.com/scl/fi/914wi5wvt59l7dy4j7onz/Bouton-sauvegarder.png?rlkey=g1xvkbw2orc5dxthgo5wkofpf&st=jy6l5f3n&raw=1');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                color: #fff;
+                text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
+                  1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
+                  1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
+                  0 0 5px rgba(0, 0, 0, 0.5);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                display: none;
               "
-            ></div>
-          </button>
+            >
+              Télécharger
+            </button>
+          </div>
         </div>
         <button
           id="copyBtn"
@@ -783,26 +815,6 @@
           style="margin-left: 10px; background: #51cf66; display: none"
         >
           Copier la séquence
-        </button>
-        <button
-          id="exportBtn"
-          onclick="openExportModal()"
-          style="
-            background-image: url('https://www.dropbox.com/scl/fi/914wi5wvt59l7dy4j7onz/Bouton-sauvegarder.png?rlkey=g1xvkbw2orc5dxthgo5wkofpf&st=jy6l5f3n&raw=1');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            color: #fff;
-            text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
-              1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
-              1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
-              0 0 5px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            margin-left: 10px;
-            display: none;
-          "
-        >
-          Télécharger
         </button>
         <div class="output" id="dnaOutput"></div>
       </div>
