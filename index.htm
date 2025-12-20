@@ -407,7 +407,7 @@
       }
       /* Message pour la fenêtre de résultats d'encodage */
       #dnaOutput:empty:before {
-        content: "Le résultat apparaîtra ici... Tu peux le copier-coller dans encodage pour tester que tout fonctionne puis envoyer         ce message codé à qui tu veux. Pour les textes à trous, double-clique sur les mots que tu souhaites masquer.";
+        content: "Le résultat apparaîtra ici... Tu peux le copier-coller dans encodage pour tester que tout fonctionne puis envoyer ce message codé à qui tu veux. Pour les textes à trous, double-clique sur les mots que tu souhaites masquer.";
         color: #999;
         font-style: italic;
       }
@@ -736,13 +736,13 @@
             margin-top: 20px;
             margin-bottom: 10px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 10px;
-            flex-wrap: wrap;
           "
         >
           <span style="color: #333; font-size: 1rem; font-weight: 500">
-            Je préfère dessiner et encoder ce dessin en séquence ADN
+            Je préfère dessiner et encoder ce dessin en séquence ADN :
           </span>
           <button
             onclick="openPixelArtEditor()"
