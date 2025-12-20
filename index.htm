@@ -789,6 +789,17 @@
         <h2>
           Encodage - Transformez vos phrases ou vos dessins en séquences d'ADN !
         </h2>
+        <p
+          style="
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 500;
+            line-height: 1.6;
+          "
+        >
+          Ce que je souhaite encoder sous forme d'une séquence ADN :
+        </p>
         <textarea
           id="textInput"
           placeholder="Ecris ou colle un texte que tu souhaites encoder dans de l'ADN. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
@@ -808,7 +819,7 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
           "
         >
-          Encoder
+          Texte
         </button>
         <button
           id="trouModeBtn"
@@ -827,8 +838,54 @@
             margin-left: 10px;
           "
         >
-          Encodage à trou
+          Texte à trous
         </button>
+        <div
+          style="
+            margin-top: 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+          "
+        >
+          <span style="color: #333; font-size: 1rem; font-weight: 500">
+            Je préfère encoder une image en séquence ADN
+          </span>
+          <button
+            onclick="openPixelArtEditor()"
+            id="pixelArtBtn"
+            style="position: relative; overflow: hidden; border: 2px solid #333"
+          >
+            <span
+              style="
+                position: relative;
+                z-index: 2;
+                color: white;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                font-weight: bold;
+              "
+              >Pixel art</span
+            >
+            <div
+              id="pixelArtMosaic"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                display: grid;
+                grid-template-columns: repeat(8, 1fr);
+                grid-template-rows: repeat(4, 1fr);
+                gap: 1px;
+                background: #9b59b6;
+              "
+            ></div>
+          </button>
+        </div>
         <button
           id="copyBtn"
           onclick="copyDNAWithTrous()"
@@ -842,43 +899,6 @@
           style="margin-left: 10px; background: #ffa94d; display: none"
         >
           Télécharger
-        </button>
-        <button
-          onclick="openPixelArtEditor()"
-          id="pixelArtBtn"
-          style="
-            margin-left: 10px;
-            position: relative;
-            overflow: hidden;
-            border: 2px solid #333;
-          "
-        >
-          <span
-            style="
-              position: relative;
-              z-index: 2;
-              color: white;
-              text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-              font-weight: bold;
-            "
-            >Pixel art</span
-          >
-          <div
-            id="pixelArtMosaic"
-            style="
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              z-index: 1;
-              display: grid;
-              grid-template-columns: repeat(8, 1fr);
-              grid-template-rows: repeat(4, 1fr);
-              gap: 1px;
-              background: #9b59b6;
-            "
-          ></div>
         </button>
         <div class="output" id="dnaOutput"></div>
       </div>
@@ -1607,7 +1627,7 @@
           }
         } else {
           btn.classList.remove("trou-mode-active");
-          btn.textContent = "Encodage à trou";
+          btn.textContent = "Texte à trou";
           // Réencoder pour enlever les sélections
           if (textInput.value.trim()) {
             encodeText();
