@@ -816,6 +816,21 @@
         >
           Copier la séquence
         </button>
+        <p
+          id="dnaOutputLabel"
+          style="
+            display: none;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.6;
+          "
+        >
+          Voici une séquence ADN contenant ton texte/dessin, tu peux la
+          télécharger :
+        </p>
         <div class="output" id="dnaOutput"></div>
       </div>
 
@@ -2781,6 +2796,27 @@
         encodeText();
       }
 
+      // Fonction pour afficher/cacher le label au-dessus de dnaOutput
+      function updateDnaOutputLabel() {
+        const output = document.getElementById("dnaOutput");
+        const label = document.getElementById("dnaOutputLabel");
+        if (!output || !label) return;
+
+        const hasSequence =
+          output.getAttribute("data-dna-sequence") &&
+          output.getAttribute("data-dna-sequence").length > 0;
+        const hasContent =
+          output.innerHTML &&
+          output.innerHTML.trim() !== "" &&
+          !output.innerHTML.includes("Aucune séquence à afficher");
+
+        if (hasSequence || hasContent) {
+          label.style.display = "block";
+        } else {
+          label.style.display = "none";
+        }
+      }
+
       function encodeText() {
         const input = document.getElementById("textInput").value;
         const normalized = normalizeText(input);
@@ -2976,6 +3012,8 @@
           // Afficher les boutons
           copyBtn.style.display = "inline-block";
           if (exportBtn) exportBtn.style.display = "inline-block";
+          // Afficher le label
+          updateDnaOutputLabel();
         } else if (trouModeActive) {
           // Mode "à trou" actif mais aucun mot sélectionné - afficher quand même la séquence
           output.setAttribute("data-dna-sequence", dna);
@@ -2987,6 +3025,8 @@
           copyBtn.style.display = "none";
           const exportBtn = document.getElementById("exportBtn");
           if (exportBtn) exportBtn.style.display = "inline-block";
+          // Afficher le label
+          updateDnaOutputLabel();
         } else {
           // Mode "à trou" désactivé
           output.setAttribute("data-dna-sequence", dna);
@@ -2996,6 +3036,8 @@
           copyBtn.style.display = "none";
           const exportBtn = document.getElementById("exportBtn");
           if (exportBtn) exportBtn.style.display = "inline-block";
+          // Afficher le label
+          updateDnaOutputLabel();
         }
       }
 
@@ -4708,6 +4750,8 @@
           // Si pas de dessin, vider dnaOutput pour afficher le message par défaut
           dnaOutput.textContent = "";
           dnaOutput.removeAttribute("data-dna-sequence");
+          // Cacher le label
+          updateDnaOutputLabel();
         }
 
         // Afficher le bouton d'export
@@ -6225,6 +6269,9 @@
         // Afficher le bouton d'export
         const exportBtn = document.getElementById("exportBtn");
         if (exportBtn) exportBtn.style.display = "inline-block";
+
+        // Afficher le label
+        updateDnaOutputLabel();
       }
 
       // Fonction pour charger une séquence ADN dans l'éditeur pixel art
