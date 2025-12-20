@@ -696,7 +696,16 @@
           id="textInput"
           placeholder="Ecris ou colle un texte que tu souhaites encoder dans de l'ADN. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
         ></textarea>
-        <div style="text-align: center; margin-top: 20px">
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+          "
+        >
           <button
             onclick="encodeText()"
             style="
@@ -728,7 +737,6 @@
                 1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
                 0 0 5px rgba(0, 0, 0, 0.5);
               border: 1px solid rgba(255, 255, 255, 0.3);
-              margin-left: 10px;
             "
           >
             Texte à trous
