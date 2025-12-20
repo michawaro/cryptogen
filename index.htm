@@ -696,42 +696,44 @@
           id="textInput"
           placeholder="Ecris ou colle un texte que tu souhaites encoder dans de l'ADN. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
         ></textarea>
-        <button
-          onclick="encodeText()"
-          style="
-            background-image: url('https://www.dropbox.com/scl/fi/1covqkpg610vvsmnpvhgd/Bouton-Encoder.png?rlkey=wkbzvci3ac9fp7vg4ghfjb7cw&st=zgk9jkfz&raw=1');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            color: #fff;
-            text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
-              1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
-              1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
-              0 0 5px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-          "
-        >
-          Texte
-        </button>
-        <button
-          id="trouModeBtn"
-          onclick="toggleTrouMode()"
-          style="
-            background-image: url('https://www.dropbox.com/scl/fi/x94k24wjgsy5qx80vzn76/Bouton-Trous.png?rlkey=08oskttv9edx7tks6e3fruohh&st=wt2nbmka&raw=1');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            color: #fff;
-            text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
-              1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
-              1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
-              0 0 5px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            margin-left: 10px;
-          "
-        >
-          Texte à trous
-        </button>
+        <div style="text-align: center; margin-top: 20px">
+          <button
+            onclick="encodeText()"
+            style="
+              background-image: url('https://www.dropbox.com/scl/fi/1covqkpg610vvsmnpvhgd/Bouton-Encoder.png?rlkey=wkbzvci3ac9fp7vg4ghfjb7cw&st=zgk9jkfz&raw=1');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              color: #fff;
+              text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
+                1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
+                1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
+                0 0 5px rgba(0, 0, 0, 0.5);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+            "
+          >
+            Texte
+          </button>
+          <button
+            id="trouModeBtn"
+            onclick="toggleTrouMode()"
+            style="
+              background-image: url('https://www.dropbox.com/scl/fi/x94k24wjgsy5qx80vzn76/Bouton-Trous.png?rlkey=08oskttv9edx7tks6e3fruohh&st=wt2nbmka&raw=1');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              color: #fff;
+              text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
+                1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
+                1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
+                0 0 5px rgba(0, 0, 0, 0.5);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              margin-left: 10px;
+            "
+          >
+            Texte à trous
+          </button>
+        </div>
         <div
           style="
             margin-top: 20px;
@@ -758,6 +760,7 @@
             style="
               display: flex;
               align-items: center;
+              justify-content: center;
               gap: 10px;
               flex-wrap: wrap;
             "
