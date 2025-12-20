@@ -786,7 +786,63 @@
               id="testButtons"
               style="display: flex; flex-direction: column; gap: 10px"
             >
-              <!-- Les boutons seront ajoutés ici ultérieurement -->
+              <button
+                onclick=""
+                style="
+                  padding: 12px 20px;
+                  font-size: 1rem;
+                  font-weight: 600;
+                  border: none;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  background: linear-gradient(135deg, #e84e9b 0%, #ff6b9d 100%);
+                  color: white;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(232, 78, 155, 0.3);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(232, 78, 155, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(232, 78, 155, 0.3)'"
+              >
+                2nde
+              </button>
+              <button
+                onclick=""
+                style="
+                  padding: 12px 20px;
+                  font-size: 1rem;
+                  font-weight: 600;
+                  border: none;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  background: linear-gradient(135deg, #e84e9b 0%, #ff6b9d 100%);
+                  color: white;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(232, 78, 155, 0.3);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(232, 78, 155, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(232, 78, 155, 0.3)'"
+              >
+                1ere
+              </button>
+              <button
+                onclick=""
+                style="
+                  padding: 12px 20px;
+                  font-size: 1rem;
+                  font-weight: 600;
+                  border: none;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  background: linear-gradient(135deg, #e84e9b 0%, #ff6b9d 100%);
+                  color: white;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(232, 78, 155, 0.3);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(232, 78, 155, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(232, 78, 155, 0.3)'"
+              >
+                Terminale
+              </button>
             </div>
           </div>
         </div>
@@ -864,7 +920,7 @@
             margin-bottom: 10px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
           "
         >
@@ -1065,7 +1121,9 @@
           contenteditable="true"
           placeholder="Ecris ou colle ici une séquence d'ADN. L'ADN contient des informations codées sous forme de séquence de nucléotides. Peut-être qu'un message est caché dans la séquence que tu vas étudier ?"
         ></div>
-        <button onclick="decodeDNA()">Décoder</button>
+        <div style="text-align: center; margin-top: 20px">
+          <button onclick="decodeDNA()">Décoder</button>
+        </div>
         <p
           style="
             margin-top: 15px;
