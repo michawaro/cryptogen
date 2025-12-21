@@ -4310,27 +4310,52 @@
           return; // Ne rien faire si le mode mutation n'est pas actif
         }
 
-        // Attendre un peu pour que la sélection soit complète
+        // Capturer la sélection immédiatement avant qu'elle ne soit perdue
+        const selection = window.getSelection();
+        console.log(
+          "showMutationMenuForSelection - selection:",
+          selection.toString()
+        );
+        console.log(
+          "showMutationMenuForSelection - rangeCount:",
+          selection.rangeCount
+        );
+
+        if (
+          selection.rangeCount === 0 ||
+          selection.toString().trim().length === 0
+        ) {
+          console.log("Pas de sélection détectée");
+          return; // Pas de sélection
+        }
+
+        // Vérifier que la sélection est dans dnaInput
+        const range = selection.getRangeAt(0).cloneRange(); // Cloner pour préserver la sélection
+        if (!dnaInput.contains(range.commonAncestorContainer)) {
+          console.log("La sélection n'est pas dans dnaInput");
+          return; // La sélection n'est pas dans dnaInput
+        }
+
+        console.log("Sélection détectée dans dnaInput:", selection.toString());
+
+        // Attendre un peu pour que la sélection soit complète, mais utiliser la sélection capturée
         setTimeout(function () {
-          const selection = window.getSelection();
-          if (
-            selection.rangeCount === 0 ||
-            selection.toString().trim().length === 0
-          ) {
-            return; // Pas de sélection
-          }
-
-          // Vérifier que la sélection est dans dnaInput
-          const range = selection.getRangeAt(0);
-          if (!dnaInput.contains(range.commonAncestorContainer)) {
-            return; // La sélection n'est pas dans dnaInput
-          }
-
-          // Obtenir les informations de sélection
-          const selectionInfo = getSelectionInEditable(dnaInput);
-          if (!selectionInfo) {
+          // Utiliser la sélection capturée au lieu de la re-obtenir
+          // Obtenir les informations de sélection à partir de la range capturée
+          const selectionText = range.toString();
+          if (!selectionText || selectionText.trim().length === 0) {
+            console.log("selectionText est vide");
             return;
           }
+
+          // Calculer les positions dans le texte visible
+          const preRange = range.cloneRange();
+          preRange.selectNodeContents(dnaInput);
+          preRange.setEnd(range.startContainer, range.startOffset);
+          const visibleStart = preRange.toString().length;
+          const visibleEnd = visibleStart + selectionText.length;
+
+          console.log("Positions visibles:", visibleStart, visibleEnd);
 
           // Obtenir le texte brut depuis data-full-sequence
           let plainText = dnaInput.getAttribute("data-full-sequence");
@@ -4344,78 +4369,50 @@
             return;
           }
 
-          // Convertir les positions de la sélection en positions nettoyées
+          // Convertir les positions visibles en positions dans plainText
+          // On va chercher le texte sélectionné dans plainText
+          const selectedTextInVisible = selectionText;
           const visibleText = dnaInput.innerText || dnaInput.textContent || "";
-          let cleanedStart = 0;
-          let cleanedEnd = 0;
-          let visibleCount = 0;
 
-          for (let i = 0; i < visibleText.length; i++) {
-            const char = visibleText[i].toUpperCase();
-            if (char === "A" || char === "T" || char === "C" || char === "G") {
-              if (visibleCount === selectionInfo.start) {
-                // Trouver la position dans plainText correspondant à cette position visible
-                let rawCount = 0;
-                for (let j = 0; j < plainText.length; j++) {
-                  const rawChar = plainText[j].toUpperCase();
-                  if (
-                    rawChar === "A" ||
-                    rawChar === "T" ||
-                    rawChar === "C" ||
-                    rawChar === "G"
-                  ) {
-                    if (rawCount === visibleCount) {
-                      cleanedStart = j;
-                      break;
-                    }
-                    rawCount++;
-                  }
-                }
-              }
-              if (visibleCount === selectionInfo.end - 1) {
-                let rawCount = 0;
-                for (let j = 0; j < plainText.length; j++) {
-                  const rawChar = plainText[j].toUpperCase();
-                  if (
-                    rawChar === "A" ||
-                    rawChar === "T" ||
-                    rawChar === "C" ||
-                    rawChar === "G"
-                  ) {
-                    if (rawCount === visibleCount) {
-                      cleanedEnd = j + 1;
-                      break;
-                    }
-                    rawCount++;
-                  }
-                }
-              }
-              visibleCount++;
-            }
-          }
+          // Trouver la position de la sélection dans visibleText
+          const textBeforeSelection = visibleText.substring(0, visibleStart);
 
-          // Si on n'a pas trouvé les positions, utiliser une méthode alternative
-          if (cleanedStart === 0 && cleanedEnd === 0) {
-            // Compter les nucléotides jusqu'à la position de début et de fin
-            let count = 0;
-            for (let i = 0; i < plainText.length; i++) {
-              const char = plainText[i].toUpperCase();
-              if (
-                char === "A" ||
-                char === "T" ||
-                char === "C" ||
-                char === "G"
-              ) {
-                if (count === selectionInfo.start) {
-                  cleanedStart = i;
-                }
-                if (count < selectionInfo.end) {
-                  cleanedEnd = i + 1;
-                }
-                count++;
-              }
+          // Compter les caractères dans plainText jusqu'à la position correspondante dans visibleText
+          let plainTextPos = 0;
+          let visibleTextPos = 0;
+
+          while (
+            plainTextPos < plainText.length &&
+            visibleTextPos < visibleStart
+          ) {
+            const plainChar = plainText[plainTextPos];
+            // Vérifier si ce caractère correspond à un caractère dans visibleText
+            if (
+              visibleTextPos < visibleText.length &&
+              visibleText[visibleTextPos] === plainChar
+            ) {
+              visibleTextPos++;
             }
+            plainTextPos++;
           }
+          cleanedStart = plainTextPos;
+
+          // Trouver la fin
+          visibleTextPos = visibleStart;
+          while (
+            plainTextPos < plainText.length &&
+            visibleTextPos < visibleEnd
+          ) {
+            const plainChar = plainText[plainTextPos];
+            if (
+              visibleTextPos < visibleText.length &&
+              visibleText[visibleTextPos] === plainChar
+            ) {
+              visibleTextPos++;
+            }
+            plainTextPos++;
+          }
+          cleanedEnd = plainTextPos;
 
           // Extraire la sélection nettoyée
           const selectedText = plainText
@@ -4428,14 +4425,23 @@
           }
 
           // Stocker les informations de sélection
-          selectedText = selectedText;
+          const selectedTextValue = selectedText;
+          selectedText = selectedTextValue;
           selectedStart = cleanedStart;
           selectedEnd = cleanedEnd;
           selectedRange = range;
 
+          console.log(
+            "Affichage du menu pour:",
+            selectedTextValue,
+            "positions:",
+            cleanedStart,
+            cleanedEnd
+          );
+
           // Afficher le menu
-          displayMutationMenu(e, selectedText, cleanedStart, cleanedEnd);
-        }, 50); // Petit délai pour s'assurer que la sélection est complète
+          displayMutationMenu(e, selectedTextValue, cleanedStart, cleanedEnd);
+        }, 100); // Petit délai pour s'assurer que la sélection est complète
       }
 
       // Fonction pour afficher le menu de mutation
@@ -4513,12 +4519,37 @@
       // Gérer la sélection pour afficher le menu de mutation
       // Sur PC : mouseup
       dnaInput.addEventListener("mouseup", function (e) {
+        console.log("mouseup détecté, mutationModeActive:", mutationModeActive);
         showMutationMenuForSelection(e);
       });
 
       // Sur mobile/tablette : touchend
       dnaInput.addEventListener("touchend", function (e) {
+        console.log(
+          "touchend détecté, mutationModeActive:",
+          mutationModeActive
+        );
         showMutationMenuForSelection(e);
+      });
+
+      // Aussi écouter l'événement selectionchange pour détecter les changements de sélection
+      document.addEventListener("selectionchange", function () {
+        if (mutationModeActive) {
+          const selection = window.getSelection();
+          if (
+            selection.rangeCount > 0 &&
+            selection.toString().trim().length > 0
+          ) {
+            const range = selection.getRangeAt(0);
+            if (dnaInput.contains(range.commonAncestorContainer)) {
+              // Délai pour éviter les appels multiples
+              clearTimeout(window.selectionChangeTimeout);
+              window.selectionChangeTimeout = setTimeout(function () {
+                showMutationMenuForSelection(null);
+              }, 200);
+            }
+          }
+        }
       });
 
       // Fonction pour obtenir tous les nœuds texte dans un élément
