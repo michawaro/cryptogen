@@ -3763,13 +3763,25 @@
       function toggleMutationMode() {
         mutationModeActive = !mutationModeActive;
         const mutationBtn = document.getElementById("mutationBtn");
+        console.log(
+          "toggleMutationMode appelé, mutationModeActive:",
+          mutationModeActive
+        );
+
         if (mutationModeActive) {
           mutationBtn.style.background = "#51cf66";
           mutationBtn.textContent = "Mutation (ON)";
+          // Ajouter un style visuel pour indiquer que le mode est actif
+          dnaInput.style.cursor = "crosshair";
+          console.log("Mode mutation activé");
         } else {
           mutationBtn.style.background = "#ff6b6b";
           mutationBtn.textContent = "Mutation";
-          contextMenu.style.display = "none";
+          if (contextMenu) {
+            contextMenu.style.display = "none";
+          }
+          dnaInput.style.cursor = "text";
+          console.log("Mode mutation désactivé");
         }
       }
 
@@ -3955,12 +3967,26 @@
 
       // Gérer le double-clic pour afficher le menu de mutation
       dnaInput.addEventListener("dblclick", function (e) {
+        console.log(
+          "Double-clic détecté, mutationModeActive:",
+          mutationModeActive
+        );
+
         if (!mutationModeActive) {
           return; // Ne rien faire si le mode mutation n'est pas actif
         }
 
+        // Empêcher la sélection automatique de tout le texte
         e.preventDefault();
         e.stopPropagation();
+
+        // Annuler toute sélection existante
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+          selection.removeAllRanges();
+        }
+
+        console.log("Tentative d'affichage du menu...");
 
         // Obtenir le texte brut depuis data-full-sequence (sans HTML colorisé)
         let plainText = dnaInput.getAttribute("data-full-sequence");
@@ -3996,9 +4022,12 @@
           !clickRange ||
           !dnaInput.contains(clickRange.commonAncestorContainer)
         ) {
+          console.log("clickRange invalide ou pas dans dnaInput");
           contextMenu.style.display = "none";
           return;
         }
+
+        console.log("clickRange trouvé, position calculée...");
 
         // Obtenir la position dans le texte visible (innerText)
         const visibleText = dnaInput.innerText || dnaInput.textContent || "";
@@ -4129,9 +4158,30 @@
         }
 
         // Positionner le menu à la position du clic
+        if (!contextMenu) {
+          console.error("contextMenu n'existe pas!");
+          return;
+        }
+
+        console.log("Triplet sélectionné:", selectedTriplet);
+        console.log("Positions:", selectedStart, selectedEnd);
+        console.log("Position du clic:", e.pageX, e.pageY);
+
+        // Afficher le menu
         contextMenu.style.display = "block";
         contextMenu.style.left = e.pageX + "px";
         contextMenu.style.top = e.pageY + "px";
+
+        // Forcer la visibilité
+        contextMenu.style.visibility = "visible";
+        contextMenu.style.opacity = "1";
+
+        console.log(
+          "Menu affiché, style:",
+          contextMenu.style.display,
+          contextMenu.style.left,
+          contextMenu.style.top
+        );
       });
 
       // Fonction pour obtenir tous les nœuds texte dans un élément
