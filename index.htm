@@ -3966,223 +3966,249 @@
       }
 
       // Gérer le double-clic pour afficher le menu de mutation
-      dnaInput.addEventListener("dblclick", function (e) {
-        console.log(
-          "Double-clic détecté, mutationModeActive:",
-          mutationModeActive
-        );
+      // Utiliser capture: true pour intercepter l'événement avant les spans enfants
+      // Aussi tester avec mousedown pour voir si l'événement est capturé
+      dnaInput.addEventListener(
+        "mousedown",
+        function (e) {
+          if (mutationModeActive) {
+            console.log(
+              "mousedown détecté dans dnaInput, mutationModeActive:",
+              mutationModeActive
+            );
+          }
+        },
+        true
+      );
 
-        if (!mutationModeActive) {
-          return; // Ne rien faire si le mode mutation n'est pas actif
-        }
-
-        // Empêcher la sélection automatique de tout le texte
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Annuler toute sélection existante
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-          selection.removeAllRanges();
-        }
-
-        console.log("Tentative d'affichage du menu...");
-
-        // Obtenir le texte brut depuis data-full-sequence (sans HTML colorisé)
-        let plainText = dnaInput.getAttribute("data-full-sequence");
-        if (!plainText) {
-          // Si pas de data-full-sequence, utiliser innerText (sans HTML)
-          plainText = dnaInput.innerText || dnaInput.textContent || "";
-        }
-
-        // Nettoyer pour ne garder que les nucléotides
-        const cleanedText = plainText.toUpperCase().replace(/[^ATCG]/g, "");
-        if (cleanedText.length === 0) {
-          contextMenu.style.display = "none";
-          return;
-        }
-
-        // Obtenir la position du clic dans le texte visible (avec HTML)
-        let clickRange = null;
-        if (document.caretRangeFromPoint) {
-          clickRange = document.caretRangeFromPoint(e.clientX, e.clientY);
-        } else if (document.caretPositionFromPoint) {
-          const caretPos = document.caretPositionFromPoint(
-            e.clientX,
-            e.clientY
+      dnaInput.addEventListener(
+        "dblclick",
+        function (e) {
+          console.log(
+            "Double-clic détecté, mutationModeActive:",
+            mutationModeActive
           );
-          if (caretPos) {
-            clickRange = document.createRange();
-            clickRange.setStart(caretPos.offsetNode, caretPos.offset);
-            clickRange.setEnd(caretPos.offsetNode, caretPos.offset);
+          console.log("Target:", e.target);
+          console.log("CurrentTarget:", e.currentTarget);
+
+          if (!mutationModeActive) {
+            return; // Ne rien faire si le mode mutation n'est pas actif
           }
-        }
 
-        if (
-          !clickRange ||
-          !dnaInput.contains(clickRange.commonAncestorContainer)
-        ) {
-          console.log("clickRange invalide ou pas dans dnaInput");
-          contextMenu.style.display = "none";
-          return;
-        }
+          // Empêcher la sélection automatique de tout le texte
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation(); // Empêcher les autres gestionnaires
 
-        console.log("clickRange trouvé, position calculée...");
-
-        // Obtenir la position dans le texte visible (innerText)
-        const visibleText = dnaInput.innerText || dnaInput.textContent || "";
-        const preRange = clickRange.cloneRange();
-        preRange.selectNodeContents(dnaInput);
-        preRange.setEnd(clickRange.startContainer, clickRange.startOffset);
-        const positionInVisible = preRange.toString().length;
-
-        // Convertir la position dans le texte visible en position dans le texte nettoyé (seulement ATCG)
-        let cleanedPos = 0;
-        for (let i = 0; i < visibleText.length && i < positionInVisible; i++) {
-          const char = visibleText[i].toUpperCase();
-          if (char === "A" || char === "T" || char === "C" || char === "G") {
-            cleanedPos++;
+          // Annuler toute sélection existante
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0) {
+            selection.removeAllRanges();
           }
-        }
 
-        // Trouver le triplet qui contient cette position
-        const tripletIndex = Math.floor(cleanedPos / 3);
-        const tripletStartInCleaned = tripletIndex * 3;
-        const tripletEndInCleaned = Math.min(
-          tripletStartInCleaned + 3,
-          cleanedText.length
-        );
+          console.log("Tentative d'affichage du menu...");
 
-        if (tripletStartInCleaned >= cleanedText.length) {
-          contextMenu.style.display = "none";
-          return;
-        }
-
-        // Extraire le triplet
-        const selectedTriplet = cleanedText.substring(
-          tripletStartInCleaned,
-          tripletEndInCleaned
-        );
-        if (selectedTriplet.length === 0) {
-          contextMenu.style.display = "none";
-          return;
-        }
-
-        // Convertir les positions nettoyées en positions dans le texte visible
-        let visibleStart = 0;
-        let visibleEnd = visibleText.length;
-        let currentCleanedPos = 0;
-
-        for (let i = 0; i < visibleText.length; i++) {
-          const char = visibleText[i].toUpperCase();
-          if (char === "A" || char === "T" || char === "C" || char === "G") {
-            if (currentCleanedPos === tripletStartInCleaned) {
-              visibleStart = i;
-            }
-            if (currentCleanedPos === tripletEndInCleaned - 1) {
-              visibleEnd = i + 1;
-              break;
-            }
-            currentCleanedPos++;
+          // Obtenir le texte brut depuis data-full-sequence (sans HTML colorisé)
+          let plainText = dnaInput.getAttribute("data-full-sequence");
+          if (!plainText) {
+            // Si pas de data-full-sequence, utiliser innerText (sans HTML)
+            plainText = dnaInput.innerText || dnaInput.textContent || "";
           }
-        }
 
-        // Stocker les informations de sélection (en positions du texte brut)
-        // Convertir visibleStart/visibleEnd en positions du texte brut (plainText)
-        let rawStart = 0;
-        let rawEnd = plainText.length;
-        let visibleCount = 0;
-
-        for (let i = 0; i < plainText.length; i++) {
-          const char = plainText[i].toUpperCase();
-          if (char === "A" || char === "T" || char === "C" || char === "G") {
-            if (visibleCount === tripletStartInCleaned) {
-              rawStart = i;
-            }
-            if (visibleCount === tripletEndInCleaned - 1) {
-              rawEnd = i + 1;
-              break;
-            }
-            visibleCount++;
+          // Nettoyer pour ne garder que les nucléotides
+          const cleanedText = plainText.toUpperCase().replace(/[^ATCG]/g, "");
+          if (cleanedText.length === 0) {
+            contextMenu.style.display = "none";
+            return;
           }
-        }
 
-        selectedText = selectedTriplet;
-        selectedStart = rawStart;
-        selectedEnd = rawEnd;
-
-        // Créer une plage de sélection visuelle dans le HTML pour mettre en surbrillance
-        const textNodes = getTextNodesIn(dnaInput);
-        let currentVisiblePos = 0;
-        let startNode = null;
-        let startOffset = 0;
-        let endNode = null;
-        let endOffset = 0;
-
-        for (let node of textNodes) {
-          const nodeText = node.textContent;
-          const nodeLength = nodeText.length;
+          // Obtenir la position du clic dans le texte visible (avec HTML)
+          let clickRange = null;
+          if (document.caretRangeFromPoint) {
+            clickRange = document.caretRangeFromPoint(e.clientX, e.clientY);
+          } else if (document.caretPositionFromPoint) {
+            const caretPos = document.caretPositionFromPoint(
+              e.clientX,
+              e.clientY
+            );
+            if (caretPos) {
+              clickRange = document.createRange();
+              clickRange.setStart(caretPos.offsetNode, caretPos.offset);
+              clickRange.setEnd(caretPos.offsetNode, caretPos.offset);
+            }
+          }
 
           if (
-            currentVisiblePos <= visibleStart &&
-            visibleStart < currentVisiblePos + nodeLength
+            !clickRange ||
+            !dnaInput.contains(clickRange.commonAncestorContainer)
           ) {
-            startNode = node;
-            startOffset = visibleStart - currentVisiblePos;
+            console.log("clickRange invalide ou pas dans dnaInput");
+            contextMenu.style.display = "none";
+            return;
           }
-          if (
-            currentVisiblePos < visibleEnd &&
-            visibleEnd <= currentVisiblePos + nodeLength
-          ) {
-            endNode = node;
-            endOffset = visibleEnd - currentVisiblePos;
-            break;
-          }
-          currentVisiblePos += nodeLength;
-        }
 
-        if (startNode && endNode) {
-          try {
-            const newRange = document.createRange();
-            newRange.setStart(startNode, startOffset);
-            newRange.setEnd(endNode, endOffset);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(newRange);
-            selectedRange = newRange;
-          } catch (err) {
+          console.log("clickRange trouvé, position calculée...");
+
+          // Obtenir la position dans le texte visible (innerText)
+          const visibleText = dnaInput.innerText || dnaInput.textContent || "";
+          const preRange = clickRange.cloneRange();
+          preRange.selectNodeContents(dnaInput);
+          preRange.setEnd(clickRange.startContainer, clickRange.startOffset);
+          const positionInVisible = preRange.toString().length;
+
+          // Convertir la position dans le texte visible en position dans le texte nettoyé (seulement ATCG)
+          let cleanedPos = 0;
+          for (
+            let i = 0;
+            i < visibleText.length && i < positionInVisible;
+            i++
+          ) {
+            const char = visibleText[i].toUpperCase();
+            if (char === "A" || char === "T" || char === "C" || char === "G") {
+              cleanedPos++;
+            }
+          }
+
+          // Trouver le triplet qui contient cette position
+          const tripletIndex = Math.floor(cleanedPos / 3);
+          const tripletStartInCleaned = tripletIndex * 3;
+          const tripletEndInCleaned = Math.min(
+            tripletStartInCleaned + 3,
+            cleanedText.length
+          );
+
+          if (tripletStartInCleaned >= cleanedText.length) {
+            contextMenu.style.display = "none";
+            return;
+          }
+
+          // Extraire le triplet
+          const selectedTriplet = cleanedText.substring(
+            tripletStartInCleaned,
+            tripletEndInCleaned
+          );
+          if (selectedTriplet.length === 0) {
+            contextMenu.style.display = "none";
+            return;
+          }
+
+          // Convertir les positions nettoyées en positions dans le texte visible
+          let visibleStart = 0;
+          let visibleEnd = visibleText.length;
+          let currentCleanedPos = 0;
+
+          for (let i = 0; i < visibleText.length; i++) {
+            const char = visibleText[i].toUpperCase();
+            if (char === "A" || char === "T" || char === "C" || char === "G") {
+              if (currentCleanedPos === tripletStartInCleaned) {
+                visibleStart = i;
+              }
+              if (currentCleanedPos === tripletEndInCleaned - 1) {
+                visibleEnd = i + 1;
+                break;
+              }
+              currentCleanedPos++;
+            }
+          }
+
+          // Stocker les informations de sélection (en positions du texte brut)
+          // Convertir visibleStart/visibleEnd en positions du texte brut (plainText)
+          let rawStart = 0;
+          let rawEnd = plainText.length;
+          let visibleCount = 0;
+
+          for (let i = 0; i < plainText.length; i++) {
+            const char = plainText[i].toUpperCase();
+            if (char === "A" || char === "T" || char === "C" || char === "G") {
+              if (visibleCount === tripletStartInCleaned) {
+                rawStart = i;
+              }
+              if (visibleCount === tripletEndInCleaned - 1) {
+                rawEnd = i + 1;
+                break;
+              }
+              visibleCount++;
+            }
+          }
+
+          selectedText = selectedTriplet;
+          selectedStart = rawStart;
+          selectedEnd = rawEnd;
+
+          // Créer une plage de sélection visuelle dans le HTML pour mettre en surbrillance
+          const textNodes = getTextNodesIn(dnaInput);
+          let currentVisiblePos = 0;
+          let startNode = null;
+          let startOffset = 0;
+          let endNode = null;
+          let endOffset = 0;
+
+          for (let node of textNodes) {
+            const nodeText = node.textContent;
+            const nodeLength = nodeText.length;
+
+            if (
+              currentVisiblePos <= visibleStart &&
+              visibleStart < currentVisiblePos + nodeLength
+            ) {
+              startNode = node;
+              startOffset = visibleStart - currentVisiblePos;
+            }
+            if (
+              currentVisiblePos < visibleEnd &&
+              visibleEnd <= currentVisiblePos + nodeLength
+            ) {
+              endNode = node;
+              endOffset = visibleEnd - currentVisiblePos;
+              break;
+            }
+            currentVisiblePos += nodeLength;
+          }
+
+          if (startNode && endNode) {
+            try {
+              const newRange = document.createRange();
+              newRange.setStart(startNode, startOffset);
+              newRange.setEnd(endNode, endOffset);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(newRange);
+              selectedRange = newRange;
+            } catch (err) {
+              selectedRange = null;
+            }
+          } else {
             selectedRange = null;
           }
-        } else {
-          selectedRange = null;
-        }
 
-        // Positionner le menu à la position du clic
-        if (!contextMenu) {
-          console.error("contextMenu n'existe pas!");
-          return;
-        }
+          // Positionner le menu à la position du clic
+          if (!contextMenu) {
+            console.error("contextMenu n'existe pas!");
+            return;
+          }
 
-        console.log("Triplet sélectionné:", selectedTriplet);
-        console.log("Positions:", selectedStart, selectedEnd);
-        console.log("Position du clic:", e.pageX, e.pageY);
+          console.log("Triplet sélectionné:", selectedTriplet);
+          console.log("Positions:", selectedStart, selectedEnd);
+          console.log("Position du clic:", e.pageX, e.pageY);
 
-        // Afficher le menu
-        contextMenu.style.display = "block";
-        contextMenu.style.left = e.pageX + "px";
-        contextMenu.style.top = e.pageY + "px";
+          // Afficher le menu
+          contextMenu.style.display = "block";
+          contextMenu.style.left = e.pageX + "px";
+          contextMenu.style.top = e.pageY + "px";
 
-        // Forcer la visibilité
-        contextMenu.style.visibility = "visible";
-        contextMenu.style.opacity = "1";
+          // Forcer la visibilité
+          contextMenu.style.visibility = "visible";
+          contextMenu.style.opacity = "1";
 
-        console.log(
-          "Menu affiché, style:",
-          contextMenu.style.display,
-          contextMenu.style.left,
-          contextMenu.style.top
-        );
-      });
+          console.log(
+            "Menu affiché, style:",
+            contextMenu.style.display,
+            contextMenu.style.left,
+            contextMenu.style.top
+          );
+        },
+        true
+      ); // Utiliser capture: true pour intercepter avant les spans enfants
 
       // Fonction pour obtenir tous les nœuds texte dans un élément
       function getTextNodesIn(node) {
