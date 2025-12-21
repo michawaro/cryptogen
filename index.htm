@@ -4192,20 +4192,59 @@
           console.log("Position du clic:", e.pageX, e.pageY);
 
           // Afficher le menu
-          contextMenu.style.display = "block";
-          contextMenu.style.left = e.pageX + "px";
-          contextMenu.style.top = e.pageY + "px";
+          // Ajuster la position pour s'assurer qu'il est visible dans la fenêtre
+          let menuX = e.pageX;
+          let menuY = e.pageY;
 
-          // Forcer la visibilité
+          // Vérifier que le menu ne dépasse pas les bords de la fenêtre
+          const menuWidth = 180; // min-width du menu
+          const menuHeight = 120; // hauteur approximative du menu
+          const windowWidth = window.innerWidth;
+          const windowHeight = window.innerHeight;
+
+          if (menuX + menuWidth > windowWidth) {
+            menuX = windowWidth - menuWidth - 10;
+          }
+          if (menuY + menuHeight > windowHeight) {
+            menuY = windowHeight - menuHeight - 10;
+          }
+          if (menuX < 10) {
+            menuX = 10;
+          }
+          if (menuY < 10) {
+            menuY = 10;
+          }
+
+          contextMenu.style.display = "block";
+          contextMenu.style.left = menuX + "px";
+          contextMenu.style.top = menuY + "px";
           contextMenu.style.visibility = "visible";
           contextMenu.style.opacity = "1";
+          contextMenu.style.zIndex = "99999"; // Z-index très élevé
+          contextMenu.style.position = "fixed"; // S'assurer que c'est fixed
+          contextMenu.style.backgroundColor = "white"; // Forcer le fond blanc
+          contextMenu.style.border = "2px solid red"; // Style de débogage temporaire
 
+          // Vérifier que le menu est bien dans le DOM et visible
           console.log(
             "Menu affiché, style:",
             contextMenu.style.display,
             contextMenu.style.left,
             contextMenu.style.top
           );
+          console.log(
+            "Menu offsetWidth:",
+            contextMenu.offsetWidth,
+            "offsetHeight:",
+            contextMenu.offsetHeight
+          );
+          console.log(
+            "Menu computed style:",
+            window.getComputedStyle(contextMenu).display
+          );
+
+          // Forcer un reflow pour s'assurer que le menu est rendu
+          contextMenu.offsetHeight;
         },
         true
       ); // Utiliser capture: true pour intercepter avant les spans enfants
