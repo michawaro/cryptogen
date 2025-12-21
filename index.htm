@@ -4486,20 +4486,39 @@
         );
 
         // Convertir les positions de mutation en positions nettoyées
-        const oldCleanedPos = convertToCleanedPositions(
-          oldText,
-          mutationStart,
-          mutationEnd
-        );
-        const newCleanedPos = convertToCleanedPositions(
-          newText,
-          mutationStart,
-          mutationStart + newLength
-        );
+        let oldCleanedPos, newCleanedPos, lengthDiff;
 
-        // Calculer le décalage
-        const lengthDiff =
-          newLength - (oldCleanedPos.end - oldCleanedPos.start);
+        if (mutationType === "addition") {
+          // Pour l'addition, on ajoute après mutationStart, donc pas de sélection à remplacer
+          // oldCleanedPos est juste la position d'insertion (start = end)
+          oldCleanedPos = convertToCleanedPositions(
+            oldText,
+            mutationStart,
+            mutationStart
+          );
+          // newCleanedPos correspond aux nouveaux nucléotides ajoutés
+          newCleanedPos = convertToCleanedPositions(
+            newText,
+            mutationStart,
+            mutationStart + newLength
+          );
+          // Le décalage est simplement la longueur ajoutée
+          lengthDiff = newLength;
+        } else {
+          // Pour substitution et suppression, on a une sélection à remplacer
+          oldCleanedPos = convertToCleanedPositions(
+            oldText,
+            mutationStart,
+            mutationEnd
+          );
+          newCleanedPos = convertToCleanedPositions(
+            newText,
+            mutationStart,
+            mutationStart + newLength
+          );
+          // Calculer le décalage
+          lengthDiff = newLength - (oldCleanedPos.end - oldCleanedPos.start);
+        }
 
         // Mettre à jour les positions des plages modifiées existantes
         const updatedRanges = modifiedRanges.map((range) => {
