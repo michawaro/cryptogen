@@ -1152,12 +1152,27 @@
           contenteditable="true"
           placeholder="Ecris ou colle ici une séquence d'ADN. L'ADN contient des informations codées sous forme de séquence de nucléotides. Peut-être qu'un message est caché dans la séquence que tu vas étudier ?"
         ></div>
-        <div id="contextMenu">
+        <div id="contextMenu" style="display: none">
           <div class="menu-item" data-action="substitution">Substitution</div>
           <div class="menu-item" data-action="addition">Addition</div>
-          <div class="menu-item" data-action="suppression">Suppression</div>
+          <div class="menu-item" data-action="suppression">Délétion</div>
         </div>
-        <div style="text-align: center; margin-top: 20px">
+        <div
+          style="
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+          "
+        >
+          <button
+            id="mutationBtn"
+            onclick="toggleMutationMode()"
+            style="background: #ff6b6b"
+          >
+            Mutation
+          </button>
           <button onclick="decodeDNA()">Décoder</button>
         </div>
         <p
@@ -3742,6 +3757,21 @@
       let selectedText = "";
       let selectedStart = 0;
       let selectedEnd = 0;
+      let mutationModeActive = false;
+
+      // Fonction pour activer/désactiver le mode mutation
+      function toggleMutationMode() {
+        mutationModeActive = !mutationModeActive;
+        const mutationBtn = document.getElementById("mutationBtn");
+        if (mutationModeActive) {
+          mutationBtn.style.background = "#51cf66";
+          mutationBtn.textContent = "Mutation (ON)";
+        } else {
+          mutationBtn.style.background = "#ff6b6b";
+          mutationBtn.textContent = "Mutation";
+          contextMenu.style.display = "none";
+        }
+      }
 
       // Fonction pour obtenir la sélection dans un élément contenteditable
       function getSelectionInEditable(element) {
@@ -3816,39 +3846,213 @@
         };
       }
 
-      // Afficher le menu contextuel
-      dnaInput.addEventListener("contextmenu", function (e) {
-        e.preventDefault();
+      // Fonction pour obtenir la position du clic dans le texte
+      function getClickPosition(element, e) {
+        let range = null;
 
-        const selection = getSelectionInEditable(dnaInput);
+        // Essayer d'obtenir la position du clic
+        if (document.caretRangeFromPoint) {
+          range = document.caretRangeFromPoint(e.clientX, e.clientY);
+        } else if (document.caretPositionFromPoint) {
+          const caretPos = document.caretPositionFromPoint(
+            e.clientX,
+            e.clientY
+          );
+          if (caretPos) {
+            range = document.createRange();
+            range.setStart(caretPos.offsetNode, caretPos.offset);
+            range.setEnd(caretPos.offsetNode, caretPos.offset);
+          }
+        } else {
+          // Fallback : utiliser la sélection actuelle
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0).cloneRange();
+          }
+        }
+
+        if (!range) {
+          return null;
+        }
+
+        // Vérifier que le clic est dans l'élément
+        if (!element.contains(range.commonAncestorContainer)) {
+          return null;
+        }
+
+        // Obtenir la position dans le texte
+        const preRange = range.cloneRange();
+        preRange.selectNodeContents(element);
+        preRange.setEnd(range.startContainer, range.startOffset);
+        const position = preRange.toString().length;
+
+        return position;
+      }
+
+      // Fonction pour sélectionner un nucléotide ou un triplet à la position donnée
+      function selectNucleotideAtPosition(element, position) {
+        const text = getPlainText(element);
+        if (position < 0 || position >= text.length) return null;
+
+        // Nettoyer le texte pour ne garder que les nucléotides valides
+        const cleanedText = text.toUpperCase().replace(/[^ATCG]/g, "");
+        if (cleanedText.length === 0) return null;
+
+        // Compter les nucléotides valides jusqu'à la position
+        let cleanedPos = 0;
+        let rawPos = 0;
+        for (let i = 0; i < text.length && i < position; i++) {
+          const char = text[i].toUpperCase();
+          if (char === "A" || char === "T" || char === "C" || char === "G") {
+            cleanedPos++;
+          }
+          rawPos++;
+        }
+
+        // Trouver le triplet qui contient cette position (en position nettoyée)
+        const tripletIndex = Math.floor(cleanedPos / 3);
+        const tripletStartInCleaned = tripletIndex * 3;
+        const tripletEndInCleaned = Math.min(
+          tripletStartInCleaned + 3,
+          cleanedText.length
+        );
+
+        // Convertir les positions nettoyées en positions brutes
+        let rawStart = 0;
+        let rawEnd = text.length;
+        let currentCleanedPos = 0;
+
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i].toUpperCase();
+          if (char === "A" || char === "T" || char === "C" || char === "G") {
+            if (currentCleanedPos === tripletStartInCleaned) {
+              rawStart = i;
+            }
+            if (currentCleanedPos === tripletEndInCleaned) {
+              rawEnd = i;
+              break;
+            }
+            currentCleanedPos++;
+          }
+        }
+
+        // Extraire le triplet
+        const selectedText = cleanedText.substring(
+          tripletStartInCleaned,
+          tripletEndInCleaned
+        );
+
+        if (selectedText.length === 0) {
+          return null;
+        }
+
+        return {
+          start: rawStart,
+          end: rawEnd,
+          text: selectedText,
+        };
+      }
+
+      // Gérer le double-clic pour afficher le menu de mutation
+      dnaInput.addEventListener("dblclick", function (e) {
+        if (!mutationModeActive) {
+          return; // Ne rien faire si le mode mutation n'est pas actif
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Obtenir la position du clic
+        const clickPos = getClickPosition(dnaInput, e);
+        if (clickPos === null) {
+          contextMenu.style.display = "none";
+          return;
+        }
+
+        // Sélectionner le nucléotide ou le triplet à cette position
+        const selection = selectNucleotideAtPosition(dnaInput, clickPos);
         if (!selection) {
           contextMenu.style.display = "none";
           return;
         }
 
-        selectedRange = selection.range;
+        // Créer une plage de sélection pour visualiser
+        const range = document.createRange();
+        const textNodes = getTextNodesIn(dnaInput);
+        let currentPos = 0;
+        let startNode = null;
+        let startOffset = 0;
+        let endNode = null;
+        let endOffset = 0;
+
+        for (let node of textNodes) {
+          const nodeText = node.textContent;
+          const nodeLength = nodeText.length;
+
+          if (
+            currentPos <= selection.start &&
+            selection.start < currentPos + nodeLength
+          ) {
+            startNode = node;
+            startOffset = selection.start - currentPos;
+          }
+          if (
+            currentPos < selection.end &&
+            selection.end <= currentPos + nodeLength
+          ) {
+            endNode = node;
+            endOffset = selection.end - currentPos;
+            break;
+          }
+          currentPos += nodeLength;
+        }
+
+        if (startNode && endNode) {
+          try {
+            range.setStart(startNode, startOffset);
+            range.setEnd(endNode, endOffset);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          } catch (err) {
+            // Ignorer les erreurs de sélection
+          }
+        }
+
+        selectedRange = range;
         selectedText = selection.text;
         selectedStart = selection.start;
         selectedEnd = selection.end;
 
-        // Filtrer pour ne garder que les nucléotides valides dans la sélection
-        const validNucleotides = selectedText
-          .toUpperCase()
-          .replace(/[^ATCG]/g, "");
-        if (validNucleotides.length === 0) {
-          contextMenu.style.display = "none";
-          return;
-        }
-
-        // Positionner le menu
+        // Positionner le menu à la position du clic
         contextMenu.style.display = "block";
         contextMenu.style.left = e.pageX + "px";
         contextMenu.style.top = e.pageY + "px";
       });
 
+      // Fonction pour obtenir tous les nœuds texte dans un élément
+      function getTextNodesIn(node) {
+        const textNodes = [];
+        const walker = document.createTreeWalker(
+          node,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false
+        );
+        let textNode;
+        while ((textNode = walker.nextNode())) {
+          textNodes.push(textNode);
+        }
+        return textNodes;
+      }
+
       // Fermer le menu si on clique ailleurs
       document.addEventListener("click", function (e) {
-        if (!contextMenu.contains(e.target) && e.target !== dnaInput) {
+        if (
+          !contextMenu.contains(e.target) &&
+          !dnaInput.contains(e.target) &&
+          e.target !== dnaInput
+        ) {
           contextMenu.style.display = "none";
         }
       });
