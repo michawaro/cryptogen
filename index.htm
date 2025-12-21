@@ -2248,10 +2248,14 @@
         // Nettoyer pour le décodage (enlever tout sauf A, T, C, G)
         let input = rawInput.toUpperCase().replace(/[^ATCG]/g, "");
 
-        // Détecter si c'est une image pixel art (14700 ou 14703 nucléotides)
+        // Détecter si c'est une image pixel art (>= 14700 nucléotides)
         // 14700 = 4900 triplets pour une grille 70x70 (palette classique par défaut)
-        // 14703 = 1 triplet de palette + 4900 triplets pour une grille 70x70
-        if (input.length === 14700 || input.length === 14703) {
+        // 14703+ = 1 triplet de palette + 4900+ triplets pour une grille 70x70+ (max 70 pixels supplémentaires)
+        const baseSize = 70 * 70 * 3; // 14700 nucléotides pour 70x70
+        const maxAdditionalPixels = 70; // Maximum 70 pixels supplémentaires
+        const maxSize = baseSize + 3 + maxAdditionalPixels * 3; // 14703 + 210 = 14913 max
+
+        if (input.length >= baseSize && input.length <= maxSize) {
           // C'est une image pixel art, ouvrir l'éditeur avec cette séquence
           loadPixelArtFromSequence(input);
           return;
@@ -5752,13 +5756,26 @@
         });
 
         // Initialiser la grille avec la première couleur de la palette pour tous les carreaux si elle n'existe pas déjà
-        const gridSize = 70;
-        if (pixelArtGrid.length === 0 || pixelArtGrid.length !== gridSize) {
+        const gridWidth = 70;
+        const gridHeight = 70; // Hauteur de base
+        if (pixelArtGrid.length === 0) {
+          // Créer une nouvelle grille 70x70
           pixelArtGrid = [];
-          for (let i = 0; i < gridSize; i++) {
+          for (let i = 0; i < gridHeight; i++) {
             pixelArtGrid[i] = [];
-            for (let j = 0; j < gridSize; j++) {
+            for (let j = 0; j < gridWidth; j++) {
               pixelArtGrid[i][j] = 0; // Index 0 = première couleur de la palette
+            }
+          }
+        } else {
+          // S'assurer que toutes les lignes existantes ont 70 colonnes
+          for (let i = 0; i < pixelArtGrid.length; i++) {
+            if (!pixelArtGrid[i]) {
+              pixelArtGrid[i] = [];
+            }
+            // Compléter les colonnes manquantes
+            for (let j = pixelArtGrid[i].length; j < gridWidth; j++) {
+              pixelArtGrid[i][j] = 0;
             }
           }
         }
@@ -5922,14 +5939,26 @@
         html +=
           '<div id="toolStatus" style="margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; font-size: 0.9rem; color: #666;"></div>';
 
+        // Déterminer la taille réelle de la grille
+        const actualGridWidth = 70;
+        const actualGridHeight = pixelArtGrid.length || 70;
+
         // Conteneur pour la grille (image maintenant sous la palette)
         html +=
-          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(70, 1fr); grid-template-rows: repeat(70, 1fr); gap: 0; background: ' +
+          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(' +
+          actualGridWidth +
+          ", 1fr); grid-template-rows: repeat(" +
+          actualGridHeight +
+          ", 1fr); gap: 0; background: " +
           pixelBorderColor +
-          '; border: 2px solid #333; padding: 0; width: 100%; aspect-ratio: 1; max-width: 100%; user-select: none; touch-action: pan-x pan-y pinch-zoom; flex: 1; overflow: visible; transition: transform 0.1s ease-out;">';
+          "; border: 2px solid #333; padding: 0; width: 100%; aspect-ratio: " +
+          actualGridWidth +
+          "/" +
+          actualGridHeight +
+          '; max-width: 100%; user-select: none; touch-action: pan-x pan-y pinch-zoom; flex: 1; overflow: visible; transition: transform 0.1s ease-out;">';
 
-        for (let i = 0; i < gridSize; i++) {
-          for (let j = 0; j < gridSize; j++) {
+        for (let i = 0; i < actualGridHeight; i++) {
+          for (let j = 0; j < actualGridWidth; j++) {
             const colorIndex =
               pixelArtGrid[i] && pixelArtGrid[i][j] !== undefined
                 ? pixelArtGrid[i][j]
@@ -5937,9 +5966,13 @@
             const color = colors[colorIndex];
             // Bordures uniquement sur le côté droit et le bas pour créer un seul trait entre les pixels
             const borderRight =
-              j < gridSize - 1 ? `1px solid ${pixelBorderColor}` : "none";
+              j < actualGridWidth - 1
+                ? `1px solid ${pixelBorderColor}`
+                : "none";
             const borderBottom =
-              i < gridSize - 1 ? `1px solid ${pixelBorderColor}` : "none";
+              i < actualGridHeight - 1
+                ? `1px solid ${pixelBorderColor}`
+                : "none";
             html += `<div
               class="pixel-cell"
               data-row="${i}"
@@ -7272,16 +7305,25 @@
         const triplets = generateAllTriplets();
         let sequence = "";
 
+        // Déterminer la taille réelle de la grille
+        const gridWidth = 70;
+        const gridHeight = pixelArtGrid.length || 70;
+
         // Parcourir la grille ligne par ligne
-        for (let i = 0; i < 70; i++) {
-          for (let j = 0; j < 70; j++) {
-            const colorIndex = pixelArtGrid[i][j];
-            const triplet = triplets[colorIndex];
-            sequence += triplet;
+        for (let i = 0; i < gridHeight; i++) {
+          for (let j = 0; j < gridWidth; j++) {
+            if (pixelArtGrid[i] && pixelArtGrid[i][j] !== undefined) {
+              const colorIndex = pixelArtGrid[i][j];
+              const triplet = triplets[colorIndex] || triplets[0];
+              sequence += triplet;
+            } else {
+              // Pixel vide, utiliser AAA (blanc)
+              sequence += triplets[0];
+            }
           }
         }
 
-        // Ajouter le triplet de palette au début (14703 nucléotides au total)
+        // Ajouter le triplet de palette au début
         const fullSequence = currentPaletteType + sequence;
 
         // Mettre à jour dnaOutput
@@ -7300,57 +7342,82 @@
       // Fonction pour charger une séquence ADN dans l'éditeur pixel art
       function loadPixelArtFromSequence(sequence) {
         const triplets = generateAllTriplets();
-        const gridSize = 70;
+        const baseGridSize = 70; // Taille de base 70x70
+        const baseSize = baseGridSize * baseGridSize * 3; // 14700 nucléotides
+        const maxAdditionalPixels = 70; // Maximum 70 pixels supplémentaires
 
-        // Vérifier que la séquence a la bonne longueur (14700 ou 14703 nucléotides)
-        let paletteTriplet = "AAA"; // Par défaut
+        // Vérifier que la séquence a la bonne longueur (>= 14700 nucléotides)
+        let paletteTriplet = null;
         let imageSequence = sequence;
+        let hasPaletteIndicator = false;
 
-        if (sequence.length === 14703) {
-          // La séquence contient le triplet de palette au début
-          paletteTriplet = sequence.substring(0, 3);
-          imageSequence = sequence.substring(3); // Le reste de la séquence (14700 nucléotides)
-          // Valider que le triplet de palette est valide (AAA, CCC, GGG, ou TTT)
+        // Vérifier si le premier triplet est un indicateur de palette
+        if (sequence.length > 3) {
+          const firstTriplet = sequence.substring(0, 3);
           if (
-            paletteTriplet === "AAA" ||
-            paletteTriplet === "CCC" ||
-            paletteTriplet === "GGG" ||
-            paletteTriplet === "TTT"
+            firstTriplet === "AAA" ||
+            firstTriplet === "CCC" ||
+            firstTriplet === "GGG" ||
+            firstTriplet === "TTT"
           ) {
+            // Le premier triplet est un indicateur de palette
+            paletteTriplet = firstTriplet;
+            imageSequence = sequence.substring(3); // Le reste de la séquence
+            hasPaletteIndicator = true;
             currentPaletteType = paletteTriplet;
           } else {
-            alert(
-              `Triplet de palette invalide : ${paletteTriplet}. Utilisation de la palette classique (AAA) par défaut.`
-            );
+            // Pas d'indicateur de palette, utiliser AAA par défaut
             currentPaletteType = "AAA";
+            imageSequence = sequence;
           }
-        } else if (sequence.length === 14700) {
-          // Pas de triplet de palette, utiliser AAA par défaut
-          currentPaletteType = "AAA";
-          imageSequence = sequence;
         } else {
+          // Séquence trop courte
           alert(
-            "La séquence doit faire exactement 14700 nucléotides (4900 triplets) ou 14703 nucléotides (1 triplet de palette + 4900 triplets) pour être une image pixel art."
+            "La séquence doit contenir au moins 14700 nucléotides pour être une image pixel art."
           );
           return;
         }
 
+        // Calculer le nombre de triplets dans la séquence d'image
+        const numberOfTriplets = Math.floor(imageSequence.length / 3);
+        const baseTriplets = baseGridSize * baseGridSize; // 4900 triplets pour 70x70
+
+        // Calculer le nombre de pixels supplémentaires (au-delà de 70x70)
+        let additionalPixels = 0;
+        if (numberOfTriplets > baseTriplets) {
+          additionalPixels = numberOfTriplets - baseTriplets;
+          // Limiter à 70 pixels supplémentaires max
+          if (additionalPixels > maxAdditionalPixels) {
+            additionalPixels = maxAdditionalPixels;
+          }
+        }
+
+        // Calculer la taille de la grille : 70 colonnes, 70+ lignes supplémentaires
+        const gridHeight =
+          baseGridSize + Math.ceil(additionalPixels / baseGridSize);
+        const gridWidth = baseGridSize;
+
         // Extraire les triplets et trouver leurs indices dans la palette
         pixelArtGrid = [];
-        for (let i = 0; i < gridSize; i++) {
+        for (let i = 0; i < gridHeight; i++) {
           pixelArtGrid[i] = [];
-          for (let j = 0; j < gridSize; j++) {
-            const tripletIndex = i * gridSize + j;
-            const triplet = imageSequence.substring(
-              tripletIndex * 3,
-              tripletIndex * 3 + 3
-            );
-            const colorIndex = triplets.indexOf(triplet);
-            if (colorIndex === -1) {
-              // Triplet non trouvé, utiliser l'index 0 par défaut
-              pixelArtGrid[i][j] = 0;
+          for (let j = 0; j < gridWidth; j++) {
+            const tripletIndex = i * gridWidth + j;
+            if (tripletIndex * 3 + 3 <= imageSequence.length) {
+              const triplet = imageSequence.substring(
+                tripletIndex * 3,
+                tripletIndex * 3 + 3
+              );
+              const colorIndex = triplets.indexOf(triplet);
+              if (colorIndex === -1) {
+                // Triplet non trouvé, utiliser l'index 0 par défaut
+                pixelArtGrid[i][j] = 0;
+              } else {
+                pixelArtGrid[i][j] = colorIndex;
+              }
             } else {
-              pixelArtGrid[i][j] = colorIndex;
+              // Au-delà de la séquence, pixel vide
+              pixelArtGrid[i][j] = 0;
             }
           }
         }
