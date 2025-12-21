@@ -4946,14 +4946,26 @@
         dnaInput.setAttribute("data-full-sequence", newText);
 
         // Mettre à jour toutes les plages modifiées/supprimées
-        updateModifiedRangesAfterMutation(
-          oldText,
-          newText,
-          selectedStart,
-          selectedEnd,
-          action,
-          newLength
-        );
+        // Pour l'addition, on passe selectedEnd comme point d'insertion (pas selectedStart)
+        if (action === "addition") {
+          updateModifiedRangesAfterMutation(
+            oldText,
+            newText,
+            selectedEnd, // Point d'insertion (après la sélection)
+            selectedEnd, // Même point (pas de sélection à remplacer)
+            action,
+            newLength
+          );
+        } else {
+          updateModifiedRangesAfterMutation(
+            oldText,
+            newText,
+            selectedStart,
+            selectedEnd,
+            action,
+            newLength
+          );
+        }
 
         // Recoloriser (la fonction colorizeDNAInput appliquera automatiquement le style aux nucléotides modifiés)
         setTimeout(colorizeDNAInput, 10);
