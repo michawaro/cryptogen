@@ -4191,14 +4191,19 @@
           console.log("Positions:", selectedStart, selectedEnd);
           console.log("Position du clic:", e.pageX, e.pageY);
 
+          // Déplacer le menu dans le body si nécessaire pour éviter les problèmes de positionnement
+          if (contextMenu.parentNode !== document.body) {
+            document.body.appendChild(contextMenu);
+          }
+
           // Afficher le menu
           // Ajuster la position pour s'assurer qu'il est visible dans la fenêtre
-          let menuX = e.pageX;
-          let menuY = e.pageY;
+          let menuX = e.clientX; // Utiliser clientX au lieu de pageX pour position relative à la fenêtre
+          let menuY = e.clientY;
 
           // Vérifier que le menu ne dépasse pas les bords de la fenêtre
           const menuWidth = 180; // min-width du menu
-          const menuHeight = 120; // hauteur approximative du menu
+          const menuHeight = 142; // hauteur réelle du menu
           const windowWidth = window.innerWidth;
           const windowHeight = window.innerHeight;
 
@@ -4215,15 +4220,17 @@
             menuY = 10;
           }
 
+          // Forcer tous les styles nécessaires
           contextMenu.style.display = "block";
+          contextMenu.style.position = "fixed";
           contextMenu.style.left = menuX + "px";
           contextMenu.style.top = menuY + "px";
           contextMenu.style.visibility = "visible";
           contextMenu.style.opacity = "1";
-          contextMenu.style.zIndex = "99999"; // Z-index très élevé
-          contextMenu.style.position = "fixed"; // S'assurer que c'est fixed
-          contextMenu.style.backgroundColor = "white"; // Forcer le fond blanc
+          contextMenu.style.zIndex = "99999";
+          contextMenu.style.backgroundColor = "white";
           contextMenu.style.border = "2px solid red"; // Style de débogage temporaire
+          contextMenu.style.pointerEvents = "auto";
 
           // Vérifier que le menu est bien dans le DOM et visible
           console.log(
