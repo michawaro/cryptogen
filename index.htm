@@ -4306,40 +4306,48 @@
 
       // Fonction pour afficher le menu de mutation quand une sélection est faite
       function showMutationMenuForSelection(e) {
+        console.log(
+          "showMutationMenuForSelection appelée, mutationModeActive:",
+          mutationModeActive
+        );
+
         if (!mutationModeActive) {
+          console.log("Mode mutation non actif, retour");
           return; // Ne rien faire si le mode mutation n'est pas actif
         }
 
-        // Capturer la sélection immédiatement avant qu'elle ne soit perdue
-        const selection = window.getSelection();
-        console.log(
-          "showMutationMenuForSelection - selection:",
-          selection.toString()
-        );
-        console.log(
-          "showMutationMenuForSelection - rangeCount:",
-          selection.rangeCount
-        );
-
-        if (
-          selection.rangeCount === 0 ||
-          selection.toString().trim().length === 0
-        ) {
-          console.log("Pas de sélection détectée");
-          return; // Pas de sélection
-        }
-
-        // Vérifier que la sélection est dans dnaInput
-        const range = selection.getRangeAt(0).cloneRange(); // Cloner pour préserver la sélection
-        if (!dnaInput.contains(range.commonAncestorContainer)) {
-          console.log("La sélection n'est pas dans dnaInput");
-          return; // La sélection n'est pas dans dnaInput
-        }
-
-        console.log("Sélection détectée dans dnaInput:", selection.toString());
-
-        // Attendre un peu pour que la sélection soit complète, mais utiliser la sélection capturée
+        // Attendre un peu pour que la sélection soit complète
         setTimeout(function () {
+          // Capturer la sélection
+          const selection = window.getSelection();
+          console.log(
+            "showMutationMenuForSelection - selection:",
+            selection.toString()
+          );
+          console.log(
+            "showMutationMenuForSelection - rangeCount:",
+            selection.rangeCount
+          );
+
+          if (
+            selection.rangeCount === 0 ||
+            selection.toString().trim().length === 0
+          ) {
+            console.log("Pas de sélection détectée");
+            return; // Pas de sélection
+          }
+
+          // Vérifier que la sélection est dans dnaInput
+          const range = selection.getRangeAt(0).cloneRange(); // Cloner pour préserver la sélection
+          if (!dnaInput.contains(range.commonAncestorContainer)) {
+            console.log("La sélection n'est pas dans dnaInput");
+            return; // La sélection n'est pas dans dnaInput
+          }
+
+          console.log(
+            "Sélection détectée dans dnaInput:",
+            selection.toString()
+          );
           // Utiliser la sélection capturée au lieu de la re-obtenir
           // Obtenir les informations de sélection à partir de la range capturée
           const selectionText = range.toString();
@@ -4465,23 +4473,34 @@
           document.body.appendChild(contextMenu);
         }
 
-        // Positionner le menu près de la sélection
+        // Positionner le menu juste au-dessus de la sélection
         let menuX, menuY;
-        if (e && e.clientX !== undefined) {
-          menuX = e.clientX;
-          menuY = e.clientY;
+        const selection = window.getSelection();
+        console.log(
+          "displayMutationMenu - selection.rangeCount:",
+          selection.rangeCount
+        );
+
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          // Positionner le menu au-dessus de la sélection (centré horizontalement, 10px au-dessus)
+          menuX = rect.left + rect.width / 2 - 90; // Centrer le menu (menuWidth/2 = 90)
+          menuY = rect.top - 150; // 150px au-dessus de la sélection pour laisser de la place
+
+          console.log(
+            "Position du menu calculée:",
+            menuX,
+            menuY,
+            "rect:",
+            rect
+          );
+        } else if (e && e.clientX !== undefined) {
+          menuX = e.clientX - 90;
+          menuY = e.clientY - 150;
         } else {
-          // Utiliser la position de la sélection
-          const selection = window.getSelection();
-          if (selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            menuX = rect.left;
-            menuY = rect.bottom + 5;
-          } else {
-            menuX = window.innerWidth / 2;
-            menuY = window.innerHeight / 2;
-          }
+          menuX = window.innerWidth / 2 - 90;
+          menuY = window.innerHeight / 2;
         }
 
         // Vérifier que le menu ne dépasse pas les bords
@@ -4504,6 +4523,7 @@
         }
 
         // Afficher le menu
+        console.log("Affichage du menu à la position:", menuX, menuY);
         contextMenu.style.display = "block";
         contextMenu.style.position = "fixed";
         contextMenu.style.left = menuX + "px";
@@ -4514,23 +4534,61 @@
         contextMenu.style.backgroundColor = "white";
         contextMenu.style.border = "2px solid #333";
         contextMenu.style.pointerEvents = "auto";
+
+        // Vérifier que le menu est bien visible
+        console.log(
+          "Menu affiché - display:",
+          contextMenu.style.display,
+          "left:",
+          contextMenu.style.left,
+          "top:",
+          contextMenu.style.top
+        );
+        console.log(
+          "Menu computed style:",
+          window.getComputedStyle(contextMenu).display
+        );
       }
 
       // Gérer la sélection pour afficher le menu de mutation
-      // Sur PC : mouseup
-      dnaInput.addEventListener("mouseup", function (e) {
-        console.log("mouseup détecté, mutationModeActive:", mutationModeActive);
-        showMutationMenuForSelection(e);
-      });
+      // Vérifier que dnaInput existe avant d'ajouter les listeners
+      if (dnaInput) {
+        console.log("Ajout des listeners mouseup/touchend sur dnaInput");
 
-      // Sur mobile/tablette : touchend
-      dnaInput.addEventListener("touchend", function (e) {
-        console.log(
-          "touchend détecté, mutationModeActive:",
-          mutationModeActive
+        // Sur PC : mouseup
+        dnaInput.addEventListener(
+          "mouseup",
+          function (e) {
+            console.log(
+              "mouseup détecté dans dnaInput, mutationModeActive:",
+              mutationModeActive
+            );
+            if (mutationModeActive) {
+              showMutationMenuForSelection(e);
+            }
+          },
+          true
+        ); // Utiliser capture pour intercepter avant les autres handlers
+
+        // Sur mobile/tablette : touchend
+        dnaInput.addEventListener(
+          "touchend",
+          function (e) {
+            console.log(
+              "touchend détecté dans dnaInput, mutationModeActive:",
+              mutationModeActive
+            );
+            if (mutationModeActive) {
+              showMutationMenuForSelection(e);
+            }
+          },
+          true
         );
-        showMutationMenuForSelection(e);
-      });
+      } else {
+        console.error(
+          "dnaInput n'existe pas au moment de l'ajout des listeners!"
+        );
+      }
 
       // Aussi écouter l'événement selectionchange pour détecter les changements de sélection
       document.addEventListener("selectionchange", function () {
