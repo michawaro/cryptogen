@@ -4304,286 +4304,451 @@
         };
       }
 
-      // Gérer le double-clic pour afficher le menu de mutation
-      // Utiliser capture: true pour intercepter l'événement avant les spans enfants
-      // Aussi tester avec mousedown pour voir si l'événement est capturé
-      dnaInput.addEventListener(
-        "mousedown",
-        function (e) {
-          if (mutationModeActive) {
-            console.log(
-              "mousedown détecté dans dnaInput, mutationModeActive:",
-              mutationModeActive
-            );
-          }
-        },
-        true
-      );
+      // Fonction pour afficher le menu de mutation quand une sélection est faite
+      function showMutationMenuForSelection(e) {
+        if (!mutationModeActive) {
+          return; // Ne rien faire si le mode mutation n'est pas actif
+        }
 
-      dnaInput.addEventListener(
-        "dblclick",
-        function (e) {
-          console.log(
-            "Double-clic détecté, mutationModeActive:",
-            mutationModeActive
-          );
-          console.log("Target:", e.target);
-          console.log("CurrentTarget:", e.currentTarget);
-
-          if (!mutationModeActive) {
-            return; // Ne rien faire si le mode mutation n'est pas actif
-          }
-
-          // Empêcher la sélection automatique de tout le texte
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation(); // Empêcher les autres gestionnaires
-
-          // Annuler toute sélection existante
+        // Attendre un peu pour que la sélection soit complète
+        setTimeout(function () {
           const selection = window.getSelection();
-          if (selection.rangeCount > 0) {
-            selection.removeAllRanges();
+          if (
+            selection.rangeCount === 0 ||
+            selection.toString().trim().length === 0
+          ) {
+            return; // Pas de sélection
           }
 
-          console.log("Tentative d'affichage du menu...");
+          // Vérifier que la sélection est dans dnaInput
+          const range = selection.getRangeAt(0);
+          if (!dnaInput.contains(range.commonAncestorContainer)) {
+            return; // La sélection n'est pas dans dnaInput
+          }
 
-          // Obtenir le texte brut depuis data-full-sequence (sans HTML colorisé)
+          // Obtenir les informations de sélection
+          const selectionInfo = getSelectionInEditable(dnaInput);
+          if (!selectionInfo) {
+            return;
+          }
+
+          // Obtenir le texte brut depuis data-full-sequence
           let plainText = dnaInput.getAttribute("data-full-sequence");
           if (!plainText) {
-            // Si pas de data-full-sequence, utiliser innerText (sans HTML)
             plainText = dnaInput.innerText || dnaInput.textContent || "";
           }
 
           // Nettoyer pour ne garder que les nucléotides
           const cleanedText = plainText.toUpperCase().replace(/[^ATCG]/g, "");
           if (cleanedText.length === 0) {
-            contextMenu.style.display = "none";
             return;
           }
 
-          // Obtenir la position du clic dans le texte visible (avec HTML)
-          let clickRange = null;
-          if (document.caretRangeFromPoint) {
-            clickRange = document.caretRangeFromPoint(e.clientX, e.clientY);
-          } else if (document.caretPositionFromPoint) {
-            const caretPos = document.caretPositionFromPoint(
-              e.clientX,
-              e.clientY
-            );
-            if (caretPos) {
-              clickRange = document.createRange();
-              clickRange.setStart(caretPos.offsetNode, caretPos.offset);
-              clickRange.setEnd(caretPos.offsetNode, caretPos.offset);
-            }
-          }
-
-          if (
-            !clickRange ||
-            !dnaInput.contains(clickRange.commonAncestorContainer)
-          ) {
-            console.log("clickRange invalide ou pas dans dnaInput");
-            contextMenu.style.display = "none";
-            return;
-          }
-
-          console.log("clickRange trouvé, position calculée...");
-
-          // Obtenir la position dans le texte visible (innerText)
+          // Convertir les positions de la sélection en positions nettoyées
           const visibleText = dnaInput.innerText || dnaInput.textContent || "";
-          const preRange = clickRange.cloneRange();
-          preRange.selectNodeContents(dnaInput);
-          preRange.setEnd(clickRange.startContainer, clickRange.startOffset);
-          const positionInVisible = preRange.toString().length;
-
-          // Convertir la position dans le texte visible en position dans le texte nettoyé (seulement ATCG)
-          let cleanedPos = 0;
-          for (
-            let i = 0;
-            i < visibleText.length && i < positionInVisible;
-            i++
-          ) {
-            const char = visibleText[i].toUpperCase();
-            if (char === "A" || char === "T" || char === "C" || char === "G") {
-              cleanedPos++;
-            }
-          }
-
-          // Vérifier que la position est valide
-          if (cleanedPos >= cleanedText.length) {
-            contextMenu.style.display = "none";
-            return;
-          }
-
-          // Sélectionner le nucléotide exact à la position du clic (1 nucléotide)
-          const selectedNucleotide = cleanedText[cleanedPos];
-          if (!selectedNucleotide) {
-            contextMenu.style.display = "none";
-            return;
-          }
-
-          // Convertir la position nettoyée en position dans le texte visible
-          let visibleStart = 0;
-          let visibleEnd = visibleText.length;
-          let currentCleanedPos = 0;
+          let cleanedStart = 0;
+          let cleanedEnd = 0;
+          let visibleCount = 0;
 
           for (let i = 0; i < visibleText.length; i++) {
             const char = visibleText[i].toUpperCase();
             if (char === "A" || char === "T" || char === "C" || char === "G") {
-              if (currentCleanedPos === cleanedPos) {
-                visibleStart = i;
-                visibleEnd = i + 1;
-                break;
+              if (visibleCount === selectionInfo.start) {
+                // Trouver la position dans plainText correspondant à cette position visible
+                let rawCount = 0;
+                for (let j = 0; j < plainText.length; j++) {
+                  const rawChar = plainText[j].toUpperCase();
+                  if (
+                    rawChar === "A" ||
+                    rawChar === "T" ||
+                    rawChar === "C" ||
+                    rawChar === "G"
+                  ) {
+                    if (rawCount === visibleCount) {
+                      cleanedStart = j;
+                      break;
+                    }
+                    rawCount++;
+                  }
+                }
               }
-              currentCleanedPos++;
-            }
-          }
-
-          // Stocker les informations de sélection (en positions du texte brut)
-          // Convertir visibleStart/visibleEnd en positions du texte brut (plainText)
-          let rawStart = 0;
-          let rawEnd = plainText.length;
-          let visibleCount = 0;
-
-          for (let i = 0; i < plainText.length; i++) {
-            const char = plainText[i].toUpperCase();
-            if (char === "A" || char === "T" || char === "C" || char === "G") {
-              if (visibleCount === cleanedPos) {
-                rawStart = i;
-                rawEnd = i + 1;
-                break;
+              if (visibleCount === selectionInfo.end - 1) {
+                let rawCount = 0;
+                for (let j = 0; j < plainText.length; j++) {
+                  const rawChar = plainText[j].toUpperCase();
+                  if (
+                    rawChar === "A" ||
+                    rawChar === "T" ||
+                    rawChar === "C" ||
+                    rawChar === "G"
+                  ) {
+                    if (rawCount === visibleCount) {
+                      cleanedEnd = j + 1;
+                      break;
+                    }
+                    rawCount++;
+                  }
+                }
               }
               visibleCount++;
             }
           }
 
-          selectedText = selectedNucleotide;
-          selectedStart = rawStart;
-          selectedEnd = rawEnd;
-
-          // Créer une plage de sélection visuelle dans le HTML pour mettre en surbrillance
-          const textNodes = getTextNodesIn(dnaInput);
-          let currentVisiblePos = 0;
-          let startNode = null;
-          let startOffset = 0;
-          let endNode = null;
-          let endOffset = 0;
-
-          for (let node of textNodes) {
-            const nodeText = node.textContent;
-            const nodeLength = nodeText.length;
-
-            if (
-              currentVisiblePos <= visibleStart &&
-              visibleStart < currentVisiblePos + nodeLength
-            ) {
-              startNode = node;
-              startOffset = visibleStart - currentVisiblePos;
+          // Si on n'a pas trouvé les positions, utiliser une méthode alternative
+          if (cleanedStart === 0 && cleanedEnd === 0) {
+            // Compter les nucléotides jusqu'à la position de début et de fin
+            let count = 0;
+            for (let i = 0; i < plainText.length; i++) {
+              const char = plainText[i].toUpperCase();
+              if (
+                char === "A" ||
+                char === "T" ||
+                char === "C" ||
+                char === "G"
+              ) {
+                if (count === selectionInfo.start) {
+                  cleanedStart = i;
+                }
+                if (count < selectionInfo.end) {
+                  cleanedEnd = i + 1;
+                }
+                count++;
+              }
             }
-            if (
-              currentVisiblePos < visibleEnd &&
-              visibleEnd <= currentVisiblePos + nodeLength
-            ) {
-              endNode = node;
-              endOffset = visibleEnd - currentVisiblePos;
-              break;
-            }
-            currentVisiblePos += nodeLength;
           }
 
-          if (startNode && endNode) {
-            try {
-              const newRange = document.createRange();
-              newRange.setStart(startNode, startOffset);
-              newRange.setEnd(endNode, endOffset);
-              const sel = window.getSelection();
-              sel.removeAllRanges();
-              sel.addRange(newRange);
-              selectedRange = newRange;
-            } catch (err) {
-              selectedRange = null;
-            }
-          } else {
-            selectedRange = null;
-          }
+          // Extraire la sélection nettoyée
+          const selectedText = plainText
+            .substring(cleanedStart, cleanedEnd)
+            .toUpperCase()
+            .replace(/[^ATCG]/g, "");
 
-          // Positionner le menu à la position du clic
-          // Ré-obtenir contextMenu au cas où il n'était pas disponible
-          if (!contextMenu) {
-            contextMenu = document.getElementById("contextMenu");
-          }
-          if (!contextMenu) {
-            console.error("contextMenu n'existe pas!");
+          if (selectedText.length === 0) {
             return;
           }
 
-          console.log("Nucléotide sélectionné:", selectedText);
-          console.log("Positions:", selectedStart, selectedEnd);
-          console.log("Position du clic:", e.clientX, e.clientY);
-
-          // Déplacer le menu dans le body si nécessaire pour éviter les problèmes de positionnement
-          if (contextMenu.parentNode !== document.body) {
-            document.body.appendChild(contextMenu);
-          }
+          // Stocker les informations de sélection
+          selectedText = selectedText;
+          selectedStart = cleanedStart;
+          selectedEnd = cleanedEnd;
+          selectedRange = range;
 
           // Afficher le menu
-          // Ajuster la position pour s'assurer qu'il est visible dans la fenêtre
-          let menuX = e.clientX; // Utiliser clientX au lieu de pageX pour position relative à la fenêtre
-          let menuY = e.clientY;
+          displayMutationMenu(e, selectedText, cleanedStart, cleanedEnd);
+        }, 50); // Petit délai pour s'assurer que la sélection est complète
+      }
 
-          // Vérifier que le menu ne dépasse pas les bords de la fenêtre
-          const menuWidth = 180; // min-width du menu
-          const menuHeight = 142; // hauteur réelle du menu
-          const windowWidth = window.innerWidth;
-          const windowHeight = window.innerHeight;
+      // Fonction pour afficher le menu de mutation
+      function displayMutationMenu(e, selectedTextValue, startPos, endPos) {
+        // Ré-obtenir contextMenu au cas où il n'était pas disponible
+        if (!contextMenu) {
+          contextMenu = document.getElementById("contextMenu");
+        }
+        if (!contextMenu) {
+          console.error("contextMenu n'existe pas!");
+          return;
+        }
 
-          if (menuX + menuWidth > windowWidth) {
-            menuX = windowWidth - menuWidth - 10;
+        // Stocker les valeurs
+        selectedText = selectedTextValue;
+        selectedStart = startPos;
+        selectedEnd = endPos;
+
+        // Déplacer le menu dans le body si nécessaire
+        if (contextMenu.parentNode !== document.body) {
+          document.body.appendChild(contextMenu);
+        }
+
+        // Positionner le menu près de la sélection
+        let menuX, menuY;
+        if (e && e.clientX !== undefined) {
+          menuX = e.clientX;
+          menuY = e.clientY;
+        } else {
+          // Utiliser la position de la sélection
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            menuX = rect.left;
+            menuY = rect.bottom + 5;
+          } else {
+            menuX = window.innerWidth / 2;
+            menuY = window.innerHeight / 2;
           }
-          if (menuY + menuHeight > windowHeight) {
-            menuY = windowHeight - menuHeight - 10;
-          }
-          if (menuX < 10) {
-            menuX = 10;
-          }
-          if (menuY < 10) {
-            menuY = 10;
-          }
+        }
 
-          // Forcer tous les styles nécessaires
-          contextMenu.style.display = "block";
-          contextMenu.style.position = "fixed";
-          contextMenu.style.left = menuX + "px";
-          contextMenu.style.top = menuY + "px";
-          contextMenu.style.visibility = "visible";
-          contextMenu.style.opacity = "1";
-          contextMenu.style.zIndex = "99999";
-          contextMenu.style.backgroundColor = "white";
-          contextMenu.style.border = "2px solid red"; // Style de débogage temporaire
-          contextMenu.style.pointerEvents = "auto";
+        // Vérifier que le menu ne dépasse pas les bords
+        const menuWidth = 180;
+        const menuHeight = 142;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
 
-          // Vérifier que le menu est bien dans le DOM et visible
-          console.log(
-            "Menu affiché, style:",
-            contextMenu.style.display,
-            contextMenu.style.left,
-            contextMenu.style.top
-          );
-          console.log(
-            "Menu offsetWidth:",
-            contextMenu.offsetWidth,
-            "offsetHeight:",
-            contextMenu.offsetHeight
-          );
-          console.log(
-            "Menu computed style:",
-            window.getComputedStyle(contextMenu).display
-          );
+        if (menuX + menuWidth > windowWidth) {
+          menuX = windowWidth - menuWidth - 10;
+        }
+        if (menuY + menuHeight > windowHeight) {
+          menuY = windowHeight - menuHeight - 10;
+        }
+        if (menuX < 10) {
+          menuX = 10;
+        }
+        if (menuY < 10) {
+          menuY = 10;
+        }
 
-          // Forcer un reflow pour s'assurer que le menu est rendu
-          contextMenu.offsetHeight;
-        },
-        true
-      ); // Utiliser capture: true pour intercepter avant les spans enfants
+        // Afficher le menu
+        contextMenu.style.display = "block";
+        contextMenu.style.position = "fixed";
+        contextMenu.style.left = menuX + "px";
+        contextMenu.style.top = menuY + "px";
+        contextMenu.style.visibility = "visible";
+        contextMenu.style.opacity = "1";
+        contextMenu.style.zIndex = "99999";
+        contextMenu.style.backgroundColor = "white";
+        contextMenu.style.border = "2px solid #333";
+        contextMenu.style.pointerEvents = "auto";
+      }
+
+      // Gérer la sélection pour afficher le menu de mutation
+      // Sur PC : mouseup
+      dnaInput.addEventListener("mouseup", function (e) {
+        showMutationMenuForSelection(e);
+      });
+
+      // Sur mobile/tablette : touchend
+      dnaInput.addEventListener("touchend", function (e) {
+        showMutationMenuForSelection(e);
+      });
+
+      // Fonction pour obtenir tous les nœuds texte dans un élément
+      function getTextNodesIn(node) {
+        const textNodes = [];
+        const walker = document.createTreeWalker(
+          node,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false
+        );
+        let textNode;
+        while ((textNode = walker.nextNode())) {
+          textNodes.push(textNode);
+        }
+        return textNodes;
+      }
+
+      // Obtenir la position du clic dans le texte visible (avec HTML)
+      let clickRange = null;
+      if (document.caretRangeFromPoint) {
+        clickRange = document.caretRangeFromPoint(e.clientX, e.clientY);
+      } else if (document.caretPositionFromPoint) {
+        const caretPos = document.caretPositionFromPoint(e.clientX, e.clientY);
+        if (caretPos) {
+          clickRange = document.createRange();
+          clickRange.setStart(caretPos.offsetNode, caretPos.offset);
+          clickRange.setEnd(caretPos.offsetNode, caretPos.offset);
+        }
+      }
+
+      if (
+        !clickRange ||
+        !dnaInput.contains(clickRange.commonAncestorContainer)
+      ) {
+        console.log("clickRange invalide ou pas dans dnaInput");
+        contextMenu.style.display = "none";
+        return;
+      }
+
+      console.log("clickRange trouvé, position calculée...");
+
+      // Obtenir la position dans le texte visible (innerText)
+      const visibleText = dnaInput.innerText || dnaInput.textContent || "";
+      const preRange = clickRange.cloneRange();
+      preRange.selectNodeContents(dnaInput);
+      preRange.setEnd(clickRange.startContainer, clickRange.startOffset);
+      const positionInVisible = preRange.toString().length;
+
+      // Convertir la position dans le texte visible en position dans le texte nettoyé (seulement ATCG)
+      let cleanedPos = 0;
+      for (let i = 0; i < visibleText.length && i < positionInVisible; i++) {
+        const char = visibleText[i].toUpperCase();
+        if (char === "A" || char === "T" || char === "C" || char === "G") {
+          cleanedPos++;
+        }
+      }
+
+      // Vérifier que la position est valide
+      if (cleanedPos >= cleanedText.length) {
+        contextMenu.style.display = "none";
+        return;
+      }
+
+      // Sélectionner le nucléotide exact à la position du clic (1 nucléotide)
+      const selectedNucleotide = cleanedText[cleanedPos];
+      if (!selectedNucleotide) {
+        contextMenu.style.display = "none";
+        return;
+      }
+
+      // Convertir la position nettoyée en position dans le texte visible
+      let visibleStart = 0;
+      let visibleEnd = visibleText.length;
+      let currentCleanedPos = 0;
+
+      for (let i = 0; i < visibleText.length; i++) {
+        const char = visibleText[i].toUpperCase();
+        if (char === "A" || char === "T" || char === "C" || char === "G") {
+          if (currentCleanedPos === cleanedPos) {
+            visibleStart = i;
+            visibleEnd = i + 1;
+            break;
+          }
+          currentCleanedPos++;
+        }
+      }
+
+      // Stocker les informations de sélection (en positions du texte brut)
+      // Convertir visibleStart/visibleEnd en positions du texte brut (plainText)
+      let rawStart = 0;
+      let rawEnd = plainText.length;
+      let visibleCount = 0;
+
+      for (let i = 0; i < plainText.length; i++) {
+        const char = plainText[i].toUpperCase();
+        if (char === "A" || char === "T" || char === "C" || char === "G") {
+          if (visibleCount === cleanedPos) {
+            rawStart = i;
+            rawEnd = i + 1;
+            break;
+          }
+          visibleCount++;
+        }
+      }
+
+      selectedText = selectedNucleotide;
+      selectedStart = rawStart;
+      selectedEnd = rawEnd;
+
+      // Créer une plage de sélection visuelle dans le HTML pour mettre en surbrillance
+      const textNodes = getTextNodesIn(dnaInput);
+      let currentVisiblePos = 0;
+      let startNode = null;
+      let startOffset = 0;
+      let endNode = null;
+      let endOffset = 0;
+
+      for (let node of textNodes) {
+        const nodeText = node.textContent;
+        const nodeLength = nodeText.length;
+
+        if (
+          currentVisiblePos <= visibleStart &&
+          visibleStart < currentVisiblePos + nodeLength
+        ) {
+          startNode = node;
+          startOffset = visibleStart - currentVisiblePos;
+        }
+        if (
+          currentVisiblePos < visibleEnd &&
+          visibleEnd <= currentVisiblePos + nodeLength
+        ) {
+          endNode = node;
+          endOffset = visibleEnd - currentVisiblePos;
+          break;
+        }
+        currentVisiblePos += nodeLength;
+      }
+
+      if (startNode && endNode) {
+        try {
+          const newRange = document.createRange();
+          newRange.setStart(startNode, startOffset);
+          newRange.setEnd(endNode, endOffset);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+          selectedRange = newRange;
+        } catch (err) {
+          selectedRange = null;
+        }
+      } else {
+        selectedRange = null;
+      }
+
+      // Positionner le menu à la position du clic
+      // Ré-obtenir contextMenu au cas où il n'était pas disponible
+      if (!contextMenu) {
+        contextMenu = document.getElementById("contextMenu");
+      }
+      if (!contextMenu) {
+        console.error("contextMenu n'existe pas!");
+        return;
+      }
+
+      console.log("Nucléotide sélectionné:", selectedText);
+      console.log("Positions:", selectedStart, selectedEnd);
+      console.log("Position du clic:", e.clientX, e.clientY);
+
+      // Déplacer le menu dans le body si nécessaire pour éviter les problèmes de positionnement
+      if (contextMenu.parentNode !== document.body) {
+        document.body.appendChild(contextMenu);
+      }
+
+      // Afficher le menu
+      // Ajuster la position pour s'assurer qu'il est visible dans la fenêtre
+      let menuX = e.clientX; // Utiliser clientX au lieu de pageX pour position relative à la fenêtre
+      let menuY = e.clientY;
+
+      // Vérifier que le menu ne dépasse pas les bords de la fenêtre
+      const menuWidth = 180; // min-width du menu
+      const menuHeight = 142; // hauteur réelle du menu
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      if (menuX + menuWidth > windowWidth) {
+        menuX = windowWidth - menuWidth - 10;
+      }
+      if (menuY + menuHeight > windowHeight) {
+        menuY = windowHeight - menuHeight - 10;
+      }
+      if (menuX < 10) {
+        menuX = 10;
+      }
+      if (menuY < 10) {
+        menuY = 10;
+      }
+
+      // Forcer tous les styles nécessaires
+      contextMenu.style.display = "block";
+      contextMenu.style.position = "fixed";
+      contextMenu.style.left = menuX + "px";
+      contextMenu.style.top = menuY + "px";
+      contextMenu.style.visibility = "visible";
+      contextMenu.style.opacity = "1";
+      contextMenu.style.zIndex = "99999";
+      contextMenu.style.backgroundColor = "white";
+      contextMenu.style.border = "2px solid red"; // Style de débogage temporaire
+      contextMenu.style.pointerEvents = "auto";
+
+      // Vérifier que le menu est bien dans le DOM et visible
+      console.log(
+        "Menu affiché, style:",
+        contextMenu.style.display,
+        contextMenu.style.left,
+        contextMenu.style.top
+      );
+      console.log(
+        "Menu offsetWidth:",
+        contextMenu.offsetWidth,
+        "offsetHeight:",
+        contextMenu.offsetHeight
+      );
+      console.log(
+        "Menu computed style:",
+        window.getComputedStyle(contextMenu).display
+      );
+
+      // Forcer un reflow pour s'assurer que le menu est rendu
 
       // Fonction pour obtenir tous les nœuds texte dans un élément
       function getTextNodesIn(node) {
