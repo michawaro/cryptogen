@@ -537,14 +537,44 @@
         padding: 2px 1px;
         border-radius: 2px;
       }
-      /* Style pour les délétions (marqueur visuel) */
+      /* Style pour les délétions (marqueur visuel - croix rouge dans un carré) */
       .nucleotide-deleted-marker {
         display: inline-block;
-        color: #ff6b6b;
-        font-weight: bold;
-        font-size: 1.2em;
+        width: 16px;
+        height: 16px;
+        background-color: white;
+        border: 2px solid #ff6b6b;
+        border-radius: 2px;
+        position: relative;
         vertical-align: middle;
         margin: 0 2px;
+        box-sizing: border-box;
+      }
+      .nucleotide-deleted-marker::before,
+      .nucleotide-deleted-marker::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 10px;
+        height: 2px;
+        background-color: #ff6b6b;
+        transform: translate(-50%, -50%) rotate(45deg);
+      }
+      .nucleotide-deleted-marker::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+      }
+      /* Style pour les marqueurs de séparation entre triplets */
+      .triplet-separator {
+        display: inline-block;
+        width: 1px;
+        height: 0.9em;
+        background-color: #999;
+        vertical-align: top;
+        margin: 0 0.5px;
+        opacity: 0.6;
+        position: relative;
+        top: -0.1em;
       }
       table {
         margin: 0 auto;
@@ -2053,6 +2083,20 @@
         return decoded;
       }
 
+      // Fonction pour ajouter des marqueurs de séparation entre triplets
+      function addTripletSeparators(sequence) {
+        if (!sequence || sequence.length === 0) return "";
+        let result = "";
+        for (let i = 0; i < sequence.length; i++) {
+          result += sequence[i];
+          // Ajouter un marqueur après chaque triplet (tous les 3 caractères), sauf à la fin
+          if ((i + 1) % 3 === 0 && i < sequence.length - 1) {
+            result += '<span class="triplet-separator"></span>';
+          }
+        }
+        return result;
+      }
+
       // Fonction pour colorer la séquence ADN selon les mots (pour le décodage)
       function colorizeDNAForDecode(dna) {
         if (!dna || dna.length === 0) return "";
@@ -2076,11 +2120,9 @@
           // Pas de ATG, commencer au début
           i = 0;
         } else {
-          // Ajouter tout ce qui précède ATG et ATG lui-même
-          html += `<span>${sequenceToColorize.substring(
-            0,
-            startIndex + 3
-          )}</span>`;
+          // Ajouter tout ce qui précède ATG et ATG lui-même avec marqueurs de triplets
+          const beforeATG = sequenceToColorize.substring(0, startIndex + 3);
+          html += `<span>${addTripletSeparators(beforeATG)}</span>`;
           i = startIndex + 3;
         }
 
@@ -2100,10 +2142,14 @@
               const wordDNA = sequenceToColorize.substring(currentWordStart, i);
               const decodedWord = decodeDNASequence(wordDNA);
               const tooltip = decodedWord ? ` title="${decodedWord}"` : "";
-              html += `<span class="${className}"${tooltip}>${wordDNA}</span>`;
+              html += `<span class="${className}"${tooltip}>${addTripletSeparators(
+                wordDNA
+              )}</span>`;
               inWord = false;
             }
-            html += `<span class="word-space">${codon}</span>`;
+            html += `<span class="word-space">${addTripletSeparators(
+              codon
+            )}</span>`;
             i += 3;
             currentWordStart = i;
             inWord = true;
@@ -2115,10 +2161,14 @@
               const wordDNA = sequenceToColorize.substring(currentWordStart, i);
               const decodedWord = decodeDNASequence(wordDNA);
               const tooltip = decodedWord ? ` title="${decodedWord}"` : "";
-              html += `<span class="${className}"${tooltip}>${wordDNA}</span>`;
+              html += `<span class="${className}"${tooltip}>${addTripletSeparators(
+                wordDNA
+              )}</span>`;
               inWord = false;
             }
-            html += `<span class="word-stop" title="Point">${codon}</span>`;
+            html += `<span class="word-stop" title="Point">${addTripletSeparators(
+              codon
+            )}</span>`;
             i += 3;
             currentWordStart = i;
             inWord = true;
@@ -2134,12 +2184,15 @@
           const wordDNA = sequenceToColorize.substring(currentWordStart, i);
           const decodedWord = decodeDNASequence(wordDNA);
           const tooltip = decodedWord ? ` title="${decodedWord}"` : "";
-          html += `<span class="${className}"${tooltip}>${wordDNA}</span>`;
+          html += `<span class="${className}"${tooltip}>${addTripletSeparators(
+            wordDNA
+          )}</span>`;
         }
 
         // Ajouter le reste de la séquence (ce qui reste après le dernier triplet complet)
         if (i < sequenceToColorize.length) {
-          html += `<span>${sequenceToColorize.substring(i)}</span>`;
+          const remainder = sequenceToColorize.substring(i);
+          html += `<span>${addTripletSeparators(remainder)}</span>`;
         }
 
         // Ajouter le marqueur et les positions "à trou" s'ils existent
@@ -2286,11 +2339,11 @@
                 }
 
                 if (mod.type === "deleted") {
-                  // Pour les délétions, insérer un marqueur visuel
+                  // Pour les délétions, insérer un marqueur visuel (croix rouge dans un carré)
                   const deletedMarker = document.createElement("span");
                   deletedMarker.className = "nucleotide-deleted-marker";
-                  deletedMarker.textContent = "⌫";
                   deletedMarker.title = "Délétion à cet emplacement";
+                  // Le contenu visuel est créé par CSS (::before et ::after)
                   newContent.push(deletedMarker);
                   lastPos = mod.start;
                 } else {
