@@ -4086,12 +4086,17 @@
       });
 
       // Gestion du menu contextuel pour les modifications de séquence
-      const contextMenu = document.getElementById("contextMenu");
+      let contextMenu = document.getElementById("contextMenu");
       let selectedRange = null;
       let selectedText = "";
       let selectedStart = 0;
       let selectedEnd = 0;
       let mutationModeActive = false;
+
+      // S'assurer que contextMenu est disponible
+      if (!contextMenu) {
+        console.error("contextMenu n'a pas été trouvé dans le DOM!");
+      }
 
       // Fonction pour activer/désactiver le mode mutation
       function toggleMutationMode() {
@@ -4502,14 +4507,18 @@
           }
 
           // Positionner le menu à la position du clic
+          // Ré-obtenir contextMenu au cas où il n'était pas disponible
+          if (!contextMenu) {
+            contextMenu = document.getElementById("contextMenu");
+          }
           if (!contextMenu) {
             console.error("contextMenu n'existe pas!");
             return;
           }
 
-          console.log("Triplet sélectionné:", selectedTriplet);
+          console.log("Nucléotide sélectionné:", selectedText);
           console.log("Positions:", selectedStart, selectedEnd);
-          console.log("Position du clic:", e.pageX, e.pageY);
+          console.log("Position du clic:", e.clientX, e.clientY);
 
           // Déplacer le menu dans le body si nécessaire pour éviter les problèmes de positionnement
           if (contextMenu.parentNode !== document.body) {
