@@ -4536,19 +4536,6 @@
         }
         return textNodes;
       }
-        const textNodes = [];
-        const walker = document.createTreeWalker(
-          node,
-          NodeFilter.SHOW_TEXT,
-          null,
-          false
-        );
-        let textNode;
-        while ((textNode = walker.nextNode())) {
-          textNodes.push(textNode);
-        }
-        return textNodes;
-      }
 
       // Fermer le menu si on clique ailleurs
       document.addEventListener("click", function (e) {
