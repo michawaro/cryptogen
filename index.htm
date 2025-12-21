@@ -537,6 +537,15 @@
         padding: 2px 1px;
         border-radius: 2px;
       }
+      /* Style pour les délétions (marqueur visuel) */
+      .nucleotide-deleted-marker {
+        display: inline-block;
+        color: #ff6b6b;
+        font-weight: bold;
+        font-size: 1.2em;
+        vertical-align: middle;
+        margin: 0 2px;
+      }
       table {
         margin: 0 auto;
         width: 100%;
@@ -2153,13 +2162,16 @@
 
         const colored = colorizeDNAForDecode(cleaned);
 
-        // Appliquer le style aux nucléotides modifiés
+        // Appliquer le style aux nucléotides modifiés et aux délétions
         const modifiedRanges = JSON.parse(
           dnaInput.getAttribute("data-modified-ranges") || "[]"
         );
+        const deletedRanges = JSON.parse(
+          dnaInput.getAttribute("data-deleted-ranges") || "[]"
+        );
         let finalHTML = colored;
 
-        if (modifiedRanges.length > 0) {
+        if (modifiedRanges.length > 0 || deletedRanges.length > 0) {
           // Créer un élément temporaire pour manipuler le HTML
           const tempDiv = document.createElement("div");
           tempDiv.innerHTML = colored;
@@ -2196,6 +2208,23 @@
                     node: node,
                     start: overlapStart,
                     end: overlapEnd,
+                    type: "modified",
+                  });
+                }
+              }
+            }
+
+            // Vérifier si cette portion contient le début d'une plage supprimée (marqueur avant)
+            for (let range of deletedRanges) {
+              // Marquer juste avant la position de début de la délétion
+              if (nodeStart <= range.start && range.start < nodeEnd) {
+                const markerPos = range.start - nodeStart;
+                if (markerPos >= 0 && markerPos < nodeText.length) {
+                  nodesToWrap.push({
+                    node: node,
+                    start: markerPos,
+                    end: markerPos,
+                    type: "deleted",
                   });
                 }
               }
@@ -2204,29 +2233,71 @@
             textPos = nodeEnd;
           }
 
-          // Appliquer les modifications (en ordre inverse pour préserver les indices)
-          nodesToWrap.reverse().forEach(({ node, start, end }) => {
-            const parent = node.parentNode;
-            const beforeText = node.textContent.substring(0, start);
-            const modifiedText = node.textContent.substring(start, end);
-            const afterText = node.textContent.substring(end);
-
-            // Créer les nouveaux nœuds
-            if (beforeText) {
-              parent.insertBefore(document.createTextNode(beforeText), node);
+          // Grouper les modifications par nœud pour éviter les doublons
+          const nodeModifications = new Map();
+          nodesToWrap.forEach(({ node, start, end, type }) => {
+            if (!nodeModifications.has(node)) {
+              nodeModifications.set(node, []);
             }
-
-            const modifiedSpan = document.createElement("span");
-            modifiedSpan.className = "nucleotide-modified";
-            modifiedSpan.textContent = modifiedText;
-            parent.insertBefore(modifiedSpan, node);
-
-            if (afterText) {
-              parent.insertBefore(document.createTextNode(afterText), node);
-            }
-
-            parent.removeChild(node);
+            nodeModifications.get(node).push({ start, end, type });
           });
+
+          // Appliquer les modifications (en ordre inverse pour préserver les indices)
+          Array.from(nodeModifications.entries())
+            .reverse()
+            .forEach(([node, mods]) => {
+              const parent = node.parentNode;
+              const nodeText = node.textContent;
+
+              // Trier les modifications par position
+              mods.sort((a, b) => a.start - b.start);
+
+              // Construire le nouveau contenu du nœud
+              let newContent = [];
+              let lastPos = 0;
+
+              for (let mod of mods) {
+                // Ajouter le texte avant la modification
+                if (mod.start > lastPos) {
+                  newContent.push(
+                    document.createTextNode(
+                      nodeText.substring(lastPos, mod.start)
+                    )
+                  );
+                }
+
+                if (mod.type === "deleted") {
+                  // Pour les délétions, insérer un marqueur visuel
+                  const deletedMarker = document.createElement("span");
+                  deletedMarker.className = "nucleotide-deleted-marker";
+                  deletedMarker.textContent = "⌫";
+                  deletedMarker.title = "Délétion à cet emplacement";
+                  newContent.push(deletedMarker);
+                  lastPos = mod.start;
+                } else {
+                  // Pour les modifications, ajouter le texte modifié
+                  const modifiedText = nodeText.substring(mod.start, mod.end);
+                  const modifiedSpan = document.createElement("span");
+                  modifiedSpan.className = "nucleotide-modified";
+                  modifiedSpan.textContent = modifiedText;
+                  newContent.push(modifiedSpan);
+                  lastPos = mod.end;
+                }
+              }
+
+              // Ajouter le texte restant
+              if (lastPos < nodeText.length) {
+                newContent.push(
+                  document.createTextNode(nodeText.substring(lastPos))
+                );
+              }
+
+              // Remplacer le nœud
+              newContent.forEach((content) => {
+                parent.insertBefore(content, node);
+              });
+              parent.removeChild(node);
+            });
 
           finalHTML = tempDiv.innerHTML;
         }
@@ -4317,6 +4388,130 @@
         return { start: cleanedStart, end: cleanedEnd };
       }
 
+      // Fonction pour mettre à jour les positions des plages modifiées après une mutation
+      function updateModifiedRangesAfterMutation(
+        oldText,
+        newText,
+        mutationStart,
+        mutationEnd,
+        mutationType,
+        newLength
+      ) {
+        const dnaInput = document.getElementById("dnaInput");
+        let modifiedRanges = JSON.parse(
+          dnaInput.getAttribute("data-modified-ranges") || "[]"
+        );
+        let deletedRanges = JSON.parse(
+          dnaInput.getAttribute("data-deleted-ranges") || "[]"
+        );
+
+        // Convertir les positions de mutation en positions nettoyées
+        const oldCleanedPos = convertToCleanedPositions(
+          oldText,
+          mutationStart,
+          mutationEnd
+        );
+        const newCleanedPos = convertToCleanedPositions(
+          newText,
+          mutationStart,
+          mutationStart + newLength
+        );
+
+        // Calculer le décalage
+        const lengthDiff =
+          newLength - (oldCleanedPos.end - oldCleanedPos.start);
+
+        // Mettre à jour les positions des plages modifiées existantes
+        const updatedRanges = modifiedRanges.map((range) => {
+          if (range.end <= oldCleanedPos.start) {
+            // Avant la mutation, pas de changement
+            return range;
+          } else if (range.start >= oldCleanedPos.end) {
+            // Après la mutation, décaler
+            return {
+              start: range.start + lengthDiff,
+              end: range.end + lengthDiff,
+            };
+          } else {
+            // Chevauchement, fusionner
+            return {
+              start: Math.min(range.start, oldCleanedPos.start),
+              end: Math.max(range.end, oldCleanedPos.end) + lengthDiff,
+            };
+          }
+        });
+
+        // Mettre à jour les positions des délétions
+        const updatedDeletedRanges = deletedRanges.map((range) => {
+          if (range.end <= oldCleanedPos.start) {
+            return range;
+          } else if (range.start >= oldCleanedPos.end) {
+            return {
+              start: range.start + lengthDiff,
+              end: range.end + lengthDiff,
+            };
+          } else {
+            // Chevauchement
+            return {
+              start: Math.min(range.start, oldCleanedPos.start),
+              end: Math.max(range.end, oldCleanedPos.end) + lengthDiff,
+            };
+          }
+        });
+
+        // Ajouter la nouvelle plage modifiée ou supprimée
+        if (mutationType === "suppression") {
+          updatedDeletedRanges.push({
+            start: oldCleanedPos.start,
+            end: oldCleanedPos.end,
+          });
+        } else {
+          updatedRanges.push({
+            start: newCleanedPos.start,
+            end: newCleanedPos.end,
+          });
+        }
+
+        // Fusionner les plages qui se chevauchent
+        updatedRanges.sort((a, b) => a.start - b.start);
+        const merged = [];
+        for (let range of updatedRanges) {
+          if (
+            merged.length === 0 ||
+            merged[merged.length - 1].end < range.start
+          ) {
+            merged.push(range);
+          } else {
+            merged[merged.length - 1].end = Math.max(
+              merged[merged.length - 1].end,
+              range.end
+            );
+          }
+        }
+
+        updatedDeletedRanges.sort((a, b) => a.start - b.start);
+        const mergedDeleted = [];
+        for (let range of updatedDeletedRanges) {
+          if (
+            mergedDeleted.length === 0 ||
+            mergedDeleted[mergedDeleted.length - 1].end < range.start
+          ) {
+            mergedDeleted.push(range);
+          } else {
+            mergedDeleted[mergedDeleted.length - 1].end = Math.max(
+              mergedDeleted[mergedDeleted.length - 1].end,
+              range.end
+            );
+          }
+        }
+
+        dnaInput.setAttribute("data-modified-ranges", JSON.stringify(merged));
+        dnaInput.setAttribute(
+          "data-deleted-ranges",
+          JSON.stringify(mergedDeleted)
+        );
+      }
+
       // Fonction pour marquer les nucléotides comme modifiés dans le texte
       function markModifiedNucleotides(fullText, startPos, endPos) {
         // Convertir les positions du texte brut en positions du texte nettoyé
@@ -4377,6 +4572,7 @@
         let newText = "";
         let modifiedStart = selectedStart;
         let modifiedEnd = selectedEnd;
+        let validNewNucleotides = "";
 
         if (action === "substitution") {
           // Substitution : remplacer aléatoirement les nucléotides sélectionnés
@@ -4396,7 +4592,7 @@
         } else if (action === "addition") {
           // Addition : demander à l'utilisateur d'entrer de nouveaux nucléotides
           const newNucleotides = prompt(
-            "Entrez les nouveaux nucléotides à ajouter (A, T, C, G uniquement) :",
+            "Entrez les nouveaux nucléotides à ajouter à droite de la séquence sélectionnée (A, T, C, G uniquement) :",
             ""
           );
           if (newNucleotides === null) {
@@ -4404,7 +4600,7 @@
             return;
           }
 
-          const validNewNucleotides = newNucleotides
+          validNewNucleotides = newNucleotides
             .toUpperCase()
             .replace(/[^ATCG]/g, "");
           if (validNewNucleotides.length === 0) {
@@ -4434,16 +4630,32 @@
           modifiedEnd = -1;
         }
 
+        // Mettre à jour les plages modifiées/supprimées avant de modifier le texte
+        const oldText = fullText;
+        let newLength = 0;
+        if (action === "substitution") {
+          newLength = validSelection.length;
+        } else if (action === "addition") {
+          newLength = validNewNucleotides.length;
+        } else if (action === "suppression") {
+          newLength = 0;
+        }
+
         // Mettre à jour le contenu
         dnaInput.textContent = newText;
 
         // Mettre à jour l'attribut data-full-sequence
         dnaInput.setAttribute("data-full-sequence", newText);
 
-        // Marquer les nucléotides modifiés (sauf pour suppression)
-        if (action !== "suppression" && modifiedStart >= 0) {
-          markModifiedNucleotides(newText, modifiedStart, modifiedEnd);
-        }
+        // Mettre à jour toutes les plages modifiées/supprimées
+        updateModifiedRangesAfterMutation(
+          oldText,
+          newText,
+          selectedStart,
+          selectedEnd,
+          action,
+          newLength
+        );
 
         // Recoloriser (la fonction colorizeDNAInput appliquera automatiquement le style aux nucléotides modifiés)
         setTimeout(colorizeDNAInput, 10);
