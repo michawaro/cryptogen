@@ -177,6 +177,64 @@
         gap: 20px;
         flex-wrap: nowrap;
       }
+      /* Modal pour l'agrandissement de l'image La fabrique */
+      .fabrique-zoom-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      }
+      .fabrique-zoom-modal.active {
+        display: flex;
+      }
+      .fabrique-zoom-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        cursor: default;
+      }
+      .fabrique-zoom-content img {
+        max-width: 100%;
+        max-height: 80vh;
+        height: auto;
+        display: block;
+      }
+      .fabrique-zoom-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 30px;
+        height: 30px;
+        background-color: #fff;
+        border: 2px solid #333;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        transition: all 0.2s;
+      }
+      .fabrique-zoom-close:hover {
+        background-color: #f0f0f0;
+        transform: scale(1.1);
+      }
+      .fabrique-zoom-close::before {
+        content: "✓";
+      }
       .pixel-art-illustration {
         flex-shrink: 0;
         max-width: 460px;
@@ -184,6 +242,11 @@
         height: auto;
         align-self: flex-start;
         object-fit: contain;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      .pixel-art-illustration:hover {
+        transform: scale(1.02);
       }
       /* Media query pour mobile en mode portrait */
       @media (max-width: 768px) and (orientation: portrait) {
@@ -3486,6 +3549,8 @@
           if (exportBtn) exportBtn.style.display = "inline-block";
           // Afficher le label
           updateDnaOutputLabel();
+          // Ajouter l'icône d'avion en papier pour copier vers le décodage
+          addCopyToDecodeIcon(output, dna);
         } else if (trouModeActive) {
           // Mode "à trou" actif mais aucun mot sélectionné - afficher quand même la séquence
           output.setAttribute("data-dna-sequence", dna);
@@ -3499,6 +3564,8 @@
           if (exportBtn) exportBtn.style.display = "inline-block";
           // Afficher le label
           updateDnaOutputLabel();
+          // Ajouter l'icône d'avion en papier pour copier vers le décodage
+          addCopyToDecodeIcon(output, dna);
         } else {
           // Mode "à trou" désactivé
           output.setAttribute("data-dna-sequence", dna);
@@ -3510,6 +3577,119 @@
           if (exportBtn) exportBtn.style.display = "inline-block";
           // Afficher le label
           updateDnaOutputLabel();
+        }
+
+        // Ajouter l'icône d'avion en papier pour copier vers le décodage
+        addCopyToDecodeIcon(output, dna);
+      }
+
+      // Fonction pour supprimer l'icône d'avion en papier
+      function removeCopyToDecodeIcon() {
+        const dnaOutput = document.getElementById("dnaOutput");
+        if (dnaOutput) {
+          const existingIcon = dnaOutput.querySelector(".copy-to-decode-icon");
+          if (existingIcon) {
+            existingIcon.remove();
+          }
+        }
+      }
+
+      // Fonction pour ajouter l'icône d'avion en papier pour copier vers le décodage
+      function addCopyToDecodeIcon(outputElement, dnaSequence) {
+        // Supprimer l'icône existante si elle existe
+        const existingIcon = outputElement.querySelector(
+          ".copy-to-decode-icon"
+        );
+        if (existingIcon) {
+          existingIcon.remove();
+        }
+
+        // Ne pas ajouter l'icône si la séquence est vide
+        if (!dnaSequence || dnaSequence.trim().length === 0) {
+          return;
+        }
+
+        // Créer l'icône d'avion en papier
+        const icon = document.createElement("span");
+        icon.className = "copy-to-decode-icon";
+        icon.innerHTML = "✈️";
+        icon.title = "Copier vers le bloc décodage";
+        icon.style.cssText = `
+          display: inline-block;
+          margin-left: 10px;
+          font-size: 1.2em;
+          cursor: pointer;
+          vertical-align: middle;
+          transition: transform 0.2s;
+          user-select: none;
+        `;
+
+        // Effet au survol
+        icon.addEventListener("mouseenter", function () {
+          icon.style.transform = "scale(1.2) rotate(15deg)";
+        });
+
+        icon.addEventListener("mouseleave", function () {
+          icon.style.transform = "scale(1) rotate(0deg)";
+        });
+
+        // Gérer le clic pour copier vers le décodage
+        icon.addEventListener("click", function () {
+          copyToDecodeBlock(dnaSequence);
+        });
+
+        // Ajouter l'icône après le contenu
+        outputElement.appendChild(icon);
+      }
+
+      // Fonction pour copier la séquence vers le bloc décodage
+      function copyToDecodeBlock(dnaSequence) {
+        // Vider les champs d'encodage avant de copier
+        const textInput = document.getElementById("textInput");
+        const dnaOutput = document.getElementById("dnaOutput");
+        if (textInput) textInput.value = "";
+
+        // Vider le champ de décodage
+        const dnaInput = document.getElementById("dnaInput");
+        const output = document.getElementById("output");
+        if (dnaInput) {
+          dnaInput.textContent = "";
+          dnaInput.removeAttribute("data-full-sequence");
+          dnaInput.removeAttribute("data-modified-ranges");
+          dnaInput.removeAttribute("data-deleted-ranges");
+        }
+        if (output) {
+          output.innerHTML = "";
+        }
+
+        // Copier la séquence dans le champ de décodage
+        if (dnaInput && dnaSequence) {
+          // Utiliser la séquence complète si disponible (avec marqueurs "à trou")
+          const fullSequence =
+            dnaOutput.getAttribute("data-dna-sequence") || dnaSequence;
+          dnaInput.setAttribute("data-full-sequence", fullSequence);
+
+          // Masquer les marqueurs "à trou" visuellement
+          const markerIndex = fullSequence.indexOf(TROU_MARKER);
+          const visibleSequence =
+            markerIndex !== -1
+              ? fullSequence.substring(0, markerIndex)
+              : fullSequence;
+
+          dnaInput.textContent = visibleSequence;
+          colorizeDNAInput();
+
+          // Feedback visuel
+          const icon = document.querySelector(".copy-to-decode-icon");
+          if (icon) {
+            const originalHTML = icon.innerHTML;
+            icon.innerHTML = "✓";
+            icon.style.color = "#51cf66";
+            setTimeout(() => {
+              icon.innerHTML = originalHTML;
+              icon.style.color = "";
+            }, 1000);
+          }
         }
       }
 
@@ -4759,6 +4939,8 @@
         if (dnaOutput) {
           dnaOutput.textContent = "";
           dnaOutput.removeAttribute("data-dna-sequence");
+          // Supprimer l'icône d'avion en papier
+          removeCopyToDecodeIcon();
         }
 
         // Vider les champs de décodage
@@ -5773,6 +5955,9 @@
                   container.innerHTML = "";
                   container.appendChild(img);
                   imageLoaded = true;
+
+                  // Ajouter les événements pour l'agrandissement
+                  setupFabriqueZoom(img);
                 };
                 img.onerror = () => {
                   URL.revokeObjectURL(imageUrl);
@@ -5793,6 +5978,116 @@
           console.error("Erreur lors du chargement de l'image:", error);
           container.innerHTML =
             '<span style="color: #999; font-size: 0.85rem;">Erreur de chargement</span>';
+        }
+      }
+
+      // Fonction pour configurer l'agrandissement de l'image La fabrique
+      function setupFabriqueZoom(img) {
+        // Créer le modal s'il n'existe pas
+        let modal = document.getElementById("fabriqueZoomModal");
+        if (!modal) {
+          modal = document.createElement("div");
+          modal.id = "fabriqueZoomModal";
+          modal.className = "fabrique-zoom-modal";
+
+          const content = document.createElement("div");
+          content.className = "fabrique-zoom-content";
+
+          const zoomImg = document.createElement("img");
+          zoomImg.src = img.src;
+          zoomImg.alt = "La fabrique - Agrandissement";
+
+          const closeBtn = document.createElement("div");
+          closeBtn.className = "fabrique-zoom-close";
+          closeBtn.title = "Fermer";
+
+          content.appendChild(zoomImg);
+          content.appendChild(closeBtn);
+          modal.appendChild(content);
+          document.body.appendChild(modal);
+
+          // Fermer au clic sur le fond (modal)
+          modal.addEventListener("click", function (e) {
+            if (e.target === modal) {
+              closeFabriqueZoom();
+            }
+          });
+
+          // Fermer au clic sur le bouton de fermeture
+          closeBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            closeFabriqueZoom();
+          });
+
+          // Empêcher la fermeture au clic sur le contenu
+          content.addEventListener("click", function (e) {
+            e.stopPropagation();
+          });
+
+          // Fermer quand la souris quitte le modal
+          modal.addEventListener("mouseleave", function () {
+            closeFabriqueZoom();
+          });
+        } else {
+          // Mettre à jour l'image dans le modal existant
+          const zoomImg = modal.querySelector("img");
+          if (zoomImg) {
+            zoomImg.src = img.src;
+          }
+        }
+
+        // Afficher le modal au survol
+        let hoverTimeout;
+        img.addEventListener("mouseenter", function () {
+          hoverTimeout = setTimeout(function () {
+            showFabriqueZoom(img.src);
+          }, 300); // Délai de 300ms pour éviter les affichages intempestifs
+        });
+
+        img.addEventListener("mouseleave", function (e) {
+          clearTimeout(hoverTimeout);
+          // Ne pas fermer immédiatement si la souris passe sur le modal
+          setTimeout(function () {
+            const modal = document.getElementById("fabriqueZoomModal");
+            if (modal && !modal.classList.contains("active")) {
+              return;
+            }
+            // Vérifier si la souris est toujours sur l'image ou le modal
+            const relatedTarget = e.relatedTarget;
+            if (
+              relatedTarget &&
+              (modal.contains(relatedTarget) || img.contains(relatedTarget))
+            ) {
+              return;
+            }
+            closeFabriqueZoom();
+          }, 100);
+        });
+
+        // Afficher le modal au clic
+        img.addEventListener("click", function (e) {
+          e.stopPropagation();
+          showFabriqueZoom(img.src);
+        });
+      }
+
+      // Fonction pour afficher le modal d'agrandissement
+      function showFabriqueZoom(imageSrc) {
+        const modal = document.getElementById("fabriqueZoomModal");
+        if (modal) {
+          const zoomImg = modal.querySelector("img");
+          if (zoomImg && imageSrc) {
+            zoomImg.src = imageSrc;
+          }
+          modal.classList.add("active");
+        }
+      }
+
+      // Fonction pour fermer le modal d'agrandissement
+      function closeFabriqueZoom() {
+        const modal = document.getElementById("fabriqueZoomModal");
+        if (modal) {
+          modal.classList.remove("active");
         }
       }
 
