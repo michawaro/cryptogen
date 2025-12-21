@@ -506,6 +506,37 @@
         color: #999;
         pointer-events: none;
       }
+      /* Menu contextuel pour les modifications de séquence */
+      #contextMenu {
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 8px 0;
+        z-index: 10000;
+        min-width: 180px;
+        display: none;
+      }
+      #contextMenu .menu-item {
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 0.95rem;
+      }
+      #contextMenu .menu-item:hover {
+        background-color: #f0f0f0;
+      }
+      #contextMenu .menu-item:active {
+        background-color: #e0e0e0;
+      }
+      /* Style pour les nucléotides modifiés (blanc sur fond noir) */
+      .nucleotide-modified {
+        color: white !important;
+        background-color: black !important;
+        padding: 2px 1px;
+        border-radius: 2px;
+      }
       table {
         margin: 0 auto;
         width: 100%;
@@ -1121,6 +1152,11 @@
           contenteditable="true"
           placeholder="Ecris ou colle ici une séquence d'ADN. L'ADN contient des informations codées sous forme de séquence de nucléotides. Peut-être qu'un message est caché dans la séquence que tu vas étudier ?"
         ></div>
+        <div id="contextMenu">
+          <div class="menu-item" data-action="substitution">Substitution</div>
+          <div class="menu-item" data-action="addition">Addition</div>
+          <div class="menu-item" data-action="suppression">Suppression</div>
+        </div>
         <div style="text-align: center; margin-top: 20px">
           <button onclick="decodeDNA()">Décoder</button>
         </div>
@@ -2101,9 +2137,88 @@
         }
 
         const colored = colorizeDNAForDecode(cleaned);
+
+        // Appliquer le style aux nucléotides modifiés
+        const modifiedRanges = JSON.parse(
+          dnaInput.getAttribute("data-modified-ranges") || "[]"
+        );
+        let finalHTML = colored;
+
+        if (modifiedRanges.length > 0) {
+          // Créer un élément temporaire pour manipuler le HTML
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = colored;
+
+          // Parcourir tous les nœuds texte et appliquer le style aux positions modifiées
+          const walker = document.createTreeWalker(
+            tempDiv,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+          );
+
+          let textPos = 0;
+          const nodesToWrap = [];
+
+          let node;
+          while ((node = walker.nextNode())) {
+            const nodeText = node.textContent;
+            const nodeStart = textPos;
+            const nodeEnd = textPos + nodeText.length;
+
+            // Vérifier si cette portion chevauche une plage modifiée
+            for (let range of modifiedRanges) {
+              if (nodeEnd > range.start && nodeStart < range.end) {
+                // Il y a un chevauchement
+                const overlapStart = Math.max(0, range.start - nodeStart);
+                const overlapEnd = Math.min(
+                  nodeText.length,
+                  range.end - nodeStart
+                );
+
+                if (overlapStart < overlapEnd) {
+                  nodesToWrap.push({
+                    node: node,
+                    start: overlapStart,
+                    end: overlapEnd,
+                  });
+                }
+              }
+            }
+
+            textPos = nodeEnd;
+          }
+
+          // Appliquer les modifications (en ordre inverse pour préserver les indices)
+          nodesToWrap.reverse().forEach(({ node, start, end }) => {
+            const parent = node.parentNode;
+            const beforeText = node.textContent.substring(0, start);
+            const modifiedText = node.textContent.substring(start, end);
+            const afterText = node.textContent.substring(end);
+
+            // Créer les nouveaux nœuds
+            if (beforeText) {
+              parent.insertBefore(document.createTextNode(beforeText), node);
+            }
+
+            const modifiedSpan = document.createElement("span");
+            modifiedSpan.className = "nucleotide-modified";
+            modifiedSpan.textContent = modifiedText;
+            parent.insertBefore(modifiedSpan, node);
+
+            if (afterText) {
+              parent.insertBefore(document.createTextNode(afterText), node);
+            }
+
+            parent.removeChild(node);
+          });
+
+          finalHTML = tempDiv.innerHTML;
+        }
+
         // Ne mettre à jour que si le contenu a changé pour éviter les problèmes de curseur
-        if (dnaInput.innerHTML !== colored) {
-          dnaInput.innerHTML = colored;
+        if (dnaInput.innerHTML !== finalHTML) {
+          dnaInput.innerHTML = finalHTML;
         }
       }
 
@@ -3619,6 +3734,288 @@
       });
       dnaInput.addEventListener("paste", function () {
         setTimeout(colorizeDNAInput, 10); // Attendre que le collage soit terminé
+      });
+
+      // Gestion du menu contextuel pour les modifications de séquence
+      const contextMenu = document.getElementById("contextMenu");
+      let selectedRange = null;
+      let selectedText = "";
+      let selectedStart = 0;
+      let selectedEnd = 0;
+
+      // Fonction pour obtenir la sélection dans un élément contenteditable
+      function getSelectionInEditable(element) {
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) return null;
+
+        const range = selection.getRangeAt(0);
+
+        // Vérifier si la sélection est dans l'élément
+        let container = range.commonAncestorContainer;
+        while (container && container !== element) {
+          if (
+            container.nodeType === Node.ELEMENT_NODE &&
+            container.isContentEditable
+          ) {
+            // C'est un élément contenteditable parent, vérifier s'il contient notre élément
+            if (!container.contains(element)) {
+              return null;
+            }
+          }
+          container = container.parentNode;
+        }
+
+        if (
+          !element.contains(range.commonAncestorContainer) &&
+          !range.commonAncestorContainer.contains(element)
+        ) {
+          return null;
+        }
+
+        // Créer une nouvelle plage pour éviter les problèmes
+        const newRange = range.cloneRange();
+        newRange.setStart(range.startContainer, range.startOffset);
+        newRange.setEnd(range.endContainer, range.endOffset);
+
+        // Obtenir le texte brut de la sélection (sans HTML)
+        const text = newRange.toString();
+        if (!text || text.trim().length === 0) return null;
+
+        // Obtenir les positions dans le texte complet (texte brut sans HTML)
+        const elementText = element.innerText || element.textContent || "";
+        const preRange = newRange.cloneRange();
+        preRange.selectNodeContents(element);
+        preRange.setEnd(range.startContainer, range.startOffset);
+        const start = preRange.toString().length;
+
+        return {
+          range: newRange,
+          text: text,
+          start: start,
+          end: start + text.length,
+        };
+      }
+
+      // Fonction pour obtenir le texte brut d'un élément contenteditable
+      function getPlainText(element) {
+        return element.innerText || element.textContent || "";
+      }
+
+      // Fonction pour obtenir les positions dans le texte brut
+      function getTextPositions(element, range) {
+        const text = getPlainText(element);
+        const preRange = range.cloneRange();
+        preRange.selectNodeContents(element);
+        preRange.setEnd(range.startContainer, range.startOffset);
+        const start = preRange.toString().length;
+        const selectedText = range.toString();
+        return {
+          start: start,
+          end: start + selectedText.length,
+          text: selectedText,
+        };
+      }
+
+      // Afficher le menu contextuel
+      dnaInput.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+
+        const selection = getSelectionInEditable(dnaInput);
+        if (!selection) {
+          contextMenu.style.display = "none";
+          return;
+        }
+
+        selectedRange = selection.range;
+        selectedText = selection.text;
+        selectedStart = selection.start;
+        selectedEnd = selection.end;
+
+        // Filtrer pour ne garder que les nucléotides valides dans la sélection
+        const validNucleotides = selectedText
+          .toUpperCase()
+          .replace(/[^ATCG]/g, "");
+        if (validNucleotides.length === 0) {
+          contextMenu.style.display = "none";
+          return;
+        }
+
+        // Positionner le menu
+        contextMenu.style.display = "block";
+        contextMenu.style.left = e.pageX + "px";
+        contextMenu.style.top = e.pageY + "px";
+      });
+
+      // Fermer le menu si on clique ailleurs
+      document.addEventListener("click", function (e) {
+        if (!contextMenu.contains(e.target) && e.target !== dnaInput) {
+          contextMenu.style.display = "none";
+        }
+      });
+
+      // Fonction pour générer un nucléotide aléatoire
+      function getRandomNucleotide() {
+        const nucleotides = ["A", "T", "C", "G"];
+        return nucleotides[Math.floor(Math.random() * nucleotides.length)];
+      }
+
+      // Fonction pour convertir les positions du texte brut en positions du texte nettoyé (seulement ATCG)
+      function convertToCleanedPositions(fullText, startPos, endPos) {
+        let cleanedStart = 0;
+        let cleanedEnd = 0;
+
+        // Compter les caractères ATCG jusqu'à startPos
+        for (let i = 0; i < startPos && i < fullText.length; i++) {
+          const char = fullText[i].toUpperCase();
+          if (char === "A" || char === "T" || char === "C" || char === "G") {
+            cleanedStart++;
+          }
+        }
+
+        // Compter les caractères ATCG jusqu'à endPos
+        for (let i = 0; i < endPos && i < fullText.length; i++) {
+          const char = fullText[i].toUpperCase();
+          if (char === "A" || char === "T" || char === "C" || char === "G") {
+            cleanedEnd++;
+          }
+        }
+
+        return { start: cleanedStart, end: cleanedEnd };
+      }
+
+      // Fonction pour marquer les nucléotides comme modifiés dans le texte
+      function markModifiedNucleotides(fullText, startPos, endPos) {
+        // Convertir les positions du texte brut en positions du texte nettoyé
+        const cleanedPos = convertToCleanedPositions(
+          fullText,
+          startPos,
+          endPos
+        );
+
+        // Stocker les positions modifiées dans un attribut data (en positions nettoyées)
+        const dnaInput = document.getElementById("dnaInput");
+        let modifiedRanges = JSON.parse(
+          dnaInput.getAttribute("data-modified-ranges") || "[]"
+        );
+
+        // Ajouter la nouvelle plage modifiée
+        modifiedRanges.push({ start: cleanedPos.start, end: cleanedPos.end });
+
+        // Fusionner les plages qui se chevauchent
+        modifiedRanges.sort((a, b) => a.start - b.start);
+        const merged = [];
+        for (let range of modifiedRanges) {
+          if (
+            merged.length === 0 ||
+            merged[merged.length - 1].end < range.start
+          ) {
+            merged.push(range);
+          } else {
+            merged[merged.length - 1].end = Math.max(
+              merged[merged.length - 1].end,
+              range.end
+            );
+          }
+        }
+
+        dnaInput.setAttribute("data-modified-ranges", JSON.stringify(merged));
+      }
+
+      // Gérer les actions du menu
+      contextMenu.addEventListener("click", function (e) {
+        const action = e.target.getAttribute("data-action");
+        if (!action || !selectedRange) {
+          contextMenu.style.display = "none";
+          return;
+        }
+
+        const dnaInput = document.getElementById("dnaInput");
+        const fullText = getPlainText(dnaInput);
+        const validSelection = selectedText
+          .toUpperCase()
+          .replace(/[^ATCG]/g, "");
+
+        if (validSelection.length === 0) {
+          contextMenu.style.display = "none";
+          return;
+        }
+
+        let newText = "";
+        let modifiedStart = selectedStart;
+        let modifiedEnd = selectedEnd;
+
+        if (action === "substitution") {
+          // Substitution : remplacer aléatoirement les nucléotides sélectionnés
+          let substituted = "";
+          for (let i = 0; i < validSelection.length; i++) {
+            substituted += getRandomNucleotide();
+          }
+
+          // Remplacer dans le texte complet
+          newText =
+            fullText.substring(0, selectedStart) +
+            substituted +
+            fullText.substring(selectedEnd);
+
+          modifiedStart = selectedStart;
+          modifiedEnd = selectedStart + substituted.length;
+        } else if (action === "addition") {
+          // Addition : demander à l'utilisateur d'entrer de nouveaux nucléotides
+          const newNucleotides = prompt(
+            "Entrez les nouveaux nucléotides à ajouter (A, T, C, G uniquement) :",
+            ""
+          );
+          if (newNucleotides === null) {
+            contextMenu.style.display = "none";
+            return;
+          }
+
+          const validNewNucleotides = newNucleotides
+            .toUpperCase()
+            .replace(/[^ATCG]/g, "");
+          if (validNewNucleotides.length === 0) {
+            alert(
+              "Aucun nucléotide valide entré. Seuls A, T, C et G sont autorisés."
+            );
+            contextMenu.style.display = "none";
+            return;
+          }
+
+          // Insérer à droite de la sélection (après selectedEnd)
+          newText =
+            fullText.substring(0, selectedEnd) +
+            validNewNucleotides +
+            fullText.substring(selectedEnd);
+
+          modifiedStart = selectedEnd;
+          modifiedEnd = selectedEnd + validNewNucleotides.length;
+        } else if (action === "suppression") {
+          // Suppression : retirer la séquence sélectionnée
+          newText =
+            fullText.substring(0, selectedStart) +
+            fullText.substring(selectedEnd);
+
+          // Pas de nucléotides modifiés pour la suppression
+          modifiedStart = -1;
+          modifiedEnd = -1;
+        }
+
+        // Mettre à jour le contenu
+        dnaInput.textContent = newText;
+
+        // Mettre à jour l'attribut data-full-sequence
+        dnaInput.setAttribute("data-full-sequence", newText);
+
+        // Marquer les nucléotides modifiés (sauf pour suppression)
+        if (action !== "suppression" && modifiedStart >= 0) {
+          markModifiedNucleotides(newText, modifiedStart, modifiedEnd);
+        }
+
+        // Recoloriser (la fonction colorizeDNAInput appliquera automatiquement le style aux nucléotides modifiés)
+        setTimeout(colorizeDNAInput, 10);
+
+        contextMenu.style.display = "none";
+        selectedRange = null;
       });
 
       // Fonction pour importer un fichier .edi
