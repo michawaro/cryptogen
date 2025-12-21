@@ -1903,6 +1903,25 @@
       let selectedWordIndices = new Set(); // Indices des mots sélectionnés (0-based)
       let currentWordPositions = []; // Positions des mots dans la séquence actuelle
 
+      // Gérer le collage dans le champ d'encodage (textInput)
+      const textInput = document.getElementById("textInput");
+      if (textInput) {
+        textInput.addEventListener("paste", function () {
+          // Vider les champs de décodage lors du collage dans le champ d'encodage
+          const dnaInput = document.getElementById("dnaInput");
+          const output = document.getElementById("output");
+          if (dnaInput) {
+            dnaInput.textContent = "";
+            dnaInput.removeAttribute("data-full-sequence");
+            dnaInput.removeAttribute("data-modified-ranges");
+            dnaInput.removeAttribute("data-deleted-ranges");
+          }
+          if (output) {
+            output.innerHTML = "";
+          }
+        });
+      }
+
       // Fonction pour activer/désactiver le mode "à trou"
       function toggleTrouMode() {
         trouModeActive = !trouModeActive;
@@ -3823,6 +3842,14 @@
         setTimeout(colorizeDNAInput, 10);
       });
       dnaInput.addEventListener("paste", function () {
+        // Vider les champs d'encodage lors du collage dans le champ de décodage
+        const textInput = document.getElementById("textInput");
+        const dnaOutput = document.getElementById("dnaOutput");
+        if (textInput) textInput.value = "";
+        if (dnaOutput) {
+          dnaOutput.textContent = "";
+          dnaOutput.removeAttribute("data-dna-sequence");
+        }
         setTimeout(colorizeDNAInput, 10); // Attendre que le collage soit terminé
       });
 
@@ -4664,10 +4691,40 @@
         selectedRange = null;
       });
 
+      // Fonction pour vider tous les champs d'entrée et de sortie
+      function clearAllFields() {
+        // Vider les champs d'encodage
+        const textInput = document.getElementById("textInput");
+        const dnaOutput = document.getElementById("dnaOutput");
+        if (textInput) {
+          textInput.value = "";
+        }
+        if (dnaOutput) {
+          dnaOutput.textContent = "";
+          dnaOutput.removeAttribute("data-dna-sequence");
+        }
+
+        // Vider les champs de décodage
+        const dnaInput = document.getElementById("dnaInput");
+        const output = document.getElementById("output");
+        if (dnaInput) {
+          dnaInput.textContent = "";
+          dnaInput.removeAttribute("data-full-sequence");
+          dnaInput.removeAttribute("data-modified-ranges");
+          dnaInput.removeAttribute("data-deleted-ranges");
+        }
+        if (output) {
+          output.innerHTML = "";
+        }
+      }
+
       // Fonction pour importer un fichier .edi
       function importEDIFile(event) {
         const file = event.target.files[0];
         if (!file) return;
+
+        // Vider tous les champs avant l'import
+        clearAllFields();
 
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -4712,6 +4769,9 @@
       function importFASTAFile(event) {
         const file = event.target.files[0];
         if (!file) return;
+
+        // Vider tous les champs avant l'import
+        clearAllFields();
 
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -4758,6 +4818,8 @@
 
       // Fonction pour charger la séquence de test texte (ancienne logique)
       function loadTestTextSequence() {
+        // Vider tous les champs avant le chargement
+        clearAllFields();
         loadTestSequenceOld();
       }
 
@@ -4773,6 +4835,9 @@
             "&dl=1",
           "https://dl.dropboxusercontent.com/scl/fi/0cspsf5bqrsjdk2rb9w4c/Tester-Image-1.fasta?rlkey=mn8da7qqm7r1wwrbgjtptcuqk&st=y3huk9e9&dl=1",
         ];
+
+        // Vider tous les champs avant le chargement
+        clearAllFields();
 
         try {
           // Afficher un message de chargement
