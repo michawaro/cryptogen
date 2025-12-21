@@ -567,14 +567,13 @@
       /* Style pour les marqueurs de séparation entre triplets */
       .triplet-separator {
         display: inline-block;
-        width: 1px;
-        height: 0.9em;
-        background-color: #999;
+        width: 1.5px;
+        height: 0.5em;
+        background-color: #000;
         vertical-align: top;
         margin: 0 0.5px;
-        opacity: 0.6;
         position: relative;
-        top: -0.1em;
+        top: -0.15em;
       }
       table {
         margin: 0 auto;
@@ -4224,30 +4223,20 @@
             }
           }
 
-          // Trouver le triplet qui contient cette position
-          const tripletIndex = Math.floor(cleanedPos / 3);
-          const tripletStartInCleaned = tripletIndex * 3;
-          const tripletEndInCleaned = Math.min(
-            tripletStartInCleaned + 3,
-            cleanedText.length
-          );
-
-          if (tripletStartInCleaned >= cleanedText.length) {
+          // Vérifier que la position est valide
+          if (cleanedPos >= cleanedText.length) {
             contextMenu.style.display = "none";
             return;
           }
 
-          // Extraire le triplet
-          const selectedTriplet = cleanedText.substring(
-            tripletStartInCleaned,
-            tripletEndInCleaned
-          );
-          if (selectedTriplet.length === 0) {
+          // Sélectionner le nucléotide exact à la position du clic (1 nucléotide)
+          const selectedNucleotide = cleanedText[cleanedPos];
+          if (!selectedNucleotide) {
             contextMenu.style.display = "none";
             return;
           }
 
-          // Convertir les positions nettoyées en positions dans le texte visible
+          // Convertir la position nettoyée en position dans le texte visible
           let visibleStart = 0;
           let visibleEnd = visibleText.length;
           let currentCleanedPos = 0;
@@ -4255,10 +4244,8 @@
           for (let i = 0; i < visibleText.length; i++) {
             const char = visibleText[i].toUpperCase();
             if (char === "A" || char === "T" || char === "C" || char === "G") {
-              if (currentCleanedPos === tripletStartInCleaned) {
+              if (currentCleanedPos === cleanedPos) {
                 visibleStart = i;
-              }
-              if (currentCleanedPos === tripletEndInCleaned - 1) {
                 visibleEnd = i + 1;
                 break;
               }
@@ -4275,10 +4262,8 @@
           for (let i = 0; i < plainText.length; i++) {
             const char = plainText[i].toUpperCase();
             if (char === "A" || char === "T" || char === "C" || char === "G") {
-              if (visibleCount === tripletStartInCleaned) {
+              if (visibleCount === cleanedPos) {
                 rawStart = i;
-              }
-              if (visibleCount === tripletEndInCleaned - 1) {
                 rawEnd = i + 1;
                 break;
               }
@@ -4286,7 +4271,7 @@
             }
           }
 
-          selectedText = selectedTriplet;
+          selectedText = selectedNucleotide;
           selectedStart = rawStart;
           selectedEnd = rawEnd;
 
