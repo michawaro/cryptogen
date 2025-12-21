@@ -4423,17 +4423,17 @@
           cleanedEnd = plainTextPos;
 
           // Extraire la sélection nettoyée
-          const selectedText = plainText
+          const selectedTextValue = plainText
             .substring(cleanedStart, cleanedEnd)
             .toUpperCase()
             .replace(/[^ATCG]/g, "");
 
-          if (selectedText.length === 0) {
+          if (selectedTextValue.length === 0) {
+            console.log("selectedTextValue est vide après nettoyage");
             return;
           }
 
           // Stocker les informations de sélection
-          const selectedTextValue = selectedText;
           selectedText = selectedTextValue;
           selectedStart = cleanedStart;
           selectedEnd = cleanedEnd;
