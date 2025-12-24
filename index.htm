@@ -766,7 +766,36 @@
             </svg>
           </div>
         </a>
-        <h1>Cryptogen - Encodeur / Décodeur ADN</h1>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+          <div
+            style="
+              width: 120px;
+              height: 120px;
+              border-radius: 16px;
+              overflow: hidden;
+              flex-shrink: 0;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            "
+          >
+            <video
+              autoplay
+              loop
+              muted
+              playsinline
+              style="
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              "
+            >
+              <source
+                src="https://www.dropbox.com/scl/fi/msba9af6f3xkvw9d46q6w/Noel-accueil.mp4?rlkey=tqhff19ckx26h81osn6k6g7dr&st=7ez2ot9b&dl=1"
+                type="video/mp4"
+              />
+            </video>
+          </div>
+          <h1 style="margin: 0;">Cryptogen - Encodeur / Décodeur ADN</h1>
+        </div>
         <p class="subtitle">
           Colle une séquence ADN ou un texte, et encode ou décode avec le même
           code génétique.
@@ -1287,7 +1316,7 @@
                 type="video/mp4"
               />
             </video>
-            Joyeuses fêtes 🎉
+            Joyeuses fêtes !!! 🎉
           </button>
         </div>
         <div
@@ -5236,15 +5265,14 @@
 
       // Fonction pour charger la séquence "Joyeuse fête" depuis Dropbox
       async function loadJoyeuseFeteSequence() {
-        // TODO: Remplacer cette URL par l'URL du fichier FASTA "Joyeuse fête"
         const baseUrl =
-          "https://www.dropbox.com/scl/fi/PLACEHOLDER/Joyeuse-fete.fasta?rlkey=PLACEHOLDER&st=PLACEHOLDER&dl=0";
+          "https://www.dropbox.com/scl/fi/bp4toea0a0xse9hzdlvvz/Noel-Ana-s.fasta?rlkey=jcq7bsvghct59jvywhflmt0s2&dl=0";
 
         // Essayer plusieurs formats d'URL Dropbox (comme pour l'image)
         const urls = [
           baseUrl.replace("&dl=0", "&raw=1"),
           baseUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("&dl=0", "&dl=1"),
-          baseUrl.replace("www.dropbox.com/scl/fi/", "dl.dropboxusercontent.com/scl/fi/").replace("&dl=0", "&dl=1"),
+          "https://dl.dropboxusercontent.com/scl/fi/bp4toea0a0xse9hzdlvvz/Noel-Ana-s.fasta?rlkey=jcq7bsvghct59jvywhflmt0s2&dl=1",
         ];
 
         // Vider tous les champs avant le chargement
