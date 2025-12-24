@@ -139,7 +139,7 @@
         position: relative;
         min-height: 120px;
       }
-      header > *:not(.header-logo) {
+      header > *:not(.header-logo):not(.header-video) {
         display: block;
         width: 100%;
         max-width: 100%;
@@ -317,6 +317,14 @@
         .header-logo:hover {
           transform: scale(1.05);
         }
+        .header-video {
+          position: static;
+          transform: none;
+          display: block;
+          margin: 0 auto 20px auto;
+          width: 100px;
+          height: 100px;
+        }
         header h1 {
           margin-top: 0;
           padding-right: 0;
@@ -340,7 +348,7 @@
           word-wrap: break-word;
           overflow-wrap: break-word;
         }
-        header > *:not(.header-logo) {
+        header > *:not(.header-logo):not(.header-video) {
           width: 100%;
         }
         .section {
@@ -766,41 +774,43 @@
             </svg>
           </div>
         </a>
-        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
-          <div
+        <div
+          class="header-video"
+          style="
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1;
+          "
+        >
+          <video
+            autoplay
+            loop
+            muted
+            playsinline
             style="
-              width: 120px;
-              height: 120px;
-              border-radius: 16px;
-              overflow: hidden;
-              flex-shrink: 0;
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-              position: relative;
+              width: 160%;
+              height: 160%;
+              object-fit: cover;
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
             "
           >
-            <video
-              autoplay
-              loop
-              muted
-              playsinline
-              style="
-                width: 200%;
-                height: 200%;
-                object-fit: cover;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-              "
-            >
-              <source
-                src="https://www.dropbox.com/scl/fi/msba9af6f3xkvw9d46q6w/Noel-accueil.mp4?rlkey=tqhff19ckx26h81osn6k6g7dr&st=7ez2ot9b&dl=1"
-                type="video/mp4"
-              />
-            </video>
-          </div>
-          <h1 style="margin: 0; flex: 0 1 auto;">Cryptogen - Encodeur / Décodeur ADN</h1>
+            <source
+              src="https://www.dropbox.com/scl/fi/msba9af6f3xkvw9d46q6w/Noel-accueil.mp4?rlkey=tqhff19ckx26h81osn6k6g7dr&st=7ez2ot9b&dl=1"
+              type="video/mp4"
+            />
+          </video>
         </div>
+        <h1>Cryptogen - Encodeur / Décodeur ADN</h1>
         <p class="subtitle">
           Colle une séquence ADN ou un texte, et encode ou décode avec le même
           code génétique.
