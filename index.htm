@@ -2868,34 +2868,39 @@
             `.nucleotide-square[data-word="${word}"]`
           );
           return Array.from(squares)
-            .sort((a, b) => parseInt(a.dataset.position) - parseInt(b.dataset.position))
-            .map((sq) => sq.getAttribute("data-nucleotide"))
+            .sort((a, b) => parseInt(a.dataset.position || 0) - parseInt(b.dataset.position || 0))
+            .map((sq) => sq.getAttribute("data-nucleotide") || "")
             .join("");
         };
 
-        const papaSeq = getSequence("papa"); // 4 nucléotides
-        const mamanSeq = getSequence("maman"); // 5 nucléotides
-        const manipSeq = getSequence("manip"); // 6 nucléotides
+        const papaSeq = getSequence("papa"); // 4 nucléotides (indices 0,1,2,3)
+        const mamanSeq = getSequence("maman"); // 5 nucléotides (indices 0,1,2,3,4)
+        const manipSeq = getSequence("manip"); // 6 nucléotides (indices 0,1,2,3,4,5)
 
         // Récupérer les codes saisis
         const getCode = (letter) => {
-          const square = document.querySelector(
-            `.nucleotide-square-empty[data-letter="${letter}"]`
-          );
-          if (!square) {
+          if (letter === "I") {
             // Pour I, il y a 2 carrés
-            if (letter === "I") {
-              const squares = document.querySelectorAll(
-                `.nucleotide-square-empty[data-letter="I"]`
-              );
-              return Array.from(squares)
-                .sort((a, b) => parseInt(a.dataset.position) - parseInt(b.dataset.position))
-                .map((sq) => sq.getAttribute("data-nucleotide") || "")
-                .join("");
-            }
-            return "";
+            const squares = document.querySelectorAll(
+              `.nucleotide-square-empty[data-letter="I"]`
+            );
+            const codes = Array.from(squares)
+              .sort((a, b) => parseInt(a.dataset.position || 0) - parseInt(b.dataset.position || 0))
+              .map((sq) => {
+                const nuc = sq.getAttribute("data-nucleotide");
+                return nuc && nuc !== "" ? nuc : null;
+              })
+              .filter(nuc => nuc !== null);
+            return codes.length === 2 ? codes.join("") : "";
+          } else {
+            // Pour P, M, A, N : 1 seul carré
+            const square = document.querySelector(
+              `.nucleotide-square-empty[data-letter="${letter}"]`
+            );
+            if (!square) return "";
+            const nuc = square.getAttribute("data-nucleotide");
+            return nuc && nuc !== "" ? nuc : "";
           }
-          return square.getAttribute("data-nucleotide") || "";
         };
 
         const codeA = getCode("A"); // 1 nucléotide
@@ -2907,7 +2912,7 @@
         const resultEl = document.getElementById("validation-result");
 
         // Vérifier que tous les codes sont remplis
-        if (!codeA || !codeI || codeI.length !== 2 || !codeM || !codeN || !codeP) {
+        if (!codeA || codeA.length !== 1 || !codeI || codeI.length !== 2 || !codeM || codeM.length !== 1 || !codeN || codeN.length !== 1 || !codeP || codeP.length !== 1) {
           resultEl.textContent =
             "⚠ Veuillez remplir tous les codes (A, I avec 2 nucléotides, M, N, P) avant de valider.";
           resultEl.style.color = "#ffa726";
@@ -2924,77 +2929,88 @@
           return;
         }
 
-        // Vérifier les correspondances
+        // Vérifier les correspondances selon les spécifications
         let isValid = true;
         let errors = [];
 
-        // papa : P-A-P-A (positions 0,1,2,3)
-        if (papaSeq.length === 4) {
-          if (papaSeq[0] !== codeP) {
-            isValid = false;
-            errors.push("P dans 'papa' (position 0)");
-          }
+        // A : 2e et 4e position de papa (indices 1 et 3), 2e et 4e position de maman (indices 1 et 3), 2e position de manip (indice 1)
+        if (papaSeq.length >= 4) {
           if (papaSeq[1] !== codeA) {
             isValid = false;
-            errors.push("A dans 'papa' (position 1)");
-          }
-          if (papaSeq[2] !== codeP) {
-            isValid = false;
-            errors.push("P dans 'papa' (position 2)");
+            errors.push("A dans 'papa' position 2");
           }
           if (papaSeq[3] !== codeA) {
             isValid = false;
-            errors.push("A dans 'papa' (position 3)");
+            errors.push("A dans 'papa' position 4");
           }
         }
-
-        // maman : M-A-M-A-N (positions 0,1,2,3,4)
-        if (mamanSeq.length === 5) {
-          if (mamanSeq[0] !== codeM) {
-            isValid = false;
-            errors.push("M dans 'maman' (position 0)");
-          }
+        if (mamanSeq.length >= 4) {
           if (mamanSeq[1] !== codeA) {
             isValid = false;
-            errors.push("A dans 'maman' (position 1)");
-          }
-          if (mamanSeq[2] !== codeM) {
-            isValid = false;
-            errors.push("M dans 'maman' (position 2)");
+            errors.push("A dans 'maman' position 2");
           }
           if (mamanSeq[3] !== codeA) {
             isValid = false;
-            errors.push("A dans 'maman' (position 3)");
+            errors.push("A dans 'maman' position 4");
           }
-          if (mamanSeq[4] !== codeN) {
+        }
+        if (manipSeq.length >= 2) {
+          if (manipSeq[1] !== codeA) {
             isValid = false;
-            errors.push("N dans 'maman' (position 4)");
+            errors.push("A dans 'manip' position 2");
           }
         }
 
-        // manip : M-A-N-I-P (positions 0,1,2,3,4,5)
-        // I est codé par 2 nucléotides aux positions 4 et 5
-        if (manipSeq.length === 6) {
-          if (manipSeq[0] !== codeM) {
+        // P : 1ère et 3e position de papa (indices 0 et 2), 6e position de manip (indice 5)
+        if (papaSeq.length >= 3) {
+          if (papaSeq[0] !== codeP) {
             isValid = false;
-            errors.push("M dans 'manip' (position 0)");
+            errors.push("P dans 'papa' position 1");
           }
-          if (manipSeq[1] !== codeA) {
+          if (papaSeq[2] !== codeP) {
             isValid = false;
-            errors.push("A dans 'manip' (position 1)");
+            errors.push("P dans 'papa' position 3");
           }
-          if (manipSeq[2] !== codeN) {
-            isValid = false;
-            errors.push("N dans 'manip' (position 2)");
-          }
-          // I est aux positions 4 et 5 (4e et 5e caractères, indices 3 et 4 en 0-indexed)
-          if (manipSeq[3] + manipSeq[4] !== codeI) {
-            isValid = false;
-            errors.push("I dans 'manip' (positions 4-5)");
-          }
+        }
+        if (manipSeq.length >= 6) {
           if (manipSeq[5] !== codeP) {
             isValid = false;
-            errors.push("P dans 'manip' (position 5)");
+            errors.push("P dans 'manip' position 6");
+          }
+        }
+
+        // M : 1ère et 3e position de maman (indices 0 et 2)
+        if (mamanSeq.length >= 3) {
+          if (mamanSeq[0] !== codeM) {
+            isValid = false;
+            errors.push("M dans 'maman' position 1");
+          }
+          if (mamanSeq[2] !== codeM) {
+            isValid = false;
+            errors.push("M dans 'maman' position 3");
+          }
+        }
+
+        // N : 5e position de maman (indice 4), 3e position de manip (indice 2)
+        if (mamanSeq.length >= 5) {
+          if (mamanSeq[4] !== codeN) {
+            isValid = false;
+            errors.push("N dans 'maman' position 5");
+          }
+        }
+        if (manipSeq.length >= 3) {
+          if (manipSeq[2] !== codeN) {
+            isValid = false;
+            errors.push("N dans 'manip' position 3");
+          }
+        }
+
+        // I : 4e et 5e position de manip (indices 3 et 4)
+        if (manipSeq.length >= 5) {
+          const iSeq = manipSeq[3] + manipSeq[4];
+          if (iSeq !== codeI) {
+            isValid = false;
+            errors.push("I dans 'manip' positions 4-5");
           }
         }
 
