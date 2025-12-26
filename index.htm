@@ -308,6 +308,21 @@
           max-width: 100% !important;
           overflow-x: auto !important;
         }
+        .nucleotide-square,
+        .nucleotide-square-empty {
+          width: calc((100% - 20px) / 4) !important;
+          max-width: 50px !important;
+          min-width: 35px !important;
+          height: auto !important;
+          aspect-ratio: 1 !important;
+          font-size: clamp(0.9rem, 2.5vw, 1.3rem) !important;
+        }
+        #activity1-container > div:nth-child(2) .nucleotide-square {
+          width: calc((100% - 25px) / 5) !important;
+        }
+        #activity1-container > div:nth-child(3) .nucleotide-square {
+          width: calc((100% - 30px) / 6) !important;
+        }
         .pixel-art-image-container {
           flex-direction: column;
         }
@@ -3878,11 +3893,11 @@
             html += `<span class="word-stop">${word.content}</span>`;
           } else if (word.type === "trou") {
             // Afficher la séquence ADN avec double-clic
-            html += `<span class="word-trou decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ff6b6b; padding: 4px 6px; border-radius: 4px; cursor: pointer; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;" title="Double-cliquez pour décoder">${word.content}</span>`;
+            html += `<span class="word-trou decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ff6b6b; padding: 4px 6px; border-radius: 4px; cursor: pointer; user-select: text; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; pointer-events: auto;" title="Double-cliquez pour décoder">${word.content}</span>`;
           } else {
             // Mot normal - vérifier si c'est une séquence ADN pure
             if (isDNASequence(word.content)) {
-              html += `<span class="decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ffb3d9; padding: 4px 6px; border-radius: 4px; cursor: pointer; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;" title="Double-cliquez pour décoder">${word.content}</span>`;
+              html += `<span class="decode-dna" data-dna="${word.content}" style="font-family: monospace; background: #ffb3d9; padding: 4px 6px; border-radius: 4px; cursor: pointer; user-select: text; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; pointer-events: auto;" title="Double-cliquez pour décoder">${word.content}</span>`;
             } else {
               const length = word.content.length;
               const className = getWordClass(length);
@@ -5536,6 +5551,15 @@
           mutationBtn.textContent = "Mutation (ON)";
           // Ajouter un style visuel pour indiquer que le mode est actif
           dnaInput.style.cursor = "crosshair";
+          // Permettre la sélection dans les spans avec arrière-plan rose
+          const decodeSpans = dnaInput.querySelectorAll('.decode-dna');
+          decodeSpans.forEach(span => {
+            span.style.userSelect = 'text';
+            span.style.webkitUserSelect = 'text';
+            span.style.mozUserSelect = 'text';
+            span.style.msUserSelect = 'text';
+            span.style.pointerEvents = 'auto';
+          });
           console.log("Mode mutation activé");
         } else {
           mutationBtn.style.background = "#ff6b6b";
@@ -5544,6 +5568,7 @@
             contextMenu.style.display = "none";
           }
           dnaInput.style.cursor = "text";
+          // Restaurer user-select: none pour les spans (mais on garde text car on a changé le HTML)
           console.log("Mode mutation désactivé");
         }
       }
@@ -5908,20 +5933,44 @@
         if (selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
           const rect = range.getBoundingClientRect();
+          
+          // Détecter si on est sur mobile
+          const isMobile = window.innerWidth <= 768;
+          
           // Positionner le menu au-dessus de la sélection (centré horizontalement, 10px au-dessus)
           menuX = rect.left + rect.width / 2 - 90; // Centrer le menu (menuWidth/2 = 90)
-          menuY = rect.top - 150; // 150px au-dessus de la sélection pour laisser de la place
+          
+          if (isMobile) {
+            // Sur mobile, positionner le menu en dessous de la sélection pour éviter qu'il soit hors écran
+            menuY = rect.bottom + 10; // 10px en dessous de la sélection
+            // Faire défiler pour que la sélection soit visible (centrer la sélection dans la vue)
+            setTimeout(() => {
+              if (rect.top < window.scrollY || rect.bottom > window.scrollY + window.innerHeight) {
+                const element = range.commonAncestorContainer.nodeType === Node.TEXT_NODE 
+                  ? range.commonAncestorContainer.parentElement 
+                  : range.commonAncestorContainer;
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }
+            }, 100);
+          } else {
+            menuY = rect.top - 150; // 150px au-dessus de la sélection pour laisser de la place
+          }
 
           console.log(
             "Position du menu calculée:",
             menuX,
             menuY,
             "rect:",
-            rect
+            rect,
+            "isMobile:",
+            isMobile
           );
         } else if (e && e.clientX !== undefined) {
+          const isMobile = window.innerWidth <= 768;
           menuX = e.clientX - 90;
-          menuY = e.clientY - 150;
+          menuY = isMobile ? e.clientY + 10 : e.clientY - 150;
         } else {
           menuX = window.innerWidth / 2 - 90;
           menuY = window.innerHeight / 2;
