@@ -5299,6 +5299,8 @@
       let touchStartY = 0;
       let hasMoved = false;
       let preventAutoSelect = false;
+      let lastTouchX = 0;
+      let lastTouchY = 0;
       
       // Détecter le début du toucher
       dnaInput.addEventListener("touchstart", function (e) {
@@ -5306,6 +5308,8 @@
           touchStartTime = Date.now();
           touchStartX = e.touches[0].clientX;
           touchStartY = e.touches[0].clientY;
+          lastTouchX = touchStartX;
+          lastTouchY = touchStartY;
           hasMoved = false;
           preventAutoSelect = true;
           
@@ -5325,6 +5329,8 @@
       dnaInput.addEventListener("touchmove", function (e) {
         if (mutationModeActive) {
           const touch = e.touches[0];
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
           const deltaX = Math.abs(touch.clientX - touchStartX);
           const deltaY = Math.abs(touch.clientY - touchStartY);
           // Si l'utilisateur a bougé de plus de 3px, c'est un drag (sélection manuelle)
@@ -5335,45 +5341,129 @@
         }
       }, { passive: true });
       
-      // Sur touchend, vérifier et corriger la sélection
+      // Fonction pour sélectionner 3 nucléotides autour d'une position
+      function selectTripletAtPosition(clickX, clickY) {
+        const fullText = dnaInput.innerText || dnaInput.textContent || "";
+        if (fullText.length === 0) return false;
+        
+        // Trouver la position du toucher dans le texte
+        let clickPosition = -1;
+        
+        // Essayer d'utiliser caretRangeFromPoint pour trouver la position
+        if (document.caretRangeFromPoint && clickX !== undefined && clickY !== undefined) {
+          try {
+            const range = document.caretRangeFromPoint(clickX, clickY);
+            if (range && dnaInput.contains(range.commonAncestorContainer)) {
+              // Calculer la position dans le texte
+              const preRange = range.cloneRange();
+              preRange.selectNodeContents(dnaInput);
+              preRange.setEnd(range.startContainer, range.startOffset);
+              clickPosition = preRange.toString().length;
+            }
+          } catch (err) {
+            console.log("Erreur caretRangeFromPoint:", err);
+          }
+        }
+        
+        // Si on n'a pas pu trouver la position, utiliser le milieu de la séquence
+        if (clickPosition < 0) {
+          clickPosition = Math.floor(fullText.length / 2);
+        }
+        
+        // Calculer la position de départ pour sélectionner 3 nucléotides
+        // On veut sélectionner autour du point de clic, donc commencer 1 caractère avant si possible
+        let startPos = Math.max(0, clickPosition - 1);
+        let endPos = Math.min(fullText.length, startPos + 3);
+        
+        // Ajuster si on est trop près de la fin
+        if (endPos - startPos < 3) {
+          startPos = Math.max(0, endPos - 3);
+        }
+        
+        // Trouver les nœuds texte dans dnaInput
+        const walker = document.createTreeWalker(
+          dnaInput,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false
+        );
+        let node;
+        let currentPos = 0;
+        let startNode = null;
+        let startOffset = 0;
+        let endNode = null;
+        let endOffset = 0;
+        
+        while ((node = walker.nextNode())) {
+          const nodeText = node.textContent;
+          const nodeLength = nodeText.length;
+          
+          // Vérifier si startPos est dans ce nœud
+          if (currentPos <= startPos && startPos < currentPos + nodeLength) {
+            startNode = node;
+            startOffset = startPos - currentPos;
+          }
+          
+          // Vérifier si endPos est dans ce nœud
+          if (currentPos <= endPos && endPos <= currentPos + nodeLength) {
+            endNode = node;
+            endOffset = endPos - currentPos;
+            break;
+          }
+          
+          currentPos += nodeLength;
+        }
+        
+        // Créer la sélection
+        if (startNode && endNode) {
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          const newRange = document.createRange();
+          newRange.setStart(startNode, startOffset);
+          newRange.setEnd(endNode, endOffset);
+          selection.addRange(newRange);
+          return true;
+        }
+        return false;
+      }
+      
+      // Sur touchend, sélectionner 3 nucléotides autour du point de clic
       dnaInput.addEventListener("touchend", function (e) {
         if (mutationModeActive && preventAutoSelect && !hasMoved) {
           const touchDuration = Date.now() - touchStartTime;
+          const touch = e.changedTouches[0];
           
-          // Vérifier immédiatement et plusieurs fois pour être sûr
-          const checkAndFix = function() {
+          // Vérifier si toute la séquence est sélectionnée
+          const checkAndSelectTriplet = function() {
             const selection = window.getSelection();
+            const fullText = dnaInput.innerText || dnaInput.textContent || "";
+            
             if (selection.rangeCount > 0) {
-              const fullText = dnaInput.innerText || dnaInput.textContent || "";
               const selectedText = selection.toString();
               
               // Si toute la séquence est sélectionnée et que c'était un toucher court sans drag
               if (selectedText === fullText && fullText.length > 0 && touchDuration < 500) {
-                // C'est probablement une sélection automatique, on la supprime
-                selection.removeAllRanges();
-                preventAutoSelect = false;
-                return true;
+                // Sélectionner 3 nucléotides autour du point de clic
+                return selectTripletAtPosition(touch.clientX, touch.clientY);
               }
             }
             return false;
           };
           
-          // Vérifier immédiatement
-          if (checkAndFix()) return;
-          
-          // Vérifier après un court délai
+          // Vérifier et sélectionner le triplet après un court délai pour laisser le navigateur faire sa sélection
           setTimeout(function() {
-            if (checkAndFix()) return;
-            
-            // Vérifier une dernière fois après un délai plus long
-            setTimeout(checkAndFix, 50);
-          }, 10);
+            if (!checkAndSelectTriplet()) {
+              // Si ça n'a pas fonctionné, réessayer
+              setTimeout(checkAndSelectTriplet, 50);
+            }
+          }, 50);
         }
         preventAutoSelect = false;
         hasMoved = false;
       }, { passive: true });
       
       // Handler selectionchange pour détecter immédiatement les sélections complètes automatiques
+      // et les remplacer par une sélection de 3 nucléotides
       let selectionChangeHandler = function() {
         if (mutationModeActive && preventAutoSelect && !hasMoved) {
           const selection = window.getSelection();
@@ -5384,14 +5474,15 @@
             
             // Si toute la séquence est sélectionnée et que c'était un toucher très court
             if (selectedText === fullText && fullText.length > 0 && touchDuration < 500) {
-              // C'est probablement une sélection automatique, on la supprime immédiatement
+              // Utiliser les coordonnées du toucher stockées
               setTimeout(function() {
                 const currentSelection = window.getSelection();
                 const currentText = currentSelection.toString();
                 if (currentText === fullText) {
-                  currentSelection.removeAllRanges();
+                  // Sélectionner 3 nucléotides autour du point de clic
+                  selectTripletAtPosition(lastTouchX, lastTouchY);
                 }
-              }, 0);
+              }, 10);
             }
           }
         }
