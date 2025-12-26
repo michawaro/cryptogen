@@ -5294,16 +5294,26 @@
       const dnaInput = document.getElementById("dnaInput");
       
       // Empêcher la sélection automatique de tout le texte sur mobile en mode mutation
-      let lastTouchTime = 0;
+      let touchStartTime = 0;
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let hasMoved = false;
+      let preventAutoSelect = false;
+      
+      // Détecter le début du toucher
       dnaInput.addEventListener("touchstart", function (e) {
         if (mutationModeActive) {
-          lastTouchTime = Date.now();
-          // Empêcher la sélection automatique en désactivant temporairement le comportement par défaut
+          touchStartTime = Date.now();
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          hasMoved = false;
+          preventAutoSelect = true;
+          
+          // Supprimer toute sélection existante avant le nouveau toucher
           const selection = window.getSelection();
           if (selection.rangeCount > 0) {
             const fullText = dnaInput.innerText || dnaInput.textContent || "";
             const selectedText = selection.toString();
-            // Si toute la séquence est déjà sélectionnée, on la supprime avant le nouveau toucher
             if (selectedText === fullText && fullText.length > 0) {
               selection.removeAllRanges();
             }
@@ -5311,28 +5321,87 @@
         }
       }, { passive: true });
       
-      // Sur touchend, vérifier si une sélection complète s'est produite et la corriger
-      dnaInput.addEventListener("touchend", function (e) {
+      // Détecter le mouvement (drag) - si l'utilisateur fait glisser, c'est une sélection manuelle
+      dnaInput.addEventListener("touchmove", function (e) {
         if (mutationModeActive) {
-          // Attendre un peu pour que la sélection se fasse
-          setTimeout(function() {
+          const touch = e.touches[0];
+          const deltaX = Math.abs(touch.clientX - touchStartX);
+          const deltaY = Math.abs(touch.clientY - touchStartY);
+          // Si l'utilisateur a bougé de plus de 3px, c'est un drag (sélection manuelle)
+          if (deltaX > 3 || deltaY > 3) {
+            hasMoved = true;
+            preventAutoSelect = false;
+          }
+        }
+      }, { passive: true });
+      
+      // Sur touchend, vérifier et corriger la sélection
+      dnaInput.addEventListener("touchend", function (e) {
+        if (mutationModeActive && preventAutoSelect && !hasMoved) {
+          const touchDuration = Date.now() - touchStartTime;
+          
+          // Vérifier immédiatement et plusieurs fois pour être sûr
+          const checkAndFix = function() {
             const selection = window.getSelection();
             if (selection.rangeCount > 0) {
               const fullText = dnaInput.innerText || dnaInput.textContent || "";
               const selectedText = selection.toString();
-              // Si toute la séquence a été sélectionnée automatiquement (sans drag), on la supprime
-              // On vérifie que c'est une sélection complète et que ce n'est pas une sélection manuelle
-              if (selectedText === fullText && fullText.length > 0) {
-                const timeSinceTouch = Date.now() - lastTouchTime;
-                // Si le toucher était très court (< 100ms), c'est probablement une sélection automatique
-                if (timeSinceTouch < 100) {
-                  selection.removeAllRanges();
-                }
+              
+              // Si toute la séquence est sélectionnée et que c'était un toucher court sans drag
+              if (selectedText === fullText && fullText.length > 0 && touchDuration < 500) {
+                // C'est probablement une sélection automatique, on la supprime
+                selection.removeAllRanges();
+                preventAutoSelect = false;
+                return true;
               }
             }
-          }, 100);
+            return false;
+          };
+          
+          // Vérifier immédiatement
+          if (checkAndFix()) return;
+          
+          // Vérifier après un court délai
+          setTimeout(function() {
+            if (checkAndFix()) return;
+            
+            // Vérifier une dernière fois après un délai plus long
+            setTimeout(checkAndFix, 50);
+          }, 10);
         }
+        preventAutoSelect = false;
+        hasMoved = false;
       }, { passive: true });
+      
+      // Handler selectionchange pour détecter immédiatement les sélections complètes automatiques
+      let selectionChangeHandler = function() {
+        if (mutationModeActive && preventAutoSelect && !hasMoved) {
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0) {
+            const fullText = dnaInput.innerText || dnaInput.textContent || "";
+            const selectedText = selection.toString();
+            const touchDuration = Date.now() - touchStartTime;
+            
+            // Si toute la séquence est sélectionnée et que c'était un toucher très court
+            if (selectedText === fullText && fullText.length > 0 && touchDuration < 500) {
+              // C'est probablement une sélection automatique, on la supprime immédiatement
+              setTimeout(function() {
+                const currentSelection = window.getSelection();
+                const currentText = currentSelection.toString();
+                if (currentText === fullText) {
+                  currentSelection.removeAllRanges();
+                }
+              }, 0);
+            }
+          }
+        }
+      };
+      
+      // Ajouter le handler selectionchange (mais seulement s'il n'existe pas déjà)
+      if (!window.mobileSelectionChangeHandlerAdded) {
+        document.addEventListener("selectionchange", selectionChangeHandler);
+        window.mobileSelectionChangeHandlerAdded = true;
+      }
       
       dnaInput.addEventListener("input", function () {
         setTimeout(colorizeDNAInput, 10);
