@@ -1632,7 +1632,9 @@
               border-radius: 12px;
               padding: 10px;
               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-              margin-top: 20px;
+              margin: 20px 0;
+              width: 100%;
+              box-sizing: border-box;
             "
           >
             <p
@@ -1659,52 +1661,29 @@
                 <span style="font-size: 1.1rem; font-weight: 600; color: #333"
                   >A=</span
                 >
-                <div style="display: flex; gap: 3px">
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                </div>
+                <div
+                  class="nucleotide-square-empty"
+                  data-letter="A"
+                  data-nucleotide=""
+                  onclick="cycleNucleotide(this)"
+                  style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 12px;
+                    background: #f0f0f0;
+                    border: 2px dashed #ccc;
+                    color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
+                ></div>
               </div>
               <div style="display: flex; align-items: center; gap: 5px">
                 <span style="font-size: 1.1rem; font-weight: 600; color: #333"
@@ -1713,6 +1692,8 @@
                 <div style="display: flex; gap: 3px">
                   <div
                     class="nucleotide-square-empty"
+                    data-letter="I"
+                    data-position="0"
                     data-nucleotide=""
                     onclick="cycleNucleotide(this)"
                     style="
@@ -1735,6 +1716,8 @@
                   ></div>
                   <div
                     class="nucleotide-square-empty"
+                    data-letter="I"
+                    data-position="1"
                     data-nucleotide=""
                     onclick="cycleNucleotide(this)"
                     style="
@@ -1761,154 +1744,85 @@
                 <span style="font-size: 1.1rem; font-weight: 600; color: #333"
                   >M=</span
                 >
-                <div style="display: flex; gap: 3px">
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                </div>
+                <div
+                  class="nucleotide-square-empty"
+                  data-letter="M"
+                  data-nucleotide=""
+                  onclick="cycleNucleotide(this)"
+                  style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 12px;
+                    background: #f0f0f0;
+                    border: 2px dashed #ccc;
+                    color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
+                ></div>
               </div>
               <div style="display: flex; align-items: center; gap: 5px">
                 <span style="font-size: 1.1rem; font-weight: 600; color: #333"
                   >N=</span
                 >
-                <div style="display: flex; gap: 3px">
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                </div>
+                <div
+                  class="nucleotide-square-empty"
+                  data-letter="N"
+                  data-nucleotide=""
+                  onclick="cycleNucleotide(this)"
+                  style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 12px;
+                    background: #f0f0f0;
+                    border: 2px dashed #ccc;
+                    color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
+                ></div>
               </div>
               <div style="display: flex; align-items: center; gap: 5px">
                 <span style="font-size: 1.1rem; font-weight: 600; color: #333"
                   >P=</span
                 >
-                <div style="display: flex; gap: 3px">
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                  <div
-                    class="nucleotide-square-empty"
-                    data-nucleotide=""
-                    onclick="cycleNucleotide(this)"
-                    style="
-                      width: 45px;
-                      height: 45px;
-                      border-radius: 12px;
-                      background: #f0f0f0;
-                      border: 2px dashed #ccc;
-                      color: transparent;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      font-size: 1.2rem;
-                      font-weight: 700;
-                      cursor: pointer;
-                      transition: transform 0.2s ease, box-shadow 0.2s ease;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                  ></div>
-                </div>
+                <div
+                  class="nucleotide-square-empty"
+                  data-letter="P"
+                  data-nucleotide=""
+                  onclick="cycleNucleotide(this)"
+                  style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 12px;
+                    background: #f0f0f0;
+                    border: 2px dashed #ccc;
+                    color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
+                ></div>
               </div>
             </div>
             <div style="text-align: center; margin-top: 20px">
@@ -2948,7 +2862,7 @@
     <script>
       // Fonction de validation pour l'activité 1
       function validateActivity1() {
-        // Récupérer les séquences des mots
+        // Récupérer les séquences des mots (chaque carré = 1 nucléotide)
         const getSequence = (word) => {
           const squares = document.querySelectorAll(
             `.nucleotide-square[data-word="${word}"]`
@@ -2959,81 +2873,133 @@
             .join("");
         };
 
-        const papaSeq = getSequence("papa");
-        const mamanSeq = getSequence("maman");
-        const manipSeq = getSequence("manip");
+        const papaSeq = getSequence("papa"); // 4 nucléotides
+        const mamanSeq = getSequence("maman"); // 5 nucléotides
+        const manipSeq = getSequence("manip"); // 6 nucléotides
 
         // Récupérer les codes saisis
         const getCode = (letter) => {
-          const container = Array.from(document.querySelectorAll("span")).find(
-            (span) => span.textContent === `${letter}=`
+          const square = document.querySelector(
+            `.nucleotide-square-empty[data-letter="${letter}"]`
           );
-          if (!container) return "";
-          const parent = container.parentElement;
-          const squares = parent.querySelectorAll(".nucleotide-square-empty");
-          return Array.from(squares)
-            .map((sq) => sq.getAttribute("data-nucleotide") || "")
-            .join("");
+          if (!square) {
+            // Pour I, il y a 2 carrés
+            if (letter === "I") {
+              const squares = document.querySelectorAll(
+                `.nucleotide-square-empty[data-letter="I"]`
+              );
+              return Array.from(squares)
+                .sort((a, b) => parseInt(a.dataset.position) - parseInt(b.dataset.position))
+                .map((sq) => sq.getAttribute("data-nucleotide") || "")
+                .join("");
+            }
+            return "";
+          }
+          return square.getAttribute("data-nucleotide") || "";
         };
 
-        const codeA = getCode("A");
-        const codeI = getCode("I");
-        const codeM = getCode("M");
-        const codeN = getCode("N");
-        const codeP = getCode("P");
+        const codeA = getCode("A"); // 1 nucléotide
+        const codeI = getCode("I"); // 2 nucléotides
+        const codeM = getCode("M"); // 1 nucléotide
+        const codeN = getCode("N"); // 1 nucléotide
+        const codeP = getCode("P"); // 1 nucléotide
+
+        const resultEl = document.getElementById("validation-result");
+
+        // Vérifier que tous les codes sont remplis
+        if (!codeA || !codeI || codeI.length !== 2 || !codeM || !codeN || !codeP) {
+          resultEl.textContent =
+            "⚠ Veuillez remplir tous les codes (A, I avec 2 nucléotides, M, N, P) avant de valider.";
+          resultEl.style.color = "#ffa726";
+          return;
+        }
+
+        // Contrainte 2 : Les codes doivent être différents pour P, M, A, N
+        const codes = [codeP, codeM, codeA, codeN];
+        const uniqueCodes = new Set(codes);
+        if (uniqueCodes.size !== codes.length) {
+          resultEl.textContent =
+            "✗ Les codes pour P, M, A et N doivent être différents.";
+          resultEl.style.color = "#f5576c";
+          return;
+        }
 
         // Vérifier les correspondances
-        // Chaque lettre est codée par 2 nucléotides (2 carrés consécutifs)
-        const resultEl = document.getElementById("validation-result");
         let isValid = true;
-        let allCodesFilled = codeA && codeI && codeM && codeN && codeP;
+        let errors = [];
 
-        // Vérifier papa (P-A-P-A) : 4 carrés
-        // Positions 0-1 = P (1ère lettre), 2-3 = A (2ème lettre)
-        // Mais papa a 4 lettres, donc il faut vérifier : 0-1=P, 2-3=A, mais on n'a que 4 carrés
-        // Je pense que chaque carré = 1 nucléotide, donc 2 carrés = 1 lettre
-        // papa : carrés 0-1 = P, carrés 2-3 = A (mais il manque le 2ème P et le 2ème A)
-        // Simplification : vérifier que les codes P et A correspondent aux 2 premières lettres
-        if (papaSeq.length >= 2) {
-          if (papaSeq.substring(0, 2) !== codeP) isValid = false;
-        }
-        if (papaSeq.length >= 4) {
-          if (papaSeq.substring(2, 4) !== codeA) isValid = false;
-        }
-
-        // Vérifier maman (M-A-M-A-N) : 5 carrés
-        // Positions 0-1 = M, 2-3 = A, position 4 = ? (incomplet pour M)
-        if (mamanSeq.length >= 2) {
-          if (mamanSeq.substring(0, 2) !== codeM) isValid = false;
-        }
-        if (mamanSeq.length >= 4) {
-          if (mamanSeq.substring(2, 4) !== codeA) isValid = false;
-        }
-        // Le 3ème M nécessiterait les positions 4-5, mais on n'a que la position 4
-        // Vérification partielle
-        if (mamanSeq.length >= 5 && codeM && mamanSeq[4] !== codeM[0]) {
-          isValid = false;
+        // papa : P-A-P-A (positions 0,1,2,3)
+        if (papaSeq.length === 4) {
+          if (papaSeq[0] !== codeP) {
+            isValid = false;
+            errors.push("P dans 'papa' (position 0)");
+          }
+          if (papaSeq[1] !== codeA) {
+            isValid = false;
+            errors.push("A dans 'papa' (position 1)");
+          }
+          if (papaSeq[2] !== codeP) {
+            isValid = false;
+            errors.push("P dans 'papa' (position 2)");
+          }
+          if (papaSeq[3] !== codeA) {
+            isValid = false;
+            errors.push("A dans 'papa' (position 3)");
+          }
         }
 
-        // Vérifier manip (M-A-N-I-P) : 6 carrés
-        // Positions 0-1 = M, 2-3 = A, 4-5 = N
-        if (manipSeq.length >= 2) {
-          if (manipSeq.substring(0, 2) !== codeM) isValid = false;
+        // maman : M-A-M-A-N (positions 0,1,2,3,4)
+        if (mamanSeq.length === 5) {
+          if (mamanSeq[0] !== codeM) {
+            isValid = false;
+            errors.push("M dans 'maman' (position 0)");
+          }
+          if (mamanSeq[1] !== codeA) {
+            isValid = false;
+            errors.push("A dans 'maman' (position 1)");
+          }
+          if (mamanSeq[2] !== codeM) {
+            isValid = false;
+            errors.push("M dans 'maman' (position 2)");
+          }
+          if (mamanSeq[3] !== codeA) {
+            isValid = false;
+            errors.push("A dans 'maman' (position 3)");
+          }
+          if (mamanSeq[4] !== codeN) {
+            isValid = false;
+            errors.push("N dans 'maman' (position 4)");
+          }
         }
-        if (manipSeq.length >= 4) {
-          if (manipSeq.substring(2, 4) !== codeA) isValid = false;
+
+        // manip : M-A-N-I-P (positions 0,1,2,3,4,5)
+        // I est codé par 2 nucléotides aux positions 4 et 5
+        if (manipSeq.length === 6) {
+          if (manipSeq[0] !== codeM) {
+            isValid = false;
+            errors.push("M dans 'manip' (position 0)");
+          }
+          if (manipSeq[1] !== codeA) {
+            isValid = false;
+            errors.push("A dans 'manip' (position 1)");
+          }
+          if (manipSeq[2] !== codeN) {
+            isValid = false;
+            errors.push("N dans 'manip' (position 2)");
+          }
+          // I est aux positions 4 et 5 (4e et 5e caractères, indices 3 et 4 en 0-indexed)
+          if (manipSeq[3] + manipSeq[4] !== codeI) {
+            isValid = false;
+            errors.push("I dans 'manip' (positions 4-5)");
+          }
+          if (manipSeq[5] !== codeP) {
+            isValid = false;
+            errors.push("P dans 'manip' (position 5)");
+          }
         }
-        if (manipSeq.length >= 6) {
-          if (manipSeq.substring(4, 6) !== codeN) isValid = false;
-        }
-        // I et P nécessiteraient 8 et 10 carrés, mais on n'en a que 6
 
         // Afficher le résultat
-        if (!allCodesFilled) {
-          resultEl.textContent =
-            "⚠ Veuillez remplir tous les codes (A, I, M, N, P) avant de valider.";
-          resultEl.style.color = "#ffa726";
-        } else if (isValid) {
+        if (isValid) {
           resultEl.textContent = "✓ Validation réussie ! Les codes correspondent correctement.";
           resultEl.style.color = "#51cf66";
         } else {
