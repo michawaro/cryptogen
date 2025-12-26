@@ -1967,6 +1967,573 @@
             l'alphabet à l'aide de seulement 4 nucléotides, comment ferais-tu ?
           </p>
         </div>
+
+        <h3
+          style="
+            margin: 40px 0 20px 0;
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, #e84e9b 0%, #ff6b9d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          "
+        >
+          Activité 2 : Distinguer information et code génétique
+        </h3>
+
+        <p
+          style="
+            margin: 20px 0;
+            color: #333;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            text-align: center;
+          "
+        >
+          De nombreuses personnes confondent l'information génétique et le code
+          génétique. Voici 2 informations génétiques à décrypter sachant que seules
+          les lettres A, M, N, et P sont codées ici.
+        </p>
+
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin: 30px 0;
+          "
+        >
+          <!-- Information génétique 1 -->
+          <div
+            style="
+              background: rgba(255, 255, 255, 0.8);
+              border-radius: 12px;
+              padding: 20px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <p
+              style="
+                margin: 0 0 15px 0;
+                color: #333;
+                font-size: 1.1rem;
+                line-height: 1.8;
+              "
+            >
+              <strong>Information génétique 1 :</strong> ATATCG -
+              <strong>Information décodée selon mon code génétique :</strong>
+            </p>
+            <div
+              style="
+                display: flex;
+                gap: 8px;
+                justify-content: flex-start;
+                align-items: center;
+                flex-wrap: wrap;
+              "
+            >
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="0"
+                data-info="1"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="1"
+                data-info="1"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="2"
+                data-info="1"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="3"
+                data-info="1"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="4"
+                data-info="1"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="5"
+                data-info="1"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Information génétique 2 -->
+          <div
+            style="
+              background: rgba(255, 255, 255, 0.8);
+              border-radius: 12px;
+              padding: 20px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <p
+              style="
+                margin: 0 0 15px 0;
+                color: #333;
+                font-size: 1.1rem;
+                line-height: 1.8;
+              "
+            >
+              <strong>Information génétique 2 :</strong> CGATAT -
+              <strong>Information décodée selon mon code génétique :</strong>
+            </p>
+            <div
+              style="
+                display: flex;
+                gap: 8px;
+                justify-content: flex-start;
+                align-items: center;
+                flex-wrap: wrap;
+              "
+            >
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="0"
+                data-info="2"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="1"
+                data-info="2"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="2"
+                data-info="2"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="3"
+                data-info="2"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="4"
+                data-info="2"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="5"
+                data-info="2"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Information génétique 3 -->
+          <div
+            style="
+              background: rgba(255, 255, 255, 0.8);
+              border-radius: 12px;
+              padding: 20px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <p
+              style="
+                margin: 0 0 15px 0;
+                color: #333;
+                font-size: 1.1rem;
+                line-height: 1.8;
+              "
+            >
+              <strong>Information génétique 2 :</strong> CGATAT -
+              <strong>Information décodée selon le code génétique suivant :</strong>
+            </p>
+            <div
+              style="
+                display: flex;
+                gap: 8px;
+                justify-content: flex-start;
+                align-items: center;
+                flex-wrap: wrap;
+              "
+            >
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="0"
+                data-info="3"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="1"
+                data-info="3"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="2"
+                data-info="3"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="3"
+                data-info="3"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="4"
+                data-info="3"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+              <div
+                class="letter-square"
+                data-letter=""
+                data-position="5"
+                data-info="3"
+                onclick="cycleLetter(this)"
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 12px;
+                  background: #e0e0e0;
+                  color: #333;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 1.3rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.1)'"
+              ></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="section">
@@ -3120,6 +3687,22 @@
           element.style.border = "none";
           element.style.color = "#333";
         }
+      }
+
+      // Fonction pour faire défiler les lettres A, M, N, P (sans changement de couleur)
+      function cycleLetter(element) {
+        const letters = ["", "A", "M", "N", "P"]; // Commencer par vide, puis A, M, N, P
+        const currentLetter = element.getAttribute("data-letter") || "";
+        const currentIndex = letters.indexOf(currentLetter);
+        const nextIndex = (currentIndex + 1) % letters.length;
+        const nextLetter = letters[nextIndex];
+
+        element.setAttribute("data-letter", nextLetter);
+        element.textContent = nextLetter;
+        // Garder la même couleur grise pour tous
+        element.style.background = "#e0e0e0";
+        element.style.color = "#333";
+        element.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
       }
 
       const geneticCode = {
