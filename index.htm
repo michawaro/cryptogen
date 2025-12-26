@@ -310,18 +310,26 @@
         }
         .nucleotide-square,
         .nucleotide-square-empty {
-          width: calc((100% - 20px) / 4) !important;
+          width: calc((100% - 15px) / 4) !important;
           max-width: 50px !important;
-          min-width: 35px !important;
+          min-width: 30px !important;
           height: auto !important;
           aspect-ratio: 1 !important;
-          font-size: clamp(0.9rem, 2.5vw, 1.3rem) !important;
+          font-size: clamp(0.8rem, 2.2vw, 1.2rem) !important;
+          flex-shrink: 1 !important;
+        }
+        #activity1-container > div:nth-child(1) .nucleotide-square {
+          width: calc((100% - 15px) / 4) !important;
         }
         #activity1-container > div:nth-child(2) .nucleotide-square {
-          width: calc((100% - 25px) / 5) !important;
+          width: calc((100% - 20px) / 5) !important;
         }
         #activity1-container > div:nth-child(3) .nucleotide-square {
-          width: calc((100% - 30px) / 6) !important;
+          width: calc((100% - 25px) / 6) !important;
+        }
+        #activity1-container > div > div {
+          gap: 3px !important;
+          padding: 0 2px !important;
         }
         .pixel-art-image-container {
           flex-direction: column;
@@ -2657,7 +2665,7 @@
                 line-height: 1.8;
               "
             >
-              <strong>Information génétique 2 :</strong> CGATAT -
+              <strong>Information génétique 2 :</strong> ACGATA -
               <strong>Information décodée selon le code génétique 1 :</strong>
             </p>
             <p
@@ -6459,17 +6467,14 @@
           hasMoved = false;
           preventAutoSelect = true;
           
-          // Supprimer toute sélection existante avant le nouveau toucher
+          // Supprimer toute sélection existante immédiatement
           const selection = window.getSelection();
-          if (selection.rangeCount > 0) {
-            const fullText = dnaInput.innerText || dnaInput.textContent || "";
-            const selectedText = selection.toString();
-            if (selectedText === fullText && fullText.length > 0) {
-              selection.removeAllRanges();
-            }
-          }
+          selection.removeAllRanges();
+          
+          // Empêcher le comportement par défaut de sélection
+          e.preventDefault();
         }
-      }, { passive: true });
+      }, { passive: false });
       
       // Détecter le mouvement (drag) - si l'utilisateur fait glisser, c'est une sélection manuelle
       dnaInput.addEventListener("touchmove", function (e) {
@@ -6573,62 +6578,77 @@
         return false;
       }
       
-      // Sur touchend, sélectionner 3 nucléotides autour du point de clic
+      // Sur touchend, gérer la sélection selon la durée du toucher
       dnaInput.addEventListener("touchend", function (e) {
-        if (mutationModeActive && preventAutoSelect && !hasMoved) {
+        if (mutationModeActive) {
           const touchDuration = Date.now() - touchStartTime;
           const touch = e.changedTouches[0];
           
-          // Vérifier si toute la séquence est sélectionnée
-          const checkAndSelectTriplet = function() {
+          // Si c'était un toucher court (< 300ms) sans mouvement, sélectionner 3 nucléotides
+          if (preventAutoSelect && !hasMoved && touchDuration < 300) {
+            e.preventDefault();
+            
+            // Sélectionner 3 nucléotides autour du point de clic
+            setTimeout(function() {
+              selectTripletAtPosition(touch.clientX, touch.clientY);
+            }, 10);
+          } else if (hasMoved) {
+            // Si l'utilisateur a fait glisser, laisser la sélection manuelle
+            // Ne rien faire, la sélection manuelle est déjà en place
+          } else if (touchDuration >= 300 && touchDuration < 1000) {
+            // Appui prolongé moyen : permettre la sélection manuelle
+            // Ne rien faire, laisser le navigateur gérer
+          } else {
+            // Appui très long : empêcher la sélection complète automatique
+            e.preventDefault();
             const selection = window.getSelection();
             const fullText = dnaInput.innerText || dnaInput.textContent || "";
-            
             if (selection.rangeCount > 0) {
               const selectedText = selection.toString();
-              
-              // Si toute la séquence est sélectionnée et que c'était un toucher court sans drag
-              if (selectedText === fullText && fullText.length > 0 && touchDuration < 500) {
-                // Sélectionner 3 nucléotides autour du point de clic
-                return selectTripletAtPosition(touch.clientX, touch.clientY);
+              if (selectedText === fullText && fullText.length > 0) {
+                selection.removeAllRanges();
+                // Sélectionner autour du point de toucher
+                selectTripletAtPosition(touch.clientX, touch.clientY);
               }
             }
-            return false;
-          };
-          
-          // Vérifier et sélectionner le triplet après un court délai pour laisser le navigateur faire sa sélection
-          setTimeout(function() {
-            if (!checkAndSelectTriplet()) {
-              // Si ça n'a pas fonctionné, réessayer
-              setTimeout(checkAndSelectTriplet, 50);
-            }
-          }, 50);
+          }
         }
         preventAutoSelect = false;
         hasMoved = false;
-      }, { passive: true });
+      }, { passive: false });
       
       // Handler selectionchange pour détecter immédiatement les sélections complètes automatiques
       // et les remplacer par une sélection de 3 nucléotides
       let selectionChangeHandler = function() {
-        if (mutationModeActive && preventAutoSelect && !hasMoved) {
+        if (mutationModeActive) {
           const selection = window.getSelection();
           if (selection.rangeCount > 0) {
             const fullText = dnaInput.innerText || dnaInput.textContent || "";
             const selectedText = selection.toString();
             const touchDuration = Date.now() - touchStartTime;
             
-            // Si toute la séquence est sélectionnée et que c'était un toucher très court
-            if (selectedText === fullText && fullText.length > 0 && touchDuration < 500) {
-              // Utiliser les coordonnées du toucher stockées
-              setTimeout(function() {
-                const currentSelection = window.getSelection();
-                const currentText = currentSelection.toString();
-                if (currentText === fullText) {
-                  // Sélectionner 3 nucléotides autour du point de clic
-                  selectTripletAtPosition(lastTouchX, lastTouchY);
-                }
-              }, 10);
+            // Si toute la séquence est sélectionnée automatiquement (sans drag)
+            if (selectedText === fullText && fullText.length > 0 && !hasMoved) {
+              // Pour les appuis courts, sélectionner 3 nucléotides
+              if (touchDuration < 300) {
+                setTimeout(function() {
+                  const currentSelection = window.getSelection();
+                  const currentText = currentSelection.toString();
+                  if (currentText === fullText) {
+                    selectTripletAtPosition(lastTouchX, lastTouchY);
+                  }
+                }, 10);
+              } else {
+                // Pour les appuis prolongés, supprimer la sélection complète
+                // L'utilisateur pourra alors faire une sélection manuelle
+                setTimeout(function() {
+                  const currentSelection = window.getSelection();
+                  const currentText = currentSelection.toString();
+                  if (currentText === fullText) {
+                    currentSelection.removeAllRanges();
+                  }
+                }, 10);
+              }
             }
           }
         }
