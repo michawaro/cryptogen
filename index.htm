@@ -131,7 +131,7 @@
       header {
         text-align: center;
         margin-bottom: 60px;
-        padding: 40px 180px 40px 20px;
+        padding: 40px 180px 40px 40px;
         background: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
@@ -139,7 +139,7 @@
         position: relative;
         min-height: 120px;
       }
-      header > *:not(.header-logo):not(.header-video) {
+      header > *:not(.header-logo) {
         display: block;
         width: 100%;
         max-width: 100%;
@@ -375,14 +375,6 @@
         .header-logo:hover {
           transform: scale(1.05);
         }
-        .header-video {
-          position: static;
-          transform: none;
-          display: block;
-          margin: 0 auto 20px auto;
-          width: 100px;
-          height: 100px;
-        }
         header h1 {
           margin-top: 0;
           padding-right: 0;
@@ -406,7 +398,7 @@
           word-wrap: break-word;
           overflow-wrap: break-word;
         }
-        header > *:not(.header-logo):not(.header-video) {
+        header > *:not(.header-logo) {
           width: 100%;
         }
         .section {
@@ -540,6 +532,78 @@
         color: #999;
         font-style: italic;
       }
+      /* Animations pour la première fenêtre de démarrage */
+      @keyframes pulseWindow {
+        0%, 100% {
+          box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+        }
+      }
+      
+      @keyframes shineLink {
+        0% {
+          background-position: -100% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+      
+      @keyframes bounceSubtle {
+        0%, 100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-3px);
+        }
+      }
+      
+      @keyframes glowLink {
+        0%, 100% {
+          text-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+        50% {
+          text-shadow: 0 0 15px rgba(76, 175, 80, 0.8), 0 0 25px rgba(76, 175, 80, 0.6);
+        }
+      }
+      
+      #demarrageFenetre1 {
+        animation: pulseWindow 3s ease-in-out infinite;
+      }
+      
+      #demarrageFenetre1 a {
+        position: relative;
+        display: inline-block;
+        transition: all 0.3s ease;
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
+      
+      #demarrageFenetre1 a:hover {
+        animation: shineLink 1.5s ease-in-out;
+        transform: scale(1.05);
+        background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.2), transparent);
+        background-size: 200% 100%;
+      }
+      
+      /* Animation séquentielle sur les tirets - utiliser nth-of-type pour cibler les liens */
+      #demarrageFenetre1 a:nth-of-type(1) {
+        animation: bounceSubtle 2s ease-in-out infinite;
+        animation-delay: 0s;
+      }
+      
+      #demarrageFenetre1 a:nth-of-type(2) {
+        animation: bounceSubtle 2s ease-in-out infinite;
+        animation-delay: 0.7s;
+      }
+      
+      #demarrageFenetre1 a:nth-of-type(3) {
+        animation: bounceSubtle 2s ease-in-out infinite;
+        animation-delay: 1.4s;
+      }
+      
       .word-space {
         background-color: #e0e0e0;
         padding: 4px 6px;
@@ -832,42 +896,6 @@
             </svg>
           </div>
         </a>
-        <div
-          class="header-video"
-          style="
-            position: absolute;
-            top: 50%;
-            left: 20px;
-            transform: translateY(-50%);
-            width: 120px;
-            height: 120px;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1;
-          "
-        >
-          <video
-            autoplay
-            loop
-            muted
-            playsinline
-            style="
-              width: 160%;
-              height: 160%;
-              object-fit: cover;
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-            "
-          >
-            <source
-              src="https://www.dropbox.com/scl/fi/msba9af6f3xkvw9d46q6w/Noel-accueil.mp4?rlkey=tqhff19ckx26h81osn6k6g7dr&st=7ez2ot9b&dl=1"
-              type="video/mp4"
-            />
-          </video>
-        </div>
         <h1>Cryptogen - Encodeur / Décodeur ADN</h1>
         <p class="subtitle">
           Cache un message secret ou même une image dans une séquence ADN !
@@ -1781,7 +1809,7 @@
                 text-align: center;
               "
             >
-              Indique le code que tu as utilisé.
+              Remplis ici, au fur et à mesure, le code que tu as créé et utilisé.
             </p>
             <div
               style="
@@ -11205,7 +11233,7 @@
           return;
         }
 
-        // 1. Scroller vers le textarea et le highlight 5 secondes avec mise en évidence du placeholder
+        // 1. Scroller vers le textarea et le highlight 5 secondes avec fenêtre tooltip
         textInput.scrollIntoView({ behavior: "smooth", block: "center" });
 
         // Attendre que le scroll soit terminé
@@ -11220,60 +11248,51 @@
           textInput.style.zIndex = "1000";
           textInput.style.position = "relative";
 
-          // Créer un overlay pour mettre en évidence les extraits du placeholder
-          const placeholderOverlay = document.createElement("div");
-          placeholderOverlay.id = "placeholderOverlay";
-          const placeholderText = textInput.placeholder;
-          const highlight1 = "Ecris, colle ou importe un texte";
+          // Créer une fenêtre tooltip au-dessus du textarea
+          const textareaTooltip = document.createElement("div");
+          textareaTooltip.id = "textareaTooltip";
           
-          // Créer le HTML avec les parties mises en évidence - utiliser split/join pour être sûr
-          let highlightedText = placeholderText;
-          // Utiliser split pour diviser le texte et join pour le reconstruire avec le highlight
-          if (highlightedText.includes(highlight1)) {
-            const parts = highlightedText.split(highlight1);
-            const highlightStyle = 'background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);';
-            highlightedText = parts[0] + '<span style="' + highlightStyle + '">' + highlight1 + '</span>' + parts[1];
-          }
-          
-          placeholderOverlay.innerHTML = highlightedText;
-          
-          // Positionner l'overlay exactement sur le textarea - Utiliser position: absolute pour mobile
-          const computedStyle = window.getComputedStyle(textInput);
-          
-          placeholderOverlay.style.cssText = `
-            position: absolute;
-            top: ${parseInt(computedStyle.paddingTop) || 8}px;
-            left: ${parseInt(computedStyle.paddingLeft) || 8}px;
-            width: calc(100% - ${(parseInt(computedStyle.paddingLeft) || 8) + (parseInt(computedStyle.paddingRight) || 8)}px);
-            height: calc(100% - ${(parseInt(computedStyle.paddingTop) || 8) + (parseInt(computedStyle.paddingBottom) || 8)}px);
-            background: ${computedStyle.backgroundColor || '#fff'};
-            border: none;
-            padding: ${computedStyle.padding || '8px'};
-            font-family: ${computedStyle.fontFamily || 'inherit'};
-            font-size: ${computedStyle.fontSize || '14px'};
-            line-height: ${computedStyle.lineHeight || '1.5'};
-            color: ${computedStyle.color || '#999'};
-            pointer-events: none;
-            z-index: 10002;
-            overflow: hidden;
-            box-sizing: border-box;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+          const textareaTooltipContent = document.createElement("div");
+          textareaTooltipContent.innerHTML = "C'est ici que tu peux écrire ou coller un texte que tu aimerais transformer en ADN";
+          textareaTooltipContent.style.cssText = `
+            padding-right: 30px;
+            text-align: center;
           `;
           
-          // Ne montrer l'overlay que si le textarea est vide
-          if (textInput.value.trim() === "") {
-            textInput.appendChild(placeholderOverlay);
-          }
+          textareaTooltip.style.cssText = `
+            position: fixed;
+            background: rgba(255, 255, 255, 0.98);
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            max-width: 400px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #333;
+          `;
+          
+          textareaTooltip.appendChild(textareaTooltipContent);
+          
+          // Positionner le tooltip au-dessus du textarea
+          const textareaRect = textInput.getBoundingClientRect();
+          const textareaTooltipWidth = 400;
+          const textareaLeftPosition = textareaRect.left + (textareaRect.width / 2) - (textareaTooltipWidth / 2);
+          textareaTooltip.style.left = Math.max(10, Math.min(textareaLeftPosition, window.innerWidth - textareaTooltipWidth - 10)) + "px";
+          textareaTooltip.style.top = (textareaRect.top - 10) + "px";
+          textareaTooltip.style.transform = "translateY(-100%)";
+          
+          document.body.appendChild(textareaTooltip);
 
           setTimeout(() => {
             textInput.style.boxShadow = originalTextareaBoxShadow;
             textInput.style.border = originalTextareaBorder;
             textInput.style.zIndex = "";
-            if (placeholderOverlay.parentNode) {
-              placeholderOverlay.remove();
-            }
             textInput.style.transition = "";
+            if (textareaTooltip.parentNode) {
+              textareaTooltip.remove();
+            }
 
             // 2. Highlight le bouton "Texte" avec tooltip (fenêtre unique pour les 2 boutons)
             encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -11422,7 +11441,7 @@
                               codeTooltip.remove();
                             }
 
-                          // 5. En dernier, highlight de la zone de résultat dnaOutput avec surlignage de "Le résultat apparaitra ici"
+                          // 5. En dernier, highlight de la zone de résultat dnaOutput avec fenêtre tooltip
                           if (dnaOutput) {
                             dnaOutput.scrollIntoView({ behavior: "smooth", block: "center" });
                             
@@ -11436,59 +11455,52 @@
                               dnaOutput.style.zIndex = "1000";
                               dnaOutput.style.position = "relative";
                               
-                              // Surligner le texte "Le résultat apparaitra ici" dans le pseudo-élément
-                              const resultOverlay = document.createElement("div");
-                              resultOverlay.id = "resultOverlay";
-                              const resultPlaceholderText = "Le résultat apparaitra ici... Tu peux le copier-coller dans encodage pour tester que tout fonctionne puis envoyer ce message codé à qui tu veux. Pour les textes à trous, double-clique sur les mots que tu souhaites masquer.";
-                              const resultHighlight = "Le résultat apparaitra ici";
+                              // Créer une fenêtre tooltip au-dessus de la zone de résultat
+                              const resultTooltip = document.createElement("div");
+                              resultTooltip.id = "resultTooltip";
                               
-                              let highlightedResultText = resultPlaceholderText;
-                              if (highlightedResultText.includes(resultHighlight)) {
-                                const parts = highlightedResultText.split(resultHighlight);
-                                const highlightStyle = 'background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);';
-                                highlightedResultText = parts[0] + '<span style="' + highlightStyle + '">' + resultHighlight + '</span>' + parts[1];
-                              }
-                              
-                              resultOverlay.innerHTML = highlightedResultText;
-                              
-                              const dnaOutputComputedStyle = window.getComputedStyle(dnaOutput);
-                              
-                              resultOverlay.style.cssText = `
-                                position: absolute;
-                                top: ${parseInt(dnaOutputComputedStyle.paddingTop) || 8}px;
-                                left: ${parseInt(dnaOutputComputedStyle.paddingLeft) || 8}px;
-                                width: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingLeft) || 8) + (parseInt(dnaOutputComputedStyle.paddingRight) || 8)}px);
-                                height: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingTop) || 8) + (parseInt(dnaOutputComputedStyle.paddingBottom) || 8)}px);
-                                background: ${dnaOutputComputedStyle.backgroundColor || '#fff'};
-                                border: none;
-                                padding: ${dnaOutputComputedStyle.padding || '8px'};
-                                font-family: ${dnaOutputComputedStyle.fontFamily || 'inherit'};
-                                font-size: ${dnaOutputComputedStyle.fontSize || '14px'};
-                                line-height: ${dnaOutputComputedStyle.lineHeight || '1.5'};
-                                color: ${dnaOutputComputedStyle.color || '#999'};
-                                font-style: italic;
-                                pointer-events: none;
-                                z-index: 10002;
-                                overflow: hidden;
-                                box-sizing: border-box;
-                                white-space: pre-wrap;
-                                word-wrap: break-word;
+                              const resultTooltipContent = document.createElement("div");
+                              resultTooltipContent.innerHTML = "La séquence ADN correspondante s'affichera alors ici. Tu peux la copier, l'enregistrer et l'envoyer à quelqu'un. Décode là avant, pour tester qu'il n'y a pas eu de problème";
+                              resultTooltipContent.style.cssText = `
+                                padding-right: 30px;
+                                text-align: center;
                               `;
                               
-                              // Ne montrer l'overlay que si dnaOutput est vide
-                              if (dnaOutput.textContent.trim() === "") {
-                                dnaOutput.appendChild(resultOverlay);
-                              }
+                              resultTooltip.style.cssText = `
+                                position: fixed;
+                                background: rgba(255, 255, 255, 0.98);
+                                border: 2px solid #667eea;
+                                border-radius: 8px;
+                                padding: 15px;
+                                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                                z-index: 10000;
+                                max-width: 400px;
+                                font-size: 0.95rem;
+                                line-height: 1.6;
+                                color: #333;
+                              `;
+                              
+                              resultTooltip.appendChild(resultTooltipContent);
+                              
+                              // Positionner le tooltip au-dessus de la zone de résultat
+                              const resultRect = dnaOutput.getBoundingClientRect();
+                              const resultTooltipWidth = 400;
+                              const resultLeftPosition = resultRect.left + (resultRect.width / 2) - (resultTooltipWidth / 2);
+                              resultTooltip.style.left = Math.max(10, Math.min(resultLeftPosition, window.innerWidth - resultTooltipWidth - 10)) + "px";
+                              resultTooltip.style.top = (resultRect.top - 10) + "px";
+                              resultTooltip.style.transform = "translateY(-100%)";
+                              
+                              document.body.appendChild(resultTooltip);
                               
                               setTimeout(() => {
                                 dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
                                 dnaOutput.style.border = originalDnaOutputBorder;
                                 dnaOutput.style.zIndex = "";
                                 dnaOutput.style.position = "";
-                                if (resultOverlay.parentNode) {
-                                  resultOverlay.remove();
-                                }
                                 dnaOutput.style.transition = "";
+                                if (resultTooltip.parentNode) {
+                                  resultTooltip.remove();
+                                }
                                 
                                 // Recentrer vers la première fenêtre après 1 seconde
                                 setTimeout(() => {
@@ -11526,57 +11538,52 @@
                           dnaOutput.style.zIndex = "1000";
                           dnaOutput.style.position = "relative";
                           
-                          const resultOverlay = document.createElement("div");
-                          resultOverlay.id = "resultOverlay";
-                          const resultPlaceholderText = "Le résultat apparaitra ici... Tu peux le copier-coller dans encodage pour tester que tout fonctionne puis envoyer ce message codé à qui tu veux. Pour les textes à trous, double-clique sur les mots que tu souhaites masquer.";
-                          const resultHighlight = "Le résultat apparaitra ici";
+                          // Créer une fenêtre tooltip au-dessus de la zone de résultat
+                          const resultTooltip = document.createElement("div");
+                          resultTooltip.id = "resultTooltip";
                           
-                          let highlightedResultText = resultPlaceholderText;
-                          if (highlightedResultText.includes(resultHighlight)) {
-                            const parts = highlightedResultText.split(resultHighlight);
-                            const highlightStyle = 'background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);';
-                            highlightedResultText = parts[0] + '<span style="' + highlightStyle + '">' + resultHighlight + '</span>' + parts[1];
-                          }
-                          
-                          resultOverlay.innerHTML = highlightedResultText;
-                          
-                          const dnaOutputComputedStyle = window.getComputedStyle(dnaOutput);
-                          
-                          resultOverlay.style.cssText = `
-                            position: absolute;
-                            top: ${parseInt(dnaOutputComputedStyle.paddingTop) || 8}px;
-                            left: ${parseInt(dnaOutputComputedStyle.paddingLeft) || 8}px;
-                            width: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingLeft) || 8) + (parseInt(dnaOutputComputedStyle.paddingRight) || 8)}px);
-                            height: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingTop) || 8) + (parseInt(dnaOutputComputedStyle.paddingBottom) || 8)}px);
-                            background: ${dnaOutputComputedStyle.backgroundColor || '#fff'};
-                            border: none;
-                            padding: ${dnaOutputComputedStyle.padding || '8px'};
-                            font-family: ${dnaOutputComputedStyle.fontFamily || 'inherit'};
-                            font-size: ${dnaOutputComputedStyle.fontSize || '14px'};
-                            line-height: ${dnaOutputComputedStyle.lineHeight || '1.5'};
-                            color: ${dnaOutputComputedStyle.color || '#999'};
-                            font-style: italic;
-                            pointer-events: none;
-                            z-index: 10002;
-                            overflow: hidden;
-                            box-sizing: border-box;
-                            white-space: pre-wrap;
-                            word-wrap: break-word;
+                          const resultTooltipContent = document.createElement("div");
+                          resultTooltipContent.innerHTML = "La séquence ADN correspondante s'affichera alors ici. Tu peux la copier, l'enregistrer et l'envoyer à quelqu'un. Décode là avant, pour tester qu'il n'y a pas eu de problème";
+                          resultTooltipContent.style.cssText = `
+                            padding-right: 30px;
+                            text-align: center;
                           `;
                           
-                          if (dnaOutput.textContent.trim() === "") {
-                            dnaOutput.appendChild(resultOverlay);
-                          }
+                          resultTooltip.style.cssText = `
+                            position: fixed;
+                            background: rgba(255, 255, 255, 0.98);
+                            border: 2px solid #667eea;
+                            border-radius: 8px;
+                            padding: 15px;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                            z-index: 10000;
+                            max-width: 400px;
+                            font-size: 0.95rem;
+                            line-height: 1.6;
+                            color: #333;
+                          `;
+                          
+                          resultTooltip.appendChild(resultTooltipContent);
+                          
+                          // Positionner le tooltip au-dessus de la zone de résultat
+                          const resultRect = dnaOutput.getBoundingClientRect();
+                          const resultTooltipWidth = 400;
+                          const resultLeftPosition = resultRect.left + (resultRect.width / 2) - (resultTooltipWidth / 2);
+                          resultTooltip.style.left = Math.max(10, Math.min(resultLeftPosition, window.innerWidth - resultTooltipWidth - 10)) + "px";
+                          resultTooltip.style.top = (resultRect.top - 10) + "px";
+                          resultTooltip.style.transform = "translateY(-100%)";
+                          
+                          document.body.appendChild(resultTooltip);
                           
                           setTimeout(() => {
                             dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
                             dnaOutput.style.border = originalDnaOutputBorder;
                             dnaOutput.style.zIndex = "";
                             dnaOutput.style.position = "";
-                            if (resultOverlay.parentNode) {
-                              resultOverlay.remove();
-                            }
                             dnaOutput.style.transition = "";
+                            if (resultTooltip.parentNode) {
+                              resultTooltip.remove();
+                            }
                             
                             setTimeout(() => {
                               const fenetre1 = document.getElementById("demarrageFenetre1");
@@ -11822,6 +11829,46 @@
           }, 10000);
         }, 500);
       }
+
+      // Script pour améliorer les animations de la première fenêtre
+      document.addEventListener('DOMContentLoaded', function() {
+        const fenetre1 = document.getElementById('demarrageFenetre1');
+        if (fenetre1) {
+          const links = fenetre1.querySelectorAll('a');
+          
+          // Ajouter un effet de brillance au survol
+          links.forEach((link, index) => {
+            link.addEventListener('mouseenter', function() {
+              this.style.background = 'linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.3), transparent)';
+              this.style.backgroundSize = '200% 100%';
+              this.style.animation = 'shineLink 1.5s ease-in-out';
+            });
+            
+            link.addEventListener('mouseleave', function() {
+              this.style.background = '';
+              this.style.backgroundSize = '';
+              this.style.animation = '';
+            });
+            
+            // Ajouter un effet de pulse au clic
+            link.addEventListener('click', function() {
+              this.style.transform = 'scale(0.95)';
+              setTimeout(() => {
+                this.style.transform = '';
+              }, 150);
+            });
+          });
+          
+          // Animation de la fenêtre au chargement
+          fenetre1.style.opacity = '0';
+          fenetre1.style.transform = 'translateY(-20px)';
+          setTimeout(() => {
+            fenetre1.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            fenetre1.style.opacity = '1';
+            fenetre1.style.transform = 'translateY(0)';
+          }, 100);
+        }
+      });
 
       // Fonction pour highlight la séquence de décodage (Importer puis Décoder)
       function highlightDecodeSequence() {
