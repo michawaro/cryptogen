@@ -952,7 +952,7 @@
           >
             J'ai 5 minutes pour regarder la vidéo explicative :<br />
             <a href="https://youtu.be/hiESgS8diVg" target="_blank" style="display: inline-block; margin-top: 10px; cursor: pointer;">
-              <img src="https://www.dropbox.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&dl=1" alt="Miniature vidéo explicative" style="max-width: 25%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+              <img src="https://www.dropbox.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&dl=1" alt="Miniature vidéo explicative" style="max-width: 50%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
             </a>
           </p>
           <p
@@ -11216,6 +11216,7 @@
           textInput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
           textInput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
           textInput.style.zIndex = "1000";
+          textInput.style.position = "relative";
 
           // Créer un overlay pour mettre en évidence les extraits du placeholder
           const placeholderOverlay = document.createElement("div");
@@ -11243,8 +11244,8 @@
           
           placeholderOverlay.style.cssText = `
             position: fixed;
-            top: ${rect.top + parseInt(computedStyle.paddingTop) || 8}px;
-            left: ${rect.left + parseInt(computedStyle.paddingLeft) || 8}px;
+            top: ${rect.top + (parseInt(computedStyle.paddingTop) || 8)}px;
+            left: ${rect.left + (parseInt(computedStyle.paddingLeft) || 8)}px;
             width: ${rect.width - (parseInt(computedStyle.paddingLeft) || 8) - (parseInt(computedStyle.paddingRight) || 8)}px;
             height: ${rect.height - (parseInt(computedStyle.paddingTop) || 8) - (parseInt(computedStyle.paddingBottom) || 8)}px;
             background: ${computedStyle.backgroundColor || '#fff'};
@@ -11255,7 +11256,7 @@
             line-height: ${computedStyle.lineHeight || '1.5'};
             color: ${computedStyle.color || '#999'};
             pointer-events: none;
-            z-index: 10001;
+            z-index: 10002;
             overflow: hidden;
             box-sizing: border-box;
             white-space: pre-wrap;
@@ -11326,7 +11327,7 @@
                 }, 2000);
               }, 100);
             }, 5000);
-          }, 500);
+          }, 5000);
         }, 500);
       }
 
