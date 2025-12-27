@@ -11198,7 +11198,7 @@
         const encodeTextBtn = document.getElementById("encodeTextBtn");
         const trouModeBtn = document.getElementById("trouModeBtn");
         const dnaOutput = document.getElementById("dnaOutput");
-        const codeInputWindow = document.getElementById("code-input-window");
+        const codeTable = document.getElementById("codeTable");
 
         if (!textInput || !encodeTextBtn || !trouModeBtn) {
           console.warn("Éléments d'encodage texte non trouvés");
@@ -11358,66 +11358,69 @@
                       tooltip.remove();
                     }
 
-                    // 4. Highlight du code génétique en bas de page avec tooltip
-                    if (codeInputWindow) {
-                      codeInputWindow.scrollIntoView({ behavior: "smooth", block: "center" });
-                      
-                      setTimeout(() => {
-                        const originalCodeBoxShadow = codeInputWindow.style.boxShadow;
-                        const originalCodeBorder = codeInputWindow.style.border;
-
-                        codeInputWindow.style.transition = "all 0.3s ease";
-                        codeInputWindow.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                        codeInputWindow.style.border = "3px solid rgba(255, 215, 0, 0.8)";
-                        codeInputWindow.style.zIndex = "1000";
-                        codeInputWindow.style.position = "relative";
-
-                        // Créer le tooltip pour le code génétique
-                        const codeTooltip = document.createElement("div");
-                        codeTooltip.id = "codeGenetiqueTooltip";
+                    // 4. Highlight du tableau du code génétique en bas de page avec tooltip
+                    if (codeTable) {
+                      // Trouver le tableau parent ou la section
+                      const codeTableElement = codeTable.closest('table') || codeTable.closest('.section');
+                      if (codeTableElement) {
+                        codeTableElement.scrollIntoView({ behavior: "smooth", block: "center" });
                         
-                        const codeTooltipContent = document.createElement("div");
-                        codeTooltipContent.innerHTML = "Le logiciel va ensuite utiliser ce code génétique fictif pour encoder ton message en une séquence ADN";
-                        codeTooltipContent.style.cssText = `
-                          padding-right: 30px;
-                          text-align: center;
-                        `;
-                        
-                        codeTooltip.style.cssText = `
-                          position: fixed;
-                          background: rgba(255, 255, 255, 0.98);
-                          border: 2px solid #667eea;
-                          border-radius: 8px;
-                          padding: 15px;
-                          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                          z-index: 10000;
-                          max-width: 400px;
-                          font-size: 0.95rem;
-                          line-height: 1.6;
-                          color: #333;
-                        `;
-                        
-                        codeTooltip.appendChild(codeTooltipContent);
-                        
-                        // Positionner le tooltip au-dessus de la fenêtre de code
-                        const codeRect = codeInputWindow.getBoundingClientRect();
-                        const codeTooltipWidth = 400;
-                        const codeLeftPosition = codeRect.left + (codeRect.width / 2) - (codeTooltipWidth / 2);
-                        codeTooltip.style.left = Math.max(10, Math.min(codeLeftPosition, window.innerWidth - codeTooltipWidth - 10)) + "px";
-                        codeTooltip.style.top = (codeRect.top - 10) + "px";
-                        codeTooltip.style.transform = "translateY(-100%)";
-                        
-                        document.body.appendChild(codeTooltip);
-
                         setTimeout(() => {
-                          codeInputWindow.style.boxShadow = originalCodeBoxShadow;
-                          codeInputWindow.style.border = originalCodeBorder;
-                          codeInputWindow.style.zIndex = "";
-                          codeInputWindow.style.position = "";
-                          codeInputWindow.style.transition = "";
-                          if (codeTooltip.parentNode) {
-                            codeTooltip.remove();
-                          }
+                          const originalCodeBoxShadow = codeTableElement.style.boxShadow;
+                          const originalCodeBorder = codeTableElement.style.border;
+
+                          codeTableElement.style.transition = "all 0.3s ease";
+                          codeTableElement.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                          codeTableElement.style.border = "3px solid rgba(255, 215, 0, 0.8)";
+                          codeTableElement.style.zIndex = "1000";
+                          codeTableElement.style.position = "relative";
+
+                          // Créer le tooltip pour le code génétique
+                          const codeTooltip = document.createElement("div");
+                          codeTooltip.id = "codeGenetiqueTooltip";
+                          
+                          const codeTooltipContent = document.createElement("div");
+                          codeTooltipContent.innerHTML = "Le logiciel va ensuite utiliser ce code génétique fictif pour encoder ton message en une séquence ADN";
+                          codeTooltipContent.style.cssText = `
+                            padding-right: 30px;
+                            text-align: center;
+                          `;
+                          
+                          codeTooltip.style.cssText = `
+                            position: fixed;
+                            background: rgba(255, 255, 255, 0.98);
+                            border: 2px solid #667eea;
+                            border-radius: 8px;
+                            padding: 15px;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                            z-index: 10000;
+                            max-width: 400px;
+                            font-size: 0.95rem;
+                            line-height: 1.6;
+                            color: #333;
+                          `;
+                          
+                          codeTooltip.appendChild(codeTooltipContent);
+                          
+                          // Positionner le tooltip au-dessus du tableau
+                          const codeRect = codeTableElement.getBoundingClientRect();
+                          const codeTooltipWidth = 400;
+                          const codeLeftPosition = codeRect.left + (codeRect.width / 2) - (codeTooltipWidth / 2);
+                          codeTooltip.style.left = Math.max(10, Math.min(codeLeftPosition, window.innerWidth - codeTooltipWidth - 10)) + "px";
+                          codeTooltip.style.top = (codeRect.top - 10) + "px";
+                          codeTooltip.style.transform = "translateY(-100%)";
+                          
+                          document.body.appendChild(codeTooltip);
+
+                          setTimeout(() => {
+                            codeTableElement.style.boxShadow = originalCodeBoxShadow;
+                            codeTableElement.style.border = originalCodeBorder;
+                            codeTableElement.style.zIndex = "";
+                            codeTableElement.style.position = "";
+                            codeTableElement.style.transition = "";
+                            if (codeTooltip.parentNode) {
+                              codeTooltip.remove();
+                            }
 
                           // 5. En dernier, highlight de la zone de résultat dnaOutput avec surlignage de "Le résultat apparaitra ici"
                           if (dnaOutput) {
@@ -11505,10 +11508,11 @@
                               }
                             }, 1000);
                           }
-                        }, 3000);
-                      }, 500);
+                          }, 3000);
+                        }, 500);
+                      }
                     } else {
-                      // Si codeInputWindow n'existe pas, passer directement à dnaOutput
+                      // Si codeTable n'existe pas, passer directement à dnaOutput
                       if (dnaOutput) {
                         dnaOutput.scrollIntoView({ behavior: "smooth", block: "center" });
                         
@@ -11602,6 +11606,9 @@
       // Fonction pour highlight Pixel Art avec tooltip
       function highlightPixelArtWithTooltip() {
         const pixelArtBtn = document.getElementById("pixelArtBtn");
+        const importBtn = document.getElementById("importDnaBtn");
+        const decodeBtn = document.getElementById("decodeBtn");
+        
         if (!pixelArtBtn) {
           console.warn("Bouton Pixel Art non trouvé");
           return;
@@ -11645,22 +11652,17 @@
             this.style.background = "#667eea";
           };
           
-          // Fonction pour fermer le tooltip et recentrer
+          // Fonction pour fermer le tooltip
           const closeTooltip = () => {
             pixelArtBtn.style.boxShadow = originalBoxShadow;
             pixelArtBtn.style.transform = "";
             pixelArtBtn.style.zIndex = "";
-            tooltip.remove();
+            if (tooltip.parentNode) {
+              tooltip.remove();
+            }
             clearTimeout(autoCloseTimeout);
             setTimeout(() => {
               pixelArtBtn.style.transition = "";
-              // Recentrer vers la première fenêtre après 1 seconde
-              setTimeout(() => {
-                const fenetre1 = document.getElementById("demarrageFenetre1");
-                if (fenetre1) {
-                  fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                }
-              }, 1000);
             }, 300);
           };
           
@@ -11690,12 +11692,13 @@
           tooltip.appendChild(tooltipContent);
           tooltip.appendChild(closeBtn);
 
-          // Positionner le tooltip au-dessus du bouton
+          // Positionner le tooltip juste au-dessus du bouton (corrigé pour être plus proche)
           const rect = pixelArtBtn.getBoundingClientRect();
           const tooltipWidth = 400;
           const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
           tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
-          tooltip.style.top = (rect.top - 10) + "px";
+          // Positionner juste au-dessus avec un petit espace (5px au lieu de 10px)
+          tooltip.style.top = (rect.top - 5) + "px";
           tooltip.style.transform = "translateY(-100%)";
 
           document.body.appendChild(tooltip);
@@ -11707,8 +11710,116 @@
           pixelArtBtn.style.transform = "scale(1.1)";
           pixelArtBtn.style.zIndex = "1000";
 
-          // Retirer le highlight et le tooltip après 20 secondes (fermeture automatique)
-          const autoCloseTimeout = setTimeout(closeTooltip, 20000);
+          // Après 10 secondes, fermer le tooltip et highlight les boutons de décodage
+          const autoCloseTimeout = setTimeout(() => {
+            closeTooltip();
+            
+            // Highlight le bouton "Importer de l'ADN" avec tooltip
+            if (importBtn) {
+              importBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+              
+              setTimeout(() => {
+                const originalImportBoxShadow = importBtn.style.boxShadow;
+                
+                importBtn.style.transition = "all 0.3s ease";
+                importBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                importBtn.style.transform = "scale(1.1)";
+                importBtn.style.zIndex = "1000";
+                
+                // Créer le tooltip pour "Importer de l'ADN"
+                const importTooltip = document.createElement("div");
+                importTooltip.id = "importDnaTooltip";
+                
+                const importTooltipContent = document.createElement("div");
+                importTooltipContent.innerHTML = "Pour récupérer ton dessin si tu l'as enregistré";
+                importTooltipContent.style.cssText = `
+                  padding-right: 30px;
+                  text-align: center;
+                `;
+                
+                importTooltip.style.cssText = `
+                  position: fixed;
+                  background: rgba(255, 255, 255, 0.98);
+                  border: 2px solid #667eea;
+                  border-radius: 8px;
+                  padding: 15px;
+                  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                  z-index: 10000;
+                  max-width: 400px;
+                  font-size: 0.95rem;
+                  line-height: 1.6;
+                  color: #333;
+                `;
+                
+                importTooltip.appendChild(importTooltipContent);
+                
+                // Positionner le tooltip au-dessus du bouton
+                const importRect = importBtn.getBoundingClientRect();
+                const importTooltipWidth = 400;
+                const importLeftPosition = importRect.left + (importRect.width / 2) - (importTooltipWidth / 2);
+                importTooltip.style.left = Math.max(10, Math.min(importLeftPosition, window.innerWidth - importTooltipWidth - 10)) + "px";
+                importTooltip.style.top = (importRect.top - 5) + "px";
+                importTooltip.style.transform = "translateY(-100%)";
+                
+                document.body.appendChild(importTooltip);
+                
+                setTimeout(() => {
+                  importBtn.style.boxShadow = originalImportBoxShadow;
+                  importBtn.style.transform = "";
+                  importBtn.style.zIndex = "";
+                  importBtn.style.transition = "";
+                  if (importTooltip.parentNode) {
+                    importTooltip.remove();
+                  }
+                  
+                  // Highlight le bouton "Décoder" pendant 2 secondes
+                  if (decodeBtn) {
+                    decodeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+                    
+                    setTimeout(() => {
+                      const originalDecodeBoxShadow = decodeBtn.style.boxShadow;
+                      
+                      decodeBtn.style.transition = "all 0.3s ease";
+                      decodeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                      decodeBtn.style.transform = "scale(1.1)";
+                      decodeBtn.style.zIndex = "1000";
+                      
+                      setTimeout(() => {
+                        decodeBtn.style.boxShadow = originalDecodeBoxShadow;
+                        decodeBtn.style.transform = "";
+                        decodeBtn.style.zIndex = "";
+                        decodeBtn.style.transition = "";
+                        
+                        // Recentrer vers la première fenêtre après 1 seconde
+                        setTimeout(() => {
+                          const fenetre1 = document.getElementById("demarrageFenetre1");
+                          if (fenetre1) {
+                            fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }
+                        }, 1000);
+                      }, 2000);
+                    }, 500);
+                  } else {
+                    // Si decodeBtn n'existe pas, recentrer vers la première fenêtre
+                    setTimeout(() => {
+                      const fenetre1 = document.getElementById("demarrageFenetre1");
+                      if (fenetre1) {
+                        fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }
+                    }, 1000);
+                  }
+                }, 3000);
+              }, 500);
+            } else {
+              // Si importBtn n'existe pas, recentrer vers la première fenêtre
+              setTimeout(() => {
+                const fenetre1 = document.getElementById("demarrageFenetre1");
+                if (fenetre1) {
+                  fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+              }, 1000);
+            }
+          }, 10000);
         }, 500);
       }
 
