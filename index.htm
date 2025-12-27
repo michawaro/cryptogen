@@ -870,8 +870,7 @@
         </div>
         <h1>Cryptogen - Encodeur / Décodeur ADN</h1>
         <p class="subtitle">
-          Colle une séquence ADN ou un texte, et encode ou décode avec le même
-          code génétique.
+          Cache un message secret ou même une image dans une séquence ADN !
         </p>
         <p class="subtitle" style="margin-top: 10px; font-size: 1rem">
           Mode d'emploi de l'encodeur dans
@@ -928,6 +927,7 @@
               border-left: 4px solid #4caf50;
               flex: 1;
               min-width: 250px;
+              text-align: center;
             "
           >
             Je suis pressé, montre moi comment :<br />
@@ -947,10 +947,13 @@
               border-left: 4px solid #e91e63;
               flex: 1;
               min-width: 250px;
+              text-align: center;
             "
           >
-            J'ai 5 minutes pour prendre le temps de comprendre comment fonctionne Cryptogen :<br />
-            <a href="https://youtu.be/hiESgS8diVg" target="_blank" style="color: #e91e63; text-decoration: underline; cursor: pointer;">je regarde la vidéo</a>
+            J'ai 5 minutes pour regarder la vidéo explicative :<br />
+            <a href="https://youtu.be/hiESgS8diVg" target="_blank" style="display: inline-block; margin-top: 10px; cursor: pointer;">
+              <img src="https://www.dropbox.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&dl=1" alt="Miniature vidéo explicative" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+            </a>
           </p>
           <p
             style="
@@ -964,9 +967,10 @@
               border-left: 4px solid #667eea;
               flex: 1;
               min-width: 250px;
+              text-align: center;
             "
           >
-            Je suis ici en activité pratique, pour gagner du temps sur la mise en page je peux directement répondre dans le formulaire (en cours de construction)
+            Je suis ici en activité pratique. Pour gagner du temps sur la mise en page je peux directement répondre dans le formulaire (en cours de construction)
           </p>
         </div>
       </div>
@@ -3090,8 +3094,8 @@
             "
           >
             Les êtres vivants possèdent tous le même code génétique, autrement dit,
-            le code génétique est universel. En revanche les êtres vivants, à
-            l'exception des clones et des jumeaux, possèdent tous une information
+            le code génétique est universel. En revanche chaque être vivant, à
+            l'exception des clones et des jumeaux, possède une information
             génétique unique.
           </p>
         </div>
@@ -11199,75 +11203,131 @@
           return;
         }
 
-        // 1. Scroller vers le textarea et le highlight 2 secondes
+        // 1. Scroller vers le textarea et le highlight 3 secondes avec mise en évidence du placeholder
         textInput.scrollIntoView({ behavior: "smooth", block: "center" });
 
-        const originalTextareaStyle = textInput.style.cssText;
-        const originalTextareaBoxShadow = textInput.style.boxShadow;
-        const originalTextareaBorder = textInput.style.border;
-
-        textInput.style.transition = "all 0.3s ease";
-        textInput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-        textInput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
-        textInput.style.zIndex = "1000";
-
+        // Attendre que le scroll soit terminé
         setTimeout(() => {
-          textInput.style.boxShadow = originalTextareaBoxShadow;
-          textInput.style.border = originalTextareaBorder;
-          textInput.style.zIndex = "";
+          const originalTextareaStyle = textInput.style.cssText;
+          const originalTextareaBoxShadow = textInput.style.boxShadow;
+          const originalTextareaBorder = textInput.style.border;
+
+          textInput.style.transition = "all 0.3s ease";
+          textInput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+          textInput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
+          textInput.style.zIndex = "1000";
+
+          // Créer un overlay pour mettre en évidence les extraits du placeholder
+          const placeholderOverlay = document.createElement("div");
+          placeholderOverlay.id = "placeholderOverlay";
+          const placeholderText = textInput.placeholder;
+          const highlight1 = "Ecris, colle ou importe un texte";
+          const highlight2 = "puis clique sur le bouton Texte ou Texte à trous selon le résultat souhaité";
+          
+          // Créer le HTML avec les parties mises en évidence
+          let highlightedText = placeholderText;
+          highlightedText = highlightedText.replace(
+            highlight1,
+            '<span style="background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">' + highlight1 + '</span>'
+          );
+          highlightedText = highlightedText.replace(
+            highlight2,
+            '<span style="background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">' + highlight2 + '</span>'
+          );
+          
+          placeholderOverlay.innerHTML = highlightedText;
+          
+          // Positionner l'overlay exactement sur le textarea
+          const rect = textInput.getBoundingClientRect();
+          const computedStyle = window.getComputedStyle(textInput);
+          
+          placeholderOverlay.style.cssText = `
+            position: fixed;
+            top: ${rect.top + parseInt(computedStyle.paddingTop) || 8}px;
+            left: ${rect.left + parseInt(computedStyle.paddingLeft) || 8}px;
+            width: ${rect.width - (parseInt(computedStyle.paddingLeft) || 8) - (parseInt(computedStyle.paddingRight) || 8)}px;
+            height: ${rect.height - (parseInt(computedStyle.paddingTop) || 8) - (parseInt(computedStyle.paddingBottom) || 8)}px;
+            background: ${computedStyle.backgroundColor || '#fff'};
+            border: none;
+            padding: ${computedStyle.padding || '8px'};
+            font-family: ${computedStyle.fontFamily || 'inherit'};
+            font-size: ${computedStyle.fontSize || '14px'};
+            line-height: ${computedStyle.lineHeight || '1.5'};
+            color: ${computedStyle.color || '#999'};
+            pointer-events: none;
+            z-index: 10001;
+            overflow: hidden;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+          `;
+          
+          // Ne montrer l'overlay que si le textarea est vide
+          if (textInput.value.trim() === "") {
+            document.body.appendChild(placeholderOverlay);
+          }
+
           setTimeout(() => {
-            textInput.style.transition = "";
-          }, 300);
-
-          // 2. Après 2 secondes, highlight le bouton "Texte" pendant 2 secondes
-          setTimeout(() => {
-            encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
-            const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
-
-            encodeTextBtn.style.transition = "all 0.3s ease";
-            encodeTextBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-            encodeTextBtn.style.transform = "scale(1.1)";
-            encodeTextBtn.style.zIndex = "1000";
-
+            textInput.style.boxShadow = originalTextareaBoxShadow;
+            textInput.style.border = originalTextareaBorder;
+            textInput.style.zIndex = "";
+            if (placeholderOverlay.parentNode) {
+              placeholderOverlay.remove();
+            }
             setTimeout(() => {
-              encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
-              encodeTextBtn.style.transform = "";
-              encodeTextBtn.style.zIndex = "";
+              textInput.style.transition = "";
+
+              // 2. Après 3 secondes, highlight le bouton "Texte" pendant 2 secondes
               setTimeout(() => {
-                encodeTextBtn.style.transition = "";
+                encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
 
-                // 3. Après 2 secondes, highlight le bouton "Texte à trous" pendant 2 secondes
+                const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
+
+                encodeTextBtn.style.transition = "all 0.3s ease";
+                encodeTextBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                encodeTextBtn.style.transform = "scale(1.1)";
+                encodeTextBtn.style.zIndex = "1000";
+
                 setTimeout(() => {
-                  trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                  const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
-
-                  trouModeBtn.style.transition = "all 0.3s ease";
-                  trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                  trouModeBtn.style.transform = "scale(1.1)";
-                  trouModeBtn.style.zIndex = "1000";
-
+                  encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
+                  encodeTextBtn.style.transform = "";
+                  encodeTextBtn.style.zIndex = "";
                   setTimeout(() => {
-                    trouModeBtn.style.boxShadow = originalTrouBoxShadow;
-                    trouModeBtn.style.transform = "";
-                    trouModeBtn.style.zIndex = "";
+                    encodeTextBtn.style.transition = "";
+
+                    // 3. Après 2 secondes, highlight le bouton "Texte à trous" pendant 2 secondes
                     setTimeout(() => {
-                      trouModeBtn.style.transition = "";
-                      // Recentrer vers la première fenêtre après 1 seconde
+                      trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                      const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
+
+                      trouModeBtn.style.transition = "all 0.3s ease";
+                      trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                      trouModeBtn.style.transform = "scale(1.1)";
+                      trouModeBtn.style.zIndex = "1000";
+
                       setTimeout(() => {
-                        const fenetre1 = document.getElementById("demarrageFenetre1");
-                        if (fenetre1) {
-                          fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                        }
-                      }, 1000);
-                    }, 300);
-                  }, 2000);
-                }, 100);
-              }, 300);
-            }, 2000);
-          }, 100);
-        }, 2000);
+                        trouModeBtn.style.boxShadow = originalTrouBoxShadow;
+                        trouModeBtn.style.transform = "";
+                        trouModeBtn.style.zIndex = "";
+                        setTimeout(() => {
+                          trouModeBtn.style.transition = "";
+                          // Recentrer vers la première fenêtre après 1 seconde
+                          setTimeout(() => {
+                            const fenetre1 = document.getElementById("demarrageFenetre1");
+                            if (fenetre1) {
+                              fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                          }, 1000);
+                        }, 300);
+                      }, 2000);
+                    }, 100);
+                  }, 300);
+                }, 2000);
+              }, 100);
+            }, 3000);
+          }, 500);
+        }, 500);
       }
 
       // Fonction pour highlight Pixel Art avec tooltip
@@ -11341,6 +11401,7 @@
           tooltipContent.innerHTML = "Une fois cliqué il te suffit de sélectionner une palette (= un code génétique) et de dessiner. Chaque pixel coloré correspond à un triplet de nucléotide (par exemple AAA = pixel blanc), Enregistre alors ton dessin en ADN. Quand tu souhaites revoir ton dessin il te suffira de l'importer dans la fenêtre de décodage";
           tooltipContent.style.cssText = `
             padding-right: 30px;
+            text-align: center;
           `;
           
           tooltip.style.cssText = `
