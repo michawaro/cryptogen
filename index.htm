@@ -11249,19 +11249,68 @@
         const tooltip = document.createElement("div");
         tooltip.className = "highlight-tooltip";
         
+        // Conteneur pour le texte principal
         const tooltipContent = document.createElement("div");
         tooltipContent.style.cssText = `
-          padding: 15px;
+          padding: 15px 15px 10px 15px;
           text-align: center;
-          min-height: 60px;
+        `;
+        tooltipContent.innerHTML = message;
+        
+        // Conteneur pour les boutons de navigation (centré)
+        const buttonsContainer = document.createElement("div");
+        buttonsContainer.style.cssText = `
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 15px;
+          padding: 10px 15px 15px 15px;
+          border-top: 1px solid rgba(102, 126, 234, 0.2);
         `;
         
-        // Ajouter le message avec "→ Suivant" à la fin si ce n'est pas le dernier
-        let displayMessage = message;
-        if (stepIndex < totalSteps - 1) {
-          displayMessage = message + ' <br><span style="display: inline-block; margin-top: 8px; color: #667eea; font-weight: bold; cursor: pointer; font-size: 0.9rem;">→ Suivant</span>';
+        // Ajouter bouton "Précédent" si nécessaire
+        if (stepIndex > 0 && onPrevious) {
+          const prevBtn = document.createElement("div");
+          prevBtn.innerHTML = "← Précédent";
+          prevBtn.style.cssText = `
+            color: #667eea;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+          `;
+          prevBtn.onmouseover = () => prevBtn.style.background = "rgba(102, 126, 234, 0.1)";
+          prevBtn.onmouseout = () => prevBtn.style.background = "transparent";
+          prevBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (onPrevious) onPrevious();
+          };
+          buttonsContainer.appendChild(prevBtn);
         }
-        tooltipContent.innerHTML = displayMessage;
+        
+        // Ajouter bouton "Suivant" si ce n'est pas le dernier
+        if (stepIndex < totalSteps - 1) {
+          const nextBtn = document.createElement("div");
+          nextBtn.innerHTML = "→ Suivant";
+          nextBtn.style.cssText = `
+            color: #667eea;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+          `;
+          nextBtn.onmouseover = () => nextBtn.style.background = "rgba(102, 126, 234, 0.1)";
+          nextBtn.onmouseout = () => nextBtn.style.background = "transparent";
+          nextBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (onNext) onNext();
+          };
+          buttonsContainer.appendChild(nextBtn);
+        }
         
         tooltip.style.cssText = `
           position: fixed;
@@ -11279,37 +11328,15 @@
         `;
         
         tooltip.appendChild(tooltipContent);
-        
-        // Ajouter bouton "Précédent" en bas si nécessaire
-        if (stepIndex > 0 && onPrevious) {
-          const prevBtn = document.createElement("div");
-          prevBtn.innerHTML = "← Précédent";
-          prevBtn.style.cssText = `
-            position: absolute;
-            bottom: 10px;
-            left: 15px;
-            color: #667eea;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9rem;
-            padding: 5px 10px;
-            border-radius: 4px;
-            transition: background 0.2s ease;
-          `;
-          prevBtn.onmouseover = () => prevBtn.style.background = "rgba(102, 126, 234, 0.1)";
-          prevBtn.onmouseout = () => prevBtn.style.background = "transparent";
-          prevBtn.onclick = (e) => {
-            e.stopPropagation();
-            if (onPrevious) onPrevious();
-          };
-          tooltip.appendChild(prevBtn);
+        if (buttonsContainer.children.length > 0) {
+          tooltip.appendChild(buttonsContainer);
         }
         
         // Gestion du clic sur la fenêtre pour passer au suivant (si ce n'est pas le dernier)
         if (stepIndex < totalSteps - 1) {
           tooltip.onclick = (e) => {
-            // Ne pas déclencher si on clique sur le bouton Précédent
-            if (!e.target.closest('div[style*="position: absolute"]')) {
+            // Ne pas déclencher si on clique sur les boutons de navigation
+            if (!e.target.closest('div[style*="cursor: pointer"]') || e.target === tooltipContent) {
               if (onNext) onNext();
             }
           };
