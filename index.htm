@@ -11217,6 +11217,119 @@
         }, duration);
       }
 
+      // Système de navigation pour les highlights
+      let currentHighlightSequence = null;
+      let currentHighlightStep = 0;
+      let highlightSteps = [];
+      let highlightTimeouts = [];
+      let highlightKeyboardListener = null;
+      let currentTooltip = null;
+
+      // Fonction helper pour créer un tooltip avec navigation
+      function createTooltipWithNavigation(message, stepIndex, totalSteps, onNext, onPrevious, onClose) {
+        const tooltip = document.createElement("div");
+        tooltip.className = "highlight-tooltip";
+        
+        const tooltipContent = document.createElement("div");
+        tooltipContent.style.cssText = `
+          padding: 15px;
+          text-align: center;
+          min-height: 60px;
+        `;
+        
+        // Ajouter le message avec "→ Suivant" à la fin si ce n'est pas le dernier
+        let displayMessage = message;
+        if (stepIndex < totalSteps - 1) {
+          displayMessage = message + ' <br><span style="display: inline-block; margin-top: 8px; color: #667eea; font-weight: bold; cursor: pointer; font-size: 0.9rem;">→ Suivant</span>';
+        }
+        tooltipContent.innerHTML = displayMessage;
+        
+        tooltip.style.cssText = `
+          position: fixed;
+          background: rgba(255, 255, 255, 0.98);
+          border: 2px solid #667eea;
+          border-radius: 8px;
+          padding: 0;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          z-index: 10000;
+          max-width: 400px;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          color: #333;
+          cursor: pointer;
+        `;
+        
+        tooltip.appendChild(tooltipContent);
+        
+        // Ajouter bouton "Précédent" en bas si nécessaire
+        if (stepIndex > 0 && onPrevious) {
+          const prevBtn = document.createElement("div");
+          prevBtn.innerHTML = "← Précédent";
+          prevBtn.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            color: #667eea;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+          `;
+          prevBtn.onmouseover = () => prevBtn.style.background = "rgba(102, 126, 234, 0.1)";
+          prevBtn.onmouseout = () => prevBtn.style.background = "transparent";
+          prevBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (onPrevious) onPrevious();
+          };
+          tooltip.appendChild(prevBtn);
+        }
+        
+        // Gestion du clic sur la fenêtre pour passer au suivant (si ce n'est pas le dernier)
+        if (stepIndex < totalSteps - 1) {
+          tooltip.onclick = (e) => {
+            // Ne pas déclencher si on clique sur le bouton Précédent
+            if (!e.target.closest('div[style*="position: absolute"]')) {
+              if (onNext) onNext();
+            }
+          };
+        }
+        
+        return tooltip;
+      }
+
+      // Fonction pour positionner un tooltip
+      function positionTooltip(tooltip, targetElement) {
+        document.body.appendChild(tooltip);
+        
+        const rect = targetElement.getBoundingClientRect();
+        const tooltipWidth = 400;
+        const tooltipHeight = tooltip.offsetHeight;
+        const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+        const spacing = window.innerWidth <= 768 ? 5 : 10;
+        
+        tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
+        tooltip.style.top = (rect.top - spacing - tooltipHeight) + "px";
+        tooltip.style.transform = "none";
+      }
+
+      // Fonction pour nettoyer les highlights
+      function cleanupHighlights() {
+        highlightTimeouts.forEach(timeout => clearTimeout(timeout));
+        highlightTimeouts = [];
+        if (currentTooltip && currentTooltip.parentNode) {
+          currentTooltip.remove();
+        }
+        if (highlightKeyboardListener) {
+          document.removeEventListener('keydown', highlightKeyboardListener);
+          highlightKeyboardListener = null;
+        }
+        currentHighlightSequence = null;
+        currentHighlightStep = 0;
+        highlightSteps = [];
+      }
+
       // Fonction pour highlight la séquence d'encodage de texte
       function highlightEncodeTextSequence() {
         const textInput = document.getElementById("textInput");
@@ -11230,393 +11343,135 @@
           return;
         }
 
-        // 1. Scroller vers le textarea et le highlight 5 secondes avec fenêtre tooltip
-        textInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Nettoyer les highlights précédents
+        cleanupHighlights();
+        currentHighlightSequence = 'encodeText';
 
-        // Attendre que le scroll soit terminé
-        setTimeout(() => {
-          const originalTextareaStyle = textInput.style.cssText;
-          const originalTextareaBoxShadow = textInput.style.boxShadow;
-          const originalTextareaBorder = textInput.style.border;
+        // Définir les steps
+        const steps = [
+          {
+            element: textInput,
+            message: "C'est ici que tu peux écrire ou coller un texte que tu aimerais transformer en ADN",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", border: "3px solid rgba(255, 215, 0, 0.8)", zIndex: "1000", position: "relative" }
+          },
+          {
+            element: encodeTextBtn,
+            message: "Clique sur le bouton Texte ou Texte à trous selon le résultat souhaité",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", transform: "scale(1.1)", zIndex: "1000" }
+          },
+          {
+            element: trouModeBtn,
+            message: "Clique sur le bouton Texte ou Texte à trous selon le résultat souhaité",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", transform: "scale(1.1)", zIndex: "1000" }
+          }
+        ];
 
-          textInput.style.transition = "all 0.3s ease";
-          textInput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-          textInput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
-          textInput.style.zIndex = "1000";
-          textInput.style.position = "relative";
+        // Ajouter le tableau du code génétique si disponible
+        if (codeTable) {
+          const codeTableElement = codeTable.closest('table') || codeTable.closest('.section');
+          if (codeTableElement) {
+            steps.push({
+              element: codeTableElement,
+              message: "Le logiciel va ensuite utiliser ce code génétique fictif pour encoder ton message en une séquence ADN",
+              highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", border: "3px solid rgba(255, 215, 0, 0.8)", zIndex: "1000", position: "relative" }
+            });
+          }
+        }
 
-          // Créer une fenêtre tooltip au-dessus du textarea
-          const textareaTooltip = document.createElement("div");
-          textareaTooltip.id = "textareaTooltip";
-          
-          const textareaTooltipContent = document.createElement("div");
-          textareaTooltipContent.innerHTML = "C'est ici que tu peux écrire ou coller un texte que tu aimerais transformer en ADN";
-          textareaTooltipContent.style.cssText = `
-            padding-right: 30px;
-            text-align: center;
-          `;
-          
-          textareaTooltip.style.cssText = `
-            position: fixed;
-            background: rgba(255, 255, 255, 0.98);
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            max-width: 400px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #333;
-          `;
-          
-          textareaTooltip.appendChild(textareaTooltipContent);
-          
-          // Positionner le tooltip au-dessus du textarea
-          document.body.appendChild(textareaTooltip);
-          
-          // Calculer la position après ajout au DOM pour avoir la hauteur réelle
-          const textareaRect = textInput.getBoundingClientRect();
-          const textareaTooltipWidth = 400;
-          const textareaTooltipHeight = textareaTooltip.offsetHeight;
-          const textareaLeftPosition = textareaRect.left + (textareaRect.width / 2) - (textareaTooltipWidth / 2);
-          const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
-          textareaTooltip.style.left = Math.max(10, Math.min(textareaLeftPosition, window.innerWidth - textareaTooltipWidth - 10)) + "px";
-          textareaTooltip.style.top = (textareaRect.top - spacing - textareaTooltipHeight) + "px";
-          textareaTooltip.style.transform = "none";
+        // Ajouter la zone de résultat si disponible
+        if (dnaOutput) {
+          steps.push({
+            element: dnaOutput,
+            message: "La séquence ADN correspondante s'affichera alors ici. Tu peux la copier, l'enregistrer et l'envoyer à quelqu'un. Décode là avant, pour tester qu'il n'y a pas eu de problème",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", border: "3px solid rgba(255, 215, 0, 0.8)", zIndex: "1000", position: "relative" }
+          });
+        }
+
+        highlightSteps = steps;
+        currentHighlightStep = 0;
+
+        // Fonction pour afficher un step
+        function showStep(stepIndex) {
+          if (stepIndex < 0 || stepIndex >= highlightSteps.length) {
+            cleanupHighlights();
+            // Recentrer vers la première fenêtre
+            setTimeout(() => {
+              const fenetre1 = document.getElementById("demarrageFenetre1");
+              if (fenetre1) {
+                fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 500);
+            return;
+          }
+
+          currentHighlightStep = stepIndex;
+          const step = highlightSteps[stepIndex];
+          const element = step.element;
+
+          // Nettoyer le step précédent
+          if (currentTooltip && currentTooltip.parentNode) {
+            currentTooltip.remove();
+          }
+
+          // Scroller vers l'élément
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
 
           setTimeout(() => {
-            textInput.style.boxShadow = originalTextareaBoxShadow;
-            textInput.style.border = originalTextareaBorder;
-            textInput.style.zIndex = "";
-            textInput.style.transition = "";
-            if (textareaTooltip.parentNode) {
-              textareaTooltip.remove();
+            // Sauvegarder les styles originaux
+            const originalStyles = {};
+            Object.keys(step.highlightStyle).forEach(key => {
+              originalStyles[key] = element.style[key] || window.getComputedStyle(element)[key];
+            });
+
+            // Appliquer le highlight
+            element.style.transition = "all 0.3s ease";
+            Object.assign(element.style, step.highlightStyle);
+
+            // Créer le tooltip avec navigation
+            currentTooltip = createTooltipWithNavigation(
+              step.message,
+              stepIndex,
+              highlightSteps.length,
+              () => showStep(stepIndex + 1), // onNext
+              () => showStep(stepIndex - 1), // onPrevious
+              () => cleanupHighlights() // onClose
+            );
+
+            positionTooltip(currentTooltip, element);
+
+            // Gérer les événements clavier
+            if (!highlightKeyboardListener) {
+              highlightKeyboardListener = (e) => {
+                if (currentHighlightSequence === 'encodeText') {
+                  if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    showStep(currentHighlightStep + 1);
+                  } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    showStep(currentHighlightStep - 1);
+                  }
+                }
+              };
+              document.addEventListener('keydown', highlightKeyboardListener);
             }
 
-            // 2. Highlight le bouton "Texte" avec tooltip (fenêtre unique pour les 2 boutons)
-            encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
-            setTimeout(() => {
-              const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
-
-              encodeTextBtn.style.transition = "all 0.3s ease";
-              encodeTextBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-              encodeTextBtn.style.transform = "scale(1.1)";
-              encodeTextBtn.style.zIndex = "1000";
-
-              // Créer le tooltip unique au-dessus des boutons (reste visible pour les 2 boutons)
-              const tooltip = document.createElement("div");
-              tooltip.id = "encodeTextTooltip";
+            // Timeout automatique de 8 secondes
+            const timeout = setTimeout(() => {
+              // Restaurer les styles
+              Object.keys(originalStyles).forEach(key => {
+                element.style[key] = originalStyles[key] || "";
+              });
+              element.style.transition = "";
               
-              const tooltipContent = document.createElement("div");
-              tooltipContent.innerHTML = "Clique sur le bouton Texte ou Texte à trous selon le résultat souhaité";
-              tooltipContent.style.cssText = `
-                padding-right: 30px;
-                text-align: center;
-              `;
-              
-              tooltip.style.cssText = `
-                position: fixed;
-                background: rgba(255, 255, 255, 0.98);
-                border: 2px solid #667eea;
-                border-radius: 8px;
-                padding: 15px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                z-index: 10000;
-                max-width: 400px;
-                font-size: 0.95rem;
-                line-height: 1.6;
-                color: #333;
-              `;
-              
-              tooltip.appendChild(tooltipContent);
-              
-              // Positionner le tooltip au-dessus du bouton
-              const rect = encodeTextBtn.getBoundingClientRect();
-              const tooltipWidth = 400;
-              const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-              tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
-              tooltip.style.top = (rect.top - 10) + "px";
-              tooltip.style.transform = "translateY(-100%)";
-              
-              document.body.appendChild(tooltip);
+              // Passer au suivant automatiquement
+              showStep(stepIndex + 1);
+            }, 8000);
+            highlightTimeouts.push(timeout);
+          }, 500);
+        }
 
-              setTimeout(() => {
-                encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
-                encodeTextBtn.style.transform = "";
-                encodeTextBtn.style.zIndex = "";
-                encodeTextBtn.style.transition = "";
-                // Ne pas supprimer le tooltip, il reste pour le 2e bouton
-
-                // 3. Highlight le bouton "Texte à trous" avec le même tooltip (juste repositionner)
-                trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                setTimeout(() => {
-                  // Repositionner le tooltip au-dessus du bouton "Texte à trous"
-                  const rect2 = trouModeBtn.getBoundingClientRect();
-                  const leftPosition2 = rect2.left + (rect2.width / 2) - (tooltipWidth / 2);
-                  tooltip.style.left = Math.max(10, Math.min(leftPosition2, window.innerWidth - tooltipWidth - 10)) + "px";
-                  tooltip.style.top = (rect2.top - 10) + "px";
-                  tooltip.style.transform = "translateY(-100%)";
-
-                  const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
-
-                  trouModeBtn.style.transition = "all 0.3s ease";
-                  trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                  trouModeBtn.style.transform = "scale(1.1)";
-                  trouModeBtn.style.zIndex = "1000";
-
-                  setTimeout(() => {
-                    trouModeBtn.style.boxShadow = originalTrouBoxShadow;
-                    trouModeBtn.style.transform = "";
-                    trouModeBtn.style.zIndex = "";
-                    trouModeBtn.style.transition = "";
-                    // Supprimer le tooltip maintenant
-                    if (tooltip.parentNode) {
-                      tooltip.remove();
-                    }
-
-                    // 4. Highlight du tableau du code génétique en bas de page avec tooltip
-                    if (codeTable) {
-                      // Trouver le tableau parent ou la section
-                      const codeTableElement = codeTable.closest('table') || codeTable.closest('.section');
-                      if (codeTableElement) {
-                        codeTableElement.scrollIntoView({ behavior: "smooth", block: "center" });
-                        
-                        setTimeout(() => {
-                          const originalCodeBoxShadow = codeTableElement.style.boxShadow;
-                          const originalCodeBorder = codeTableElement.style.border;
-
-                          codeTableElement.style.transition = "all 0.3s ease";
-                          codeTableElement.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                          codeTableElement.style.border = "3px solid rgba(255, 215, 0, 0.8)";
-                          codeTableElement.style.zIndex = "1000";
-                          codeTableElement.style.position = "relative";
-
-                          // Créer le tooltip pour le code génétique
-                          const codeTooltip = document.createElement("div");
-                          codeTooltip.id = "codeGenetiqueTooltip";
-                          
-                          const codeTooltipContent = document.createElement("div");
-                          codeTooltipContent.innerHTML = "Le logiciel va ensuite utiliser ce code génétique fictif pour encoder ton message en une séquence ADN";
-                          codeTooltipContent.style.cssText = `
-                            padding-right: 30px;
-                            text-align: center;
-                          `;
-                          
-                          codeTooltip.style.cssText = `
-                            position: fixed;
-                            background: rgba(255, 255, 255, 0.98);
-                            border: 2px solid #667eea;
-                            border-radius: 8px;
-                            padding: 15px;
-                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                            z-index: 10000;
-                            max-width: 400px;
-                            font-size: 0.95rem;
-                            line-height: 1.6;
-                            color: #333;
-                          `;
-                          
-                          codeTooltip.appendChild(codeTooltipContent);
-                          
-                          // Positionner le tooltip au-dessus du tableau
-                          document.body.appendChild(codeTooltip);
-                          
-                          // Calculer la position après ajout au DOM pour avoir la hauteur réelle
-                          const codeRect = codeTableElement.getBoundingClientRect();
-                          const codeTooltipWidth = 400;
-                          const codeTooltipHeight = codeTooltip.offsetHeight;
-                          const codeLeftPosition = codeRect.left + (codeRect.width / 2) - (codeTooltipWidth / 2);
-                          const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
-                          codeTooltip.style.left = Math.max(10, Math.min(codeLeftPosition, window.innerWidth - codeTooltipWidth - 10)) + "px";
-                          codeTooltip.style.top = (codeRect.top - spacing - codeTooltipHeight) + "px";
-                          codeTooltip.style.transform = "none";
-
-                          setTimeout(() => {
-                            codeTableElement.style.boxShadow = originalCodeBoxShadow;
-                            codeTableElement.style.border = originalCodeBorder;
-                            codeTableElement.style.zIndex = "";
-                            codeTableElement.style.position = "";
-                            codeTableElement.style.transition = "";
-                            if (codeTooltip.parentNode) {
-                              codeTooltip.remove();
-                            }
-
-                          // 5. En dernier, highlight de la zone de résultat dnaOutput avec fenêtre tooltip
-                          if (dnaOutput) {
-                            dnaOutput.scrollIntoView({ behavior: "smooth", block: "center" });
-                            
-                            setTimeout(() => {
-                              const originalDnaOutputBoxShadow = dnaOutput.style.boxShadow;
-                              const originalDnaOutputBorder = dnaOutput.style.border;
-                              
-                              dnaOutput.style.transition = "all 0.3s ease";
-                              dnaOutput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                              dnaOutput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
-                              dnaOutput.style.zIndex = "1000";
-                              dnaOutput.style.position = "relative";
-                              
-                              // Créer une fenêtre tooltip au-dessus de la zone de résultat
-                              const resultTooltip = document.createElement("div");
-                              resultTooltip.id = "resultTooltip";
-                              
-                              const resultTooltipContent = document.createElement("div");
-                              resultTooltipContent.innerHTML = "La séquence ADN correspondante s'affichera alors ici. Tu peux la copier, l'enregistrer et l'envoyer à quelqu'un. Décode là avant, pour tester qu'il n'y a pas eu de problème";
-                              resultTooltipContent.style.cssText = `
-                                padding-right: 30px;
-                                text-align: center;
-                              `;
-                              
-                              resultTooltip.style.cssText = `
-                                position: fixed;
-                                background: rgba(255, 255, 255, 0.98);
-                                border: 2px solid #667eea;
-                                border-radius: 8px;
-                                padding: 15px;
-                                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                                z-index: 10000;
-                                max-width: 400px;
-                                font-size: 0.95rem;
-                                line-height: 1.6;
-                                color: #333;
-                              `;
-                              
-                              resultTooltip.appendChild(resultTooltipContent);
-                              
-                              // Positionner le tooltip au-dessus de la zone de résultat
-                              document.body.appendChild(resultTooltip);
-                              
-                              // Calculer la position après ajout au DOM pour avoir la hauteur réelle
-                              const resultRect = dnaOutput.getBoundingClientRect();
-                              const resultTooltipWidth = 400;
-                              const resultTooltipHeight = resultTooltip.offsetHeight;
-                              const resultLeftPosition = resultRect.left + (resultRect.width / 2) - (resultTooltipWidth / 2);
-                              const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
-                              resultTooltip.style.left = Math.max(10, Math.min(resultLeftPosition, window.innerWidth - resultTooltipWidth - 10)) + "px";
-                              resultTooltip.style.top = (resultRect.top - spacing - resultTooltipHeight) + "px";
-                              resultTooltip.style.transform = "none";
-                              
-                              setTimeout(() => {
-                                dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
-                                dnaOutput.style.border = originalDnaOutputBorder;
-                                dnaOutput.style.zIndex = "";
-                                dnaOutput.style.position = "";
-                                dnaOutput.style.transition = "";
-                                if (resultTooltip.parentNode) {
-                                  resultTooltip.remove();
-                                }
-                                
-                                // Recentrer vers la première fenêtre après 1 seconde
-                                setTimeout(() => {
-                                  const fenetre1 = document.getElementById("demarrageFenetre1");
-                                  if (fenetre1) {
-                                    fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                                  }
-                                }, 1000);
-                              }, 6000);
-                            }, 500);
-                          } else {
-                            // Si dnaOutput n'existe pas, recentrer vers la première fenêtre
-                            setTimeout(() => {
-                              const fenetre1 = document.getElementById("demarrageFenetre1");
-                              if (fenetre1) {
-                                fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                              }
-                            }, 1000);
-                          }
-                          }, 3000);
-                        }, 500);
-                      }
-                    } else {
-                      // Si codeTable n'existe pas, passer directement à dnaOutput
-                      if (dnaOutput) {
-                        dnaOutput.scrollIntoView({ behavior: "smooth", block: "center" });
-                        
-                        setTimeout(() => {
-                          const originalDnaOutputBoxShadow = dnaOutput.style.boxShadow;
-                          const originalDnaOutputBorder = dnaOutput.style.border;
-                          
-                          dnaOutput.style.transition = "all 0.3s ease";
-                          dnaOutput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                          dnaOutput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
-                          dnaOutput.style.zIndex = "1000";
-                          dnaOutput.style.position = "relative";
-                          
-                          // Créer une fenêtre tooltip au-dessus de la zone de résultat
-                          const resultTooltip = document.createElement("div");
-                          resultTooltip.id = "resultTooltip";
-                          
-                          const resultTooltipContent = document.createElement("div");
-                          resultTooltipContent.innerHTML = "La séquence ADN correspondante s'affichera alors ici. Tu peux la copier, l'enregistrer et l'envoyer à quelqu'un. Décode là avant, pour tester qu'il n'y a pas eu de problème";
-                          resultTooltipContent.style.cssText = `
-                            padding-right: 30px;
-                            text-align: center;
-                          `;
-                          
-                          resultTooltip.style.cssText = `
-                            position: fixed;
-                            background: rgba(255, 255, 255, 0.98);
-                            border: 2px solid #667eea;
-                            border-radius: 8px;
-                            padding: 15px;
-                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                            z-index: 10000;
-                            max-width: 400px;
-                            font-size: 0.95rem;
-                            line-height: 1.6;
-                            color: #333;
-                          `;
-                          
-                          resultTooltip.appendChild(resultTooltipContent);
-                          
-                          // Positionner le tooltip au-dessus de la zone de résultat
-                          document.body.appendChild(resultTooltip);
-                          
-                          // Calculer la position après ajout au DOM pour avoir la hauteur réelle
-                          const resultRect = dnaOutput.getBoundingClientRect();
-                          const resultTooltipWidth = 400;
-                          const resultTooltipHeight = resultTooltip.offsetHeight;
-                          const resultLeftPosition = resultRect.left + (resultRect.width / 2) - (resultTooltipWidth / 2);
-                          const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
-                          resultTooltip.style.left = Math.max(10, Math.min(resultLeftPosition, window.innerWidth - resultTooltipWidth - 10)) + "px";
-                          resultTooltip.style.top = (resultRect.top - spacing - resultTooltipHeight) + "px";
-                          resultTooltip.style.transform = "none";
-                          
-                          setTimeout(() => {
-                            dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
-                            dnaOutput.style.border = originalDnaOutputBorder;
-                            dnaOutput.style.zIndex = "";
-                            dnaOutput.style.position = "";
-                            dnaOutput.style.transition = "";
-                            if (resultTooltip.parentNode) {
-                              resultTooltip.remove();
-                            }
-                            
-                            setTimeout(() => {
-                              const fenetre1 = document.getElementById("demarrageFenetre1");
-                              if (fenetre1) {
-                                fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                              }
-                            }, 1000);
-                          }, 6000);
-                        }, 500);
-                      } else {
-                        setTimeout(() => {
-                          const fenetre1 = document.getElementById("demarrageFenetre1");
-                          if (fenetre1) {
-                            fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                          }
-                        }, 1000);
-                      }
-                    }
-                  }, 2000);
-                }, 500);
-              }, 2000);
-            }, 500);
-          }, 5000);
-        }, 500);
+        // Démarrer avec le premier step
+        showStep(0);
       }
 
       // Fonction pour highlight Pixel Art avec tooltip
@@ -11630,256 +11485,122 @@
           return;
         }
 
-        // Scroller vers le bouton
-        pixelArtBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Nettoyer les highlights précédents
+        cleanupHighlights();
+        currentHighlightSequence = 'pixelArt';
 
-        // Attendre que le scroll soit terminé avant de positionner le tooltip
-        setTimeout(() => {
-          // Créer la fenêtre tooltip
-          const tooltip = document.createElement("div");
-          tooltip.id = "pixelArtTooltip";
-          
-          // Créer le bouton de fermeture
-          const closeBtn = document.createElement("button");
-          closeBtn.innerHTML = "×";
-          closeBtn.style.cssText = `
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            font-size: 20px;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            z-index: 10001;
-          `;
-          closeBtn.onmouseover = function() {
-            this.style.background = "#5568d3";
-          };
-          closeBtn.onmouseout = function() {
-            this.style.background = "#667eea";
-          };
-          
-          // Fonction pour fermer le tooltip
-          const closeTooltip = () => {
-            pixelArtBtn.style.boxShadow = originalBoxShadow;
-            pixelArtBtn.style.transform = "";
-            pixelArtBtn.style.zIndex = "";
-            if (tooltip.parentNode) {
-              tooltip.remove();
-            }
-            clearTimeout(autoCloseTimeout);
+        // Définir les steps
+        const steps = [
+          {
+            element: pixelArtBtn,
+            message: "Une fois cliqué il te suffit de sélectionner une palette (= un code génétique) et de dessiner. Chaque pixel coloré correspond à un triplet de nucléotide (par exemple AAA = pixel blanc), Enregistre alors ton dessin en ADN. Quand tu souhaites revoir ton dessin il te suffira de l'importer dans la fenêtre de décodage",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", transform: "scale(1.1)", zIndex: "1000" }
+          }
+        ];
+
+        // Ajouter le bouton "Importer de l'ADN" si disponible
+        if (importBtn) {
+          steps.push({
+            element: importBtn,
+            message: "Pour récupérer ton dessin si tu l'as enregistré",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", transform: "scale(1.1)", zIndex: "1000" }
+          });
+        }
+
+        // Ajouter le bouton "Décoder" si disponible
+        if (decodeBtn) {
+          steps.push({
+            element: decodeBtn,
+            message: "Ce bouton va alors reconstituer ton image en lisant la séquence ADN que tu as chargé. Tu peux aussi découvrir l'image surprise que quelqu'un t'a envoyée !",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", transform: "scale(1.1)", zIndex: "1000" }
+          });
+        }
+
+        highlightSteps = steps;
+        currentHighlightStep = 0;
+
+        // Fonction pour afficher un step
+        function showStep(stepIndex) {
+          if (stepIndex < 0 || stepIndex >= highlightSteps.length) {
+            cleanupHighlights();
+            // Recentrer vers la première fenêtre
             setTimeout(() => {
-              pixelArtBtn.style.transition = "";
-            }, 300);
-          };
-          
-          closeBtn.onclick = closeTooltip;
-          
-          const tooltipContent = document.createElement("div");
-          tooltipContent.innerHTML = "Une fois cliqué il te suffit de sélectionner une palette (= un code génétique) et de dessiner. Chaque pixel coloré correspond à un triplet de nucléotide (par exemple AAA = pixel blanc), Enregistre alors ton dessin en ADN. Quand tu souhaites revoir ton dessin il te suffira de l'importer dans la fenêtre de décodage";
-          tooltipContent.style.cssText = `
-            padding-right: 30px;
-            text-align: center;
-          `;
-          
-          tooltip.style.cssText = `
-            position: fixed;
-            background: rgba(255, 255, 255, 0.98);
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            max-width: 400px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #333;
-          `;
-          
-          tooltip.appendChild(tooltipContent);
-          tooltip.appendChild(closeBtn);
+              const fenetre1 = document.getElementById("demarrageFenetre1");
+              if (fenetre1) {
+                fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 500);
+            return;
+          }
 
-          // Positionner le tooltip juste au-dessus du bouton (corrigé pour être plus proche)
-          const rect = pixelArtBtn.getBoundingClientRect();
-          const tooltipWidth = 400;
-          const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-          tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
-          // Positionner juste au-dessus avec un petit espace (5px au lieu de 10px)
-          tooltip.style.top = (rect.top - 5) + "px";
-          tooltip.style.transform = "translateY(-100%)";
+          currentHighlightStep = stepIndex;
+          const step = highlightSteps[stepIndex];
+          const element = step.element;
 
-          document.body.appendChild(tooltip);
+          // Nettoyer le step précédent
+          if (currentTooltip && currentTooltip.parentNode) {
+            currentTooltip.remove();
+          }
 
-          // Highlight le bouton
-          const originalBoxShadow = pixelArtBtn.style.boxShadow;
-          pixelArtBtn.style.transition = "all 0.3s ease";
-          pixelArtBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-          pixelArtBtn.style.transform = "scale(1.1)";
-          pixelArtBtn.style.zIndex = "1000";
+          // Scroller vers l'élément
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
 
-          // Après 10 secondes, fermer le tooltip et highlight les boutons de décodage
-          const autoCloseTimeout = setTimeout(() => {
-            closeTooltip();
-            
-            // Highlight le bouton "Importer de l'ADN" avec tooltip
-            if (importBtn) {
-              importBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-              
-              setTimeout(() => {
-                const originalImportBoxShadow = importBtn.style.boxShadow;
-                
-                importBtn.style.transition = "all 0.3s ease";
-                importBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                importBtn.style.transform = "scale(1.1)";
-                importBtn.style.zIndex = "1000";
-                
-                // Créer le tooltip pour "Importer de l'ADN"
-                const importTooltip = document.createElement("div");
-                importTooltip.id = "importDnaTooltip";
-                
-                const importTooltipContent = document.createElement("div");
-                importTooltipContent.innerHTML = "Il te suffit de cliquer sur ce bouton pour récupérer ton dessin si tu l'as enregistré";
-                importTooltipContent.style.cssText = `
-                  padding-right: 30px;
-                  text-align: center;
-                `;
-                
-                importTooltip.style.cssText = `
-                  position: fixed;
-                  background: rgba(255, 255, 255, 0.98);
-                  border: 2px solid #667eea;
-                  border-radius: 8px;
-                  padding: 15px;
-                  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                  z-index: 10000;
-                  max-width: 400px;
-                  font-size: 0.95rem;
-                  line-height: 1.6;
-                  color: #333;
-                `;
-                
-                importTooltip.appendChild(importTooltipContent);
-                
-                // Positionner le tooltip au-dessus du bouton
-                const importRect = importBtn.getBoundingClientRect();
-                const importTooltipWidth = 400;
-                const importLeftPosition = importRect.left + (importRect.width / 2) - (importTooltipWidth / 2);
-                importTooltip.style.left = Math.max(10, Math.min(importLeftPosition, window.innerWidth - importTooltipWidth - 10)) + "px";
-                importTooltip.style.top = (importRect.top - 5) + "px";
-                importTooltip.style.transform = "translateY(-100%)";
-                
-                document.body.appendChild(importTooltip);
-                
-                setTimeout(() => {
-                  importBtn.style.boxShadow = originalImportBoxShadow;
-                  importBtn.style.transform = "";
-                  importBtn.style.zIndex = "";
-                  importBtn.style.transition = "";
-                  if (importTooltip.parentNode) {
-                    importTooltip.remove();
+          setTimeout(() => {
+            // Sauvegarder les styles originaux
+            const originalStyles = {};
+            Object.keys(step.highlightStyle).forEach(key => {
+              originalStyles[key] = element.style[key] || window.getComputedStyle(element)[key];
+            });
+
+            // Appliquer le highlight
+            element.style.transition = "all 0.3s ease";
+            Object.assign(element.style, step.highlightStyle);
+
+            // Créer le tooltip avec navigation
+            currentTooltip = createTooltipWithNavigation(
+              step.message,
+              stepIndex,
+              highlightSteps.length,
+              () => showStep(stepIndex + 1), // onNext
+              () => showStep(stepIndex - 1), // onPrevious
+              () => cleanupHighlights() // onClose
+            );
+
+            positionTooltip(currentTooltip, element);
+
+            // Gérer les événements clavier
+            if (!highlightKeyboardListener) {
+              highlightKeyboardListener = (e) => {
+                if (currentHighlightSequence === 'pixelArt') {
+                  if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    showStep(currentHighlightStep + 1);
+                  } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    showStep(currentHighlightStep - 1);
                   }
-                  
-                  // Highlight le bouton "Décoder" pendant 5 secondes avec fenêtre tooltip
-                  if (decodeBtn) {
-                    decodeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-                    
-                    setTimeout(() => {
-                      const originalDecodeBoxShadow = decodeBtn.style.boxShadow;
-                      
-                      decodeBtn.style.transition = "all 0.3s ease";
-                      decodeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                      decodeBtn.style.transform = "scale(1.1)";
-                      decodeBtn.style.zIndex = "1000";
-                      
-                      // Créer la fenêtre tooltip pour le bouton "Décoder"
-                      const decodeTooltip = document.createElement("div");
-                      decodeTooltip.id = "decodeTooltip";
-                      
-                      const decodeTooltipContent = document.createElement("div");
-                      decodeTooltipContent.innerHTML = "Ce bouton va alors reconstituer ton image en lisant la séquence ADN que tu as chargé. Tu peux aussi découvrir l'image surprise que quelqu'un t'a envoyée !";
-                      decodeTooltipContent.style.cssText = `
-                        padding-right: 30px;
-                        text-align: center;
-                      `;
-                      
-                      decodeTooltip.style.cssText = `
-                        position: fixed;
-                        background: rgba(255, 255, 255, 0.98);
-                        border: 2px solid #667eea;
-                        border-radius: 8px;
-                        padding: 15px;
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                        z-index: 10000;
-                        max-width: 400px;
-                        font-size: 0.95rem;
-                        line-height: 1.6;
-                        color: #333;
-                      `;
-                      
-                      decodeTooltip.appendChild(decodeTooltipContent);
-                      
-                      // Positionner le tooltip au-dessus du bouton
-                      document.body.appendChild(decodeTooltip);
-                      
-                      // Calculer la position après ajout au DOM pour avoir la hauteur réelle
-                      const decodeRect = decodeBtn.getBoundingClientRect();
-                      const decodeTooltipWidth = 400;
-                      const decodeTooltipHeight = decodeTooltip.offsetHeight;
-                      const decodeLeftPosition = decodeRect.left + (decodeRect.width / 2) - (decodeTooltipWidth / 2);
-                      const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
-                      decodeTooltip.style.left = Math.max(10, Math.min(decodeLeftPosition, window.innerWidth - decodeTooltipWidth - 10)) + "px";
-                      decodeTooltip.style.top = (decodeRect.top - spacing - decodeTooltipHeight) + "px";
-                      decodeTooltip.style.transform = "none";
-                      
-                      setTimeout(() => {
-                        decodeBtn.style.boxShadow = originalDecodeBoxShadow;
-                        decodeBtn.style.transform = "";
-                        decodeBtn.style.zIndex = "";
-                        decodeBtn.style.transition = "";
-                        if (decodeTooltip.parentNode) {
-                          decodeTooltip.remove();
-                        }
-                        
-                        // Recentrer vers la première fenêtre après 1 seconde
-                        setTimeout(() => {
-                          const fenetre1 = document.getElementById("demarrageFenetre1");
-                          if (fenetre1) {
-                            fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                          }
-                        }, 1000);
-                      }, 5000);
-                    }, 500);
-                  } else {
-                    // Si decodeBtn n'existe pas, recentrer vers la première fenêtre
-                    setTimeout(() => {
-                      const fenetre1 = document.getElementById("demarrageFenetre1");
-                      if (fenetre1) {
-                        fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }
-                    }, 1000);
-                  }
-                }, 3000);
-              }, 500);
-            } else {
-              // Si importBtn n'existe pas, recentrer vers la première fenêtre
-              setTimeout(() => {
-                const fenetre1 = document.getElementById("demarrageFenetre1");
-                if (fenetre1) {
-                  fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
-              }, 1000);
+              };
+              document.addEventListener('keydown', highlightKeyboardListener);
             }
-          }, 10000);
-        }, 500);
+
+            // Timeout automatique de 8 secondes
+            const timeout = setTimeout(() => {
+              // Restaurer les styles
+              Object.keys(originalStyles).forEach(key => {
+                element.style[key] = originalStyles[key] || "";
+              });
+              element.style.transition = "";
+              
+              // Passer au suivant automatiquement
+              showStep(stepIndex + 1);
+            }, 8000);
+            highlightTimeouts.push(timeout);
+          }, 500);
+        }
+
+        // Démarrer avec le premier step
+        showStep(0);
       }
 
       // Script pour améliorer les animations de la première fenêtre
@@ -11933,19 +11654,123 @@
           return;
         }
 
-        // 1. Scroller vers "Importer de l'ADN" et le highlight 4 secondes (2+2) avec fenêtre tooltip
-        importBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Nettoyer les highlights précédents
+        cleanupHighlights();
+        currentHighlightSequence = 'decodeSequence';
 
-        setTimeout(() => {
-          const originalImportBoxShadow = importBtn.style.boxShadow;
+        // Définir les steps
+        const steps = [
+          {
+            element: importBtn,
+            message: "Tu peux charger une séquence ADN enregistrée avec ce bouton ou coller directement ci-dessous une séquence",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", transform: "scale(1.1)", zIndex: "1000" }
+          },
+          {
+            element: decodeBtn,
+            message: "Ce bouton va te permettre de déchiffrer le message qui se cache dans l'ADN que tu as chargé",
+            highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", transform: "scale(1.1)", zIndex: "1000" }
+          }
+        ];
 
-          importBtn.style.transition = "all 0.3s ease";
-          importBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-          importBtn.style.transform = "scale(1.1)";
-          importBtn.style.zIndex = "1000";
+        // Ajouter le tableau du code génétique si disponible
+        if (codeTable) {
+          const codeTableElement = codeTable.closest('table') || codeTable.closest('.section');
+          if (codeTableElement) {
+            steps.push({
+              element: codeTableElement,
+              message: "Le logiciel va ensuite utiliser ce code génétique fictif pour encoder ton message en une séquence ADN",
+              highlightStyle: { boxShadow: "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)", border: "3px solid rgba(255, 215, 0, 0.8)", zIndex: "1000", position: "relative" }
+            });
+          }
+        }
 
-          // Créer la fenêtre tooltip pour "Importer de l'ADN"
-          const importTooltip = document.createElement("div");
+        highlightSteps = steps;
+        currentHighlightStep = 0;
+
+        // Fonction pour afficher un step
+        function showStep(stepIndex) {
+          if (stepIndex < 0 || stepIndex >= highlightSteps.length) {
+            cleanupHighlights();
+            // Recentrer vers la première fenêtre
+            setTimeout(() => {
+              const fenetre1 = document.getElementById("demarrageFenetre1");
+              if (fenetre1) {
+                fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }, 500);
+            return;
+          }
+
+          currentHighlightStep = stepIndex;
+          const step = highlightSteps[stepIndex];
+          const element = step.element;
+
+          // Nettoyer le step précédent
+          if (currentTooltip && currentTooltip.parentNode) {
+            currentTooltip.remove();
+          }
+
+          // Scroller vers l'élément
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+          setTimeout(() => {
+            // Sauvegarder les styles originaux
+            const originalStyles = {};
+            Object.keys(step.highlightStyle).forEach(key => {
+              originalStyles[key] = element.style[key] || window.getComputedStyle(element)[key];
+            });
+
+            // Appliquer le highlight
+            element.style.transition = "all 0.3s ease";
+            Object.assign(element.style, step.highlightStyle);
+
+            // Créer le tooltip avec navigation
+            currentTooltip = createTooltipWithNavigation(
+              step.message,
+              stepIndex,
+              highlightSteps.length,
+              () => showStep(stepIndex + 1), // onNext
+              () => showStep(stepIndex - 1), // onPrevious
+              () => cleanupHighlights() // onClose
+            );
+
+            positionTooltip(currentTooltip, element);
+
+            // Gérer les événements clavier
+            if (!highlightKeyboardListener) {
+              highlightKeyboardListener = (e) => {
+                if (currentHighlightSequence === 'decodeSequence') {
+                  if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    showStep(currentHighlightStep + 1);
+                  } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    showStep(currentHighlightStep - 1);
+                  }
+                }
+              };
+              document.addEventListener('keydown', highlightKeyboardListener);
+            }
+
+            // Timeout automatique de 8 secondes
+            const timeout = setTimeout(() => {
+              // Restaurer les styles
+              Object.keys(originalStyles).forEach(key => {
+                element.style[key] = originalStyles[key] || "";
+              });
+              element.style.transition = "";
+              
+              // Passer au suivant automatiquement
+              showStep(stepIndex + 1);
+            }, 8000);
+            highlightTimeouts.push(timeout);
+          }, 500);
+        }
+
+        // Démarrer avec le premier step
+        showStep(0);
+      }
+    </script>
           importTooltip.id = "importDnaTooltip";
           
           const importTooltipContent = document.createElement("div");
