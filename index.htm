@@ -916,6 +916,7 @@
           "
         >
           <p
+            id="demarrageFenetre1"
             style="
               margin: 0;
               color: #333;
@@ -948,7 +949,8 @@
               min-width: 250px;
             "
           >
-            J'ai 5 minutes pour prendre le temps de comprendre comment fonctionne Cryptogen, <a href="https://youtu.be/hiESgS8diVg" target="_blank" style="color: #e91e63; text-decoration: underline; cursor: pointer;">je regarde la vidéo</a>
+            J'ai 5 minutes pour prendre le temps de comprendre comment fonctionne Cryptogen :<br />
+            <a href="https://youtu.be/hiESgS8diVg" target="_blank" style="color: #e91e63; text-decoration: underline; cursor: pointer;">je regarde la vidéo</a>
           </p>
           <p
             style="
@@ -3129,9 +3131,7 @@
         </p>
         <textarea
           id="textInput"
-          placeholder="Ecris, colle ou importe un texte que tu souhaites encoder dans de l'ADN puis clique sur le bouton Texte ou Texte à trous 
-          selon le résultat souhaité. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant 
-          dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
+          placeholder="Ecris, colle ou importe un texte que tu souhaites encoder dans de l'ADN puis clique sur le bouton Texte ou Texte à trous selon le résultat souhaité. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
         ></textarea>
         <div
           style="
@@ -11254,6 +11254,13 @@
                     trouModeBtn.style.zIndex = "";
                     setTimeout(() => {
                       trouModeBtn.style.transition = "";
+                      // Recentrer vers la première fenêtre après 1 seconde
+                      setTimeout(() => {
+                        const fenetre1 = document.getElementById("demarrageFenetre1");
+                        if (fenetre1) {
+                          fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                      }, 1000);
                     }, 300);
                   }, 2000);
                 }, 100);
@@ -11279,7 +11286,63 @@
           // Créer la fenêtre tooltip
           const tooltip = document.createElement("div");
           tooltip.id = "pixelArtTooltip";
-          tooltip.innerHTML = "Une fois cliqué il te suffit de sélectionner une palette (= un code génétique) et de dessiner. Chaque pixel coloré correspond à un triplet de nucléotide (par exemple AAA = pixel blanc), Enregistre alors ton dessin en ADN. Quand tu souhaites revoir ton dessin il te suffira de l'importer dans la fenêtre de décodage";
+          
+          // Créer le bouton de fermeture
+          const closeBtn = document.createElement("button");
+          closeBtn.innerHTML = "×";
+          closeBtn.style.cssText = `
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            z-index: 10001;
+          `;
+          closeBtn.onmouseover = function() {
+            this.style.background = "#5568d3";
+          };
+          closeBtn.onmouseout = function() {
+            this.style.background = "#667eea";
+          };
+          
+          // Fonction pour fermer le tooltip et recentrer
+          const closeTooltip = () => {
+            pixelArtBtn.style.boxShadow = originalBoxShadow;
+            pixelArtBtn.style.transform = "";
+            pixelArtBtn.style.zIndex = "";
+            tooltip.remove();
+            clearTimeout(autoCloseTimeout);
+            setTimeout(() => {
+              pixelArtBtn.style.transition = "";
+              // Recentrer vers la première fenêtre après 1 seconde
+              setTimeout(() => {
+                const fenetre1 = document.getElementById("demarrageFenetre1");
+                if (fenetre1) {
+                  fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+              }, 1000);
+            }, 300);
+          };
+          
+          closeBtn.onclick = closeTooltip;
+          
+          const tooltipContent = document.createElement("div");
+          tooltipContent.innerHTML = "Une fois cliqué il te suffit de sélectionner une palette (= un code génétique) et de dessiner. Chaque pixel coloré correspond à un triplet de nucléotide (par exemple AAA = pixel blanc), Enregistre alors ton dessin en ADN. Quand tu souhaites revoir ton dessin il te suffira de l'importer dans la fenêtre de décodage";
+          tooltipContent.style.cssText = `
+            padding-right: 30px;
+          `;
+          
           tooltip.style.cssText = `
             position: fixed;
             background: rgba(255, 255, 255, 0.98);
@@ -11292,8 +11355,10 @@
             font-size: 0.95rem;
             line-height: 1.6;
             color: #333;
-            pointer-events: none;
           `;
+          
+          tooltip.appendChild(tooltipContent);
+          tooltip.appendChild(closeBtn);
 
           // Positionner le tooltip au-dessus du bouton
           const rect = pixelArtBtn.getBoundingClientRect();
@@ -11312,16 +11377,8 @@
           pixelArtBtn.style.transform = "scale(1.1)";
           pixelArtBtn.style.zIndex = "1000";
 
-          // Retirer le highlight et le tooltip après 3 secondes
-          setTimeout(() => {
-            pixelArtBtn.style.boxShadow = originalBoxShadow;
-            pixelArtBtn.style.transform = "";
-            pixelArtBtn.style.zIndex = "";
-            tooltip.remove();
-            setTimeout(() => {
-              pixelArtBtn.style.transition = "";
-            }, 300);
-          }, 3000);
+          // Retirer le highlight et le tooltip après 20 secondes (fermeture automatique)
+          const autoCloseTimeout = setTimeout(closeTooltip, 20000);
         }, 500);
       }
 
@@ -11372,6 +11429,13 @@
               decodeBtn.style.zIndex = "";
               setTimeout(() => {
                 decodeBtn.style.transition = "";
+                // Recentrer vers la première fenêtre après 1 seconde
+                setTimeout(() => {
+                  const fenetre1 = document.getElementById("demarrageFenetre1");
+                  if (fenetre1) {
+                    fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+                }, 1000);
               }, 300);
             }, 2000);
           }, 100);
