@@ -907,45 +907,64 @@
 
       <div class="section">
         <h2>Démarrage</h2>
-        <p
+        <div
           style="
-            margin: 20px 0 15px 0;
-            color: #333;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            padding: 15px;
-            background: rgba(76, 175, 80, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid #4caf50;
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
           "
         >
-        </p>
-        <p
-          style="
-            margin: 20px 0 15px 0;
-            color: #333;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            padding: 15px;
-            background: rgba(233, 30, 99, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid #e91e63;
-          "
-        >
-        </p>
-        <p
-          style="
-            margin: 20px 0 15px 0;
-            color: #333;
-            font-size: 1.1rem;
-            line-height: 1.8;
-            padding: 15px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-          "
-        >
-        </p>
+          <p
+            style="
+              margin: 0;
+              color: #333;
+              font-size: 1.1rem;
+              line-height: 1.8;
+              padding: 15px;
+              background: rgba(76, 175, 80, 0.1);
+              border-radius: 8px;
+              border-left: 4px solid #4caf50;
+              flex: 1;
+              min-width: 250px;
+            "
+          >
+            Je suis pressé, montre moi tout de suite comment :<br />
+            - <a href="#" onclick="highlightButton('encodeTextBtn', 3000); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer un texte en une séquence ADN</a><br />
+            - <a href="#" onclick="highlightButton('pixelArtBtn', 3000); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer une image en une séquence ADN</a><br />
+            - <a href="#" onclick="highlightDecodeSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">décoder une séquence ADN</a>
+          </p>
+          <p
+            style="
+              margin: 0;
+              color: #333;
+              font-size: 1.1rem;
+              line-height: 1.8;
+              padding: 15px;
+              background: rgba(233, 30, 99, 0.1);
+              border-radius: 8px;
+              border-left: 4px solid #e91e63;
+              flex: 1;
+              min-width: 250px;
+            "
+          >
+          </p>
+          <p
+            style="
+              margin: 0;
+              color: #333;
+              font-size: 1.1rem;
+              line-height: 1.8;
+              padding: 15px;
+              background: rgba(102, 126, 234, 0.1);
+              border-radius: 8px;
+              border-left: 4px solid #667eea;
+              flex: 1;
+              min-width: 250px;
+            "
+          >
+          </p>
+        </div>
       </div>
 
       <div class="section">
@@ -3090,7 +3109,9 @@
             border-left: 4px solid #ff9800;
           "
         >
-          Si tu confonds information et code génétique mais que tu as envie de comprendre ce que tu vas faire il peut être intéressant de réaliser au préalable les activité 1 et 2. Si les notions d'information génétique et de code génétique n'ont plus de secret pour toi il est temps de tester différents codes génétiques fictifs et de s'amuser à enregistrer ou lire des informations secrètes dans de l'ADN !!!
+          Si tu confonds information et code génétique mais que tu as envie de comprendre ce que tu vas faire, il peut être intéressant de réaliser au préalable 
+          les activité 1 et 2. Si les notions d'information génétique et de code génétique n'ont plus de secrets pour toi il est temps de tester différents 
+          codes génétiques fictifs et de s'amuser à enregistrer ou lire des informations secrètes dans de l'ADN !!!
         </p>
         <p
           style="
@@ -3119,6 +3140,7 @@
           "
         >
           <button
+            id="encodeTextBtn"
             onclick="encodeText()"
             style="
               background-image: url('https://www.dropbox.com/scl/fi/1covqkpg610vvsmnpvhgd/Bouton-Encoder.png?rlkey=wkbzvci3ac9fp7vg4ghfjb7cw&st=zgk9jkfz&raw=1');
@@ -3272,6 +3294,7 @@
         <h2>Décodage</h2>
         <div style="margin-bottom: 15px; text-align: center">
           <button
+            id="importDnaBtn"
             onclick="openImportModal()"
             style="
               background-image: url('https://www.dropbox.com/scl/fi/cmxmx7gp6ipkgbnkwo7ul/Bouton-ADN.png?rlkey=de5pm9v22723web0s3v5ykp38&st=4s2y7aj8&raw=1');
@@ -3424,7 +3447,7 @@
           >
             Mutation
           </button>
-          <button onclick="decodeDNA()">Décoder</button>
+          <button id="decodeBtn" onclick="decodeDNA()">Décoder</button>
         </div>
         <p
           style="
@@ -11128,6 +11151,91 @@
 
       // Réappliquer la configuration des boutons après un court délai pour les boutons créés dynamiquement
       setTimeout(setupAllButtonsForMobile, 1000);
+
+      // Fonction pour scroller vers un bouton et le highlight
+      function highlightButton(buttonId, duration) {
+        const button = document.getElementById(buttonId);
+        if (!button) {
+          console.warn("Bouton non trouvé :", buttonId);
+          return;
+        }
+
+        // Scroller vers le bouton
+        button.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Sauvegarder le style original
+        const originalStyle = button.style.cssText;
+        const originalBoxShadow = button.style.boxShadow;
+
+        // Appliquer le highlight
+        button.style.transition = "all 0.3s ease";
+        button.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+        button.style.transform = "scale(1.1)";
+        button.style.zIndex = "1000";
+
+        // Retirer le highlight après la durée spécifiée
+        setTimeout(() => {
+          button.style.boxShadow = originalBoxShadow;
+          button.style.transform = "";
+          button.style.zIndex = "";
+          setTimeout(() => {
+            button.style.transition = "";
+          }, 300);
+        }, duration);
+      }
+
+      // Fonction pour highlight la séquence de décodage (Importer puis Décoder)
+      function highlightDecodeSequence() {
+        const importBtn = document.getElementById("importDnaBtn");
+        const decodeBtn = document.getElementById("decodeBtn");
+
+        if (!importBtn || !decodeBtn) {
+          console.warn("Boutons de décodage non trouvés");
+          return;
+        }
+
+        // Scroller vers "Importer de l'ADN" et le highlight 2 secondes
+        importBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        const originalImportStyle = importBtn.style.cssText;
+        const originalImportBoxShadow = importBtn.style.boxShadow;
+
+        importBtn.style.transition = "all 0.3s ease";
+        importBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+        importBtn.style.transform = "scale(1.1)";
+        importBtn.style.zIndex = "1000";
+
+        setTimeout(() => {
+          importBtn.style.boxShadow = originalImportBoxShadow;
+          importBtn.style.transform = "";
+          importBtn.style.zIndex = "";
+          setTimeout(() => {
+            importBtn.style.transition = "";
+          }, 300);
+
+          // Après 2 secondes, scroller vers "Décoder" et le highlight 2 secondes
+          setTimeout(() => {
+            decodeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            const originalDecodeStyle = decodeBtn.style.cssText;
+            const originalDecodeBoxShadow = decodeBtn.style.boxShadow;
+
+            decodeBtn.style.transition = "all 0.3s ease";
+            decodeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+            decodeBtn.style.transform = "scale(1.1)";
+            decodeBtn.style.zIndex = "1000";
+
+            setTimeout(() => {
+              decodeBtn.style.boxShadow = originalDecodeBoxShadow;
+              decodeBtn.style.transform = "";
+              decodeBtn.style.zIndex = "";
+              setTimeout(() => {
+                decodeBtn.style.transition = "";
+              }, 300);
+            }, 2000);
+          }, 100);
+        }, 2000);
+      }
     </script>
 
     <!-- Raccourci clavier global : Ctrl+J pour ouvrir le dossier de téléchargements -->
