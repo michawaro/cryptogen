@@ -601,6 +601,25 @@
         opacity: 0.75;
       }
       
+      /* Style pour "le formulaire" dans la 3e fenêtre */
+      .formulaire-link {
+        position: relative;
+        display: inline-block;
+        transition: all 0.3s ease;
+        padding: 2px 4px;
+        border-radius: 4px;
+        color: #4caf50;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+      
+      .formulaire-link:hover {
+        animation: shineLink 1.5s ease-in-out;
+        transform: scale(1.05);
+        background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.2), transparent);
+        background-size: 200% 100%;
+      }
+      
       .word-space {
         background-color: #e0e0e0;
         padding: 4px 6px;
@@ -995,7 +1014,7 @@
               text-align: center;
             "
           >
-            Je suis ici en activité pratique. Pour gagner du temps sur la mise en page je peux directement répondre dans le formulaire (en cours de construction)
+            Je suis ici en activité pratique. Pour gagner du temps sur la mise en page je peux directement répondre dans <span class="formulaire-link">le formulaire</span> (en cours de construction)
           </p>
         </div>
       </div>
@@ -11455,18 +11474,7 @@
               document.addEventListener('keydown', highlightKeyboardListener);
             }
 
-            // Timeout automatique de 8 secondes
-            const timeout = setTimeout(() => {
-              // Restaurer les styles
-              Object.keys(originalStyles).forEach(key => {
-                element.style[key] = originalStyles[key] || "";
-              });
-              element.style.transition = "";
-              
-              // Passer au suivant automatiquement
-              showStep(stepIndex + 1);
-            }, 8000);
-            highlightTimeouts.push(timeout);
+            // Pas de timeout automatique - navigation uniquement manuelle
           }, 500);
         }
 
@@ -11584,18 +11592,7 @@
               document.addEventListener('keydown', highlightKeyboardListener);
             }
 
-            // Timeout automatique de 8 secondes
-            const timeout = setTimeout(() => {
-              // Restaurer les styles
-              Object.keys(originalStyles).forEach(key => {
-                element.style[key] = originalStyles[key] || "";
-              });
-              element.style.transition = "";
-              
-              // Passer au suivant automatiquement
-              showStep(stepIndex + 1);
-            }, 8000);
-            highlightTimeouts.push(timeout);
+            // Pas de timeout automatique - navigation uniquement manuelle
           }, 500);
         }
 
@@ -11752,18 +11749,7 @@
               document.addEventListener('keydown', highlightKeyboardListener);
             }
 
-            // Timeout automatique de 8 secondes
-            const timeout = setTimeout(() => {
-              // Restaurer les styles
-              Object.keys(originalStyles).forEach(key => {
-                element.style[key] = originalStyles[key] || "";
-              });
-              element.style.transition = "";
-              
-              // Passer au suivant automatiquement
-              showStep(stepIndex + 1);
-            }, 8000);
-            highlightTimeouts.push(timeout);
+            // Pas de timeout automatique - navigation uniquement manuelle
           }, 500);
         }
 
