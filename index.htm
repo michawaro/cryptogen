@@ -551,21 +551,22 @@
         }
       }
       
-      @keyframes bounceSubtle {
+      @keyframes clickCursor {
         0%, 100% {
-          transform: translateY(0);
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        45% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
         50% {
-          transform: translateY(-3px);
+          opacity: 0.8;
+          transform: translateY(3px) scale(0.9);
         }
-      }
-      
-      @keyframes glowLink {
-        0%, 100% {
-          text-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
-        }
-        50% {
-          text-shadow: 0 0 15px rgba(76, 175, 80, 0.8), 0 0 25px rgba(76, 175, 80, 0.6);
+        55% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
       }
       
@@ -588,20 +589,16 @@
         background-size: 200% 100%;
       }
       
-      /* Animation séquentielle sur les tirets - utiliser nth-of-type pour cibler les liens */
-      #demarrageFenetre1 a:nth-of-type(1) {
-        animation: bounceSubtle 2s ease-in-out infinite;
-        animation-delay: 0s;
-      }
-      
-      #demarrageFenetre1 a:nth-of-type(2) {
-        animation: bounceSubtle 2s ease-in-out infinite;
-        animation-delay: 0.7s;
-      }
-      
-      #demarrageFenetre1 a:nth-of-type(3) {
-        animation: bounceSubtle 2s ease-in-out infinite;
-        animation-delay: 1.4s;
+      /* Curseur cliquant après le premier tiret - symbole sobre */
+      #demarrageFenetre1 a:nth-of-type(1)::after {
+        content: "👆";
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 0.9em;
+        animation: clickCursor 1.8s ease-in-out infinite;
+        vertical-align: middle;
+        line-height: 1;
+        opacity: 0.8;
       }
       
       .word-space {
@@ -11276,14 +11273,17 @@
           textareaTooltip.appendChild(textareaTooltipContent);
           
           // Positionner le tooltip au-dessus du textarea
+          document.body.appendChild(textareaTooltip);
+          
+          // Calculer la position après ajout au DOM pour avoir la hauteur réelle
           const textareaRect = textInput.getBoundingClientRect();
           const textareaTooltipWidth = 400;
+          const textareaTooltipHeight = textareaTooltip.offsetHeight;
           const textareaLeftPosition = textareaRect.left + (textareaRect.width / 2) - (textareaTooltipWidth / 2);
+          const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
           textareaTooltip.style.left = Math.max(10, Math.min(textareaLeftPosition, window.innerWidth - textareaTooltipWidth - 10)) + "px";
-          textareaTooltip.style.top = (textareaRect.top - 10) + "px";
-          textareaTooltip.style.transform = "translateY(-100%)";
-          
-          document.body.appendChild(textareaTooltip);
+          textareaTooltip.style.top = (textareaRect.top - spacing - textareaTooltipHeight) + "px";
+          textareaTooltip.style.transform = "none";
 
           setTimeout(() => {
             textInput.style.boxShadow = originalTextareaBoxShadow;
@@ -11422,14 +11422,17 @@
                           codeTooltip.appendChild(codeTooltipContent);
                           
                           // Positionner le tooltip au-dessus du tableau
+                          document.body.appendChild(codeTooltip);
+                          
+                          // Calculer la position après ajout au DOM pour avoir la hauteur réelle
                           const codeRect = codeTableElement.getBoundingClientRect();
                           const codeTooltipWidth = 400;
+                          const codeTooltipHeight = codeTooltip.offsetHeight;
                           const codeLeftPosition = codeRect.left + (codeRect.width / 2) - (codeTooltipWidth / 2);
+                          const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
                           codeTooltip.style.left = Math.max(10, Math.min(codeLeftPosition, window.innerWidth - codeTooltipWidth - 10)) + "px";
-                          codeTooltip.style.top = (codeRect.top - 10) + "px";
-                          codeTooltip.style.transform = "translateY(-100%)";
-                          
-                          document.body.appendChild(codeTooltip);
+                          codeTooltip.style.top = (codeRect.top - spacing - codeTooltipHeight) + "px";
+                          codeTooltip.style.transform = "none";
 
                           setTimeout(() => {
                             codeTableElement.style.boxShadow = originalCodeBoxShadow;
@@ -11483,14 +11486,17 @@
                               resultTooltip.appendChild(resultTooltipContent);
                               
                               // Positionner le tooltip au-dessus de la zone de résultat
+                              document.body.appendChild(resultTooltip);
+                              
+                              // Calculer la position après ajout au DOM pour avoir la hauteur réelle
                               const resultRect = dnaOutput.getBoundingClientRect();
                               const resultTooltipWidth = 400;
+                              const resultTooltipHeight = resultTooltip.offsetHeight;
                               const resultLeftPosition = resultRect.left + (resultRect.width / 2) - (resultTooltipWidth / 2);
+                              const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
                               resultTooltip.style.left = Math.max(10, Math.min(resultLeftPosition, window.innerWidth - resultTooltipWidth - 10)) + "px";
-                              resultTooltip.style.top = (resultRect.top - 10) + "px";
-                              resultTooltip.style.transform = "translateY(-100%)";
-                              
-                              document.body.appendChild(resultTooltip);
+                              resultTooltip.style.top = (resultRect.top - spacing - resultTooltipHeight) + "px";
+                              resultTooltip.style.transform = "none";
                               
                               setTimeout(() => {
                                 dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
@@ -11509,7 +11515,7 @@
                                     fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
                                   }
                                 }, 1000);
-                              }, 3000);
+                              }, 6000);
                             }, 500);
                           } else {
                             // Si dnaOutput n'existe pas, recentrer vers la première fenêtre
@@ -11566,14 +11572,17 @@
                           resultTooltip.appendChild(resultTooltipContent);
                           
                           // Positionner le tooltip au-dessus de la zone de résultat
+                          document.body.appendChild(resultTooltip);
+                          
+                          // Calculer la position après ajout au DOM pour avoir la hauteur réelle
                           const resultRect = dnaOutput.getBoundingClientRect();
                           const resultTooltipWidth = 400;
+                          const resultTooltipHeight = resultTooltip.offsetHeight;
                           const resultLeftPosition = resultRect.left + (resultRect.width / 2) - (resultTooltipWidth / 2);
+                          const spacing = window.innerWidth <= 768 ? 5 : 10; // Plus proche sur mobile
                           resultTooltip.style.left = Math.max(10, Math.min(resultLeftPosition, window.innerWidth - resultTooltipWidth - 10)) + "px";
-                          resultTooltip.style.top = (resultRect.top - 10) + "px";
-                          resultTooltip.style.transform = "translateY(-100%)";
-                          
-                          document.body.appendChild(resultTooltip);
+                          resultTooltip.style.top = (resultRect.top - spacing - resultTooltipHeight) + "px";
+                          resultTooltip.style.transform = "none";
                           
                           setTimeout(() => {
                             dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
@@ -11591,7 +11600,7 @@
                                 fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
                               }
                             }, 1000);
-                          }, 3000);
+                          }, 6000);
                         }, 500);
                       } else {
                         setTimeout(() => {
