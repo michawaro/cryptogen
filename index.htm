@@ -930,7 +930,7 @@
               text-align: center;
             "
           >
-            Je suis pressé, montre moi comment :<br />
+            Je suis pressé, montre moi comment :<br /><br />
             - <a href="#" onclick="highlightEncodeTextSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer un texte en une séquence ADN</a><br />
             - <a href="#" onclick="highlightPixelArtWithTooltip(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer une image en une séquence ADN</a><br />
             - <a href="#" onclick="highlightDecodeSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">décoder une séquence ADN</a>
@@ -11275,58 +11275,48 @@
             if (placeholderOverlay.parentNode) {
               placeholderOverlay.remove();
             }
+            textInput.style.transition = "";
+
+            // 2. Dès que le texte n'est plus highlight, highlight le bouton "Texte" pendant 2 secondes
+            encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
+
+            encodeTextBtn.style.transition = "all 0.3s ease";
+            encodeTextBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+            encodeTextBtn.style.transform = "scale(1.1)";
+            encodeTextBtn.style.zIndex = "1000";
+
             setTimeout(() => {
-              textInput.style.transition = "";
+              encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
+              encodeTextBtn.style.transform = "";
+              encodeTextBtn.style.zIndex = "";
+              encodeTextBtn.style.transition = "";
 
-              // 2. Après 5 secondes, highlight le bouton "Texte" pendant 2 secondes
+              // 3. Dès que le 1er bouton est éteint, highlight le bouton "Texte à trous" pendant 2 secondes
+              trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+              const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
+
+              trouModeBtn.style.transition = "all 0.3s ease";
+              trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+              trouModeBtn.style.transform = "scale(1.1)";
+              trouModeBtn.style.zIndex = "1000";
+
               setTimeout(() => {
-                encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
-
-                encodeTextBtn.style.transition = "all 0.3s ease";
-                encodeTextBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                encodeTextBtn.style.transform = "scale(1.1)";
-                encodeTextBtn.style.zIndex = "1000";
-
+                trouModeBtn.style.boxShadow = originalTrouBoxShadow;
+                trouModeBtn.style.transform = "";
+                trouModeBtn.style.zIndex = "";
+                trouModeBtn.style.transition = "";
+                // Recentrer vers la première fenêtre après 1 seconde
                 setTimeout(() => {
-                  encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
-                  encodeTextBtn.style.transform = "";
-                  encodeTextBtn.style.zIndex = "";
-                  setTimeout(() => {
-                    encodeTextBtn.style.transition = "";
-
-                    // 3. Après 2 secondes, highlight le bouton "Texte à trous" pendant 2 secondes
-                    setTimeout(() => {
-                      trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                      const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
-
-                      trouModeBtn.style.transition = "all 0.3s ease";
-                      trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                      trouModeBtn.style.transform = "scale(1.1)";
-                      trouModeBtn.style.zIndex = "1000";
-
-                      setTimeout(() => {
-                        trouModeBtn.style.boxShadow = originalTrouBoxShadow;
-                        trouModeBtn.style.transform = "";
-                        trouModeBtn.style.zIndex = "";
-                        setTimeout(() => {
-                          trouModeBtn.style.transition = "";
-                          // Recentrer vers la première fenêtre après 1 seconde
-                          setTimeout(() => {
-                            const fenetre1 = document.getElementById("demarrageFenetre1");
-                            if (fenetre1) {
-                              fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                            }
-                          }, 1000);
-                        }, 300);
-                      }, 2000);
-                    }, 100);
-                  }, 300);
-                }, 2000);
-              }, 100);
-            }, 5000);
+                  const fenetre1 = document.getElementById("demarrageFenetre1");
+                  if (fenetre1) {
+                    fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+                }, 1000);
+              }, 2000);
+            }, 2000);
           }, 5000);
         }, 500);
       }
