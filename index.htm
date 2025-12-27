@@ -12071,12 +12071,12 @@
                         codeTableElement.style.zIndex = "1000";
                         codeTableElement.style.position = "relative";
 
-                        // Créer le tooltip pour le code génétique (même message que le 1er tiret)
+                        // Créer le tooltip pour le code génétique (message spécifique pour le 3e tiret)
                         const codeTooltip = document.createElement("div");
                         codeTooltip.id = "codeGenetiqueTooltip";
                         
                         const codeTooltipContent = document.createElement("div");
-                        codeTooltipContent.innerHTML = "Le logiciel va ensuite utiliser ce code génétique fictif pour encoder ton message en une séquence ADN";
+                        codeTooltipContent.innerHTML = "Le logiciel va ensuite décoder ta séquence ADN en utilisant ce code génétique fictif pour lire le message secret qui s'y cache.";
                         codeTooltipContent.style.cssText = `
                           padding-right: 30px;
                           text-align: center;
