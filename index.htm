@@ -11204,7 +11204,7 @@
           return;
         }
 
-        // 1. Scroller vers le textarea et le highlight 3 secondes avec mise en évidence du placeholder
+        // 1. Scroller vers le textarea et le highlight 5 secondes avec mise en évidence du placeholder
         textInput.scrollIntoView({ behavior: "smooth", block: "center" });
 
         // Attendre que le scroll soit terminé
@@ -11224,17 +11224,16 @@
           placeholderOverlay.id = "placeholderOverlay";
           const placeholderText = textInput.placeholder;
           const highlight1 = "Ecris, colle ou importe un texte";
-          const highlight2 = "puis clique sur le bouton Texte ou Texte à trous selon le résultat souhaité";
           
-          // Créer le HTML avec les parties mises en évidence
+          // Créer le HTML avec les parties mises en évidence - utiliser une méthode plus robuste
           let highlightedText = placeholderText;
+          // Échapper les caractères spéciaux pour la regex et remplacer
+          const escapedHighlight = highlight1.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const highlightRegex = new RegExp(escapedHighlight, 'g');
+          const highlightStyle = 'background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);';
           highlightedText = highlightedText.replace(
-            highlight1,
-            '<span style="background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">' + highlight1 + '</span>'
-          );
-          highlightedText = highlightedText.replace(
-            highlight2,
-            '<span style="background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">' + highlight2 + '</span>'
+            highlightRegex,
+            '<span style="' + highlightStyle + '">' + highlight1 + '</span>'
           );
           
           placeholderOverlay.innerHTML = highlightedText;
@@ -11277,121 +11276,10 @@
             }
             textInput.style.transition = "";
 
-            // 2. Highlight de la zone de résultat dnaOutput avec surlignage de "Le résultat apparaitra ici"
-            if (dnaOutput) {
-              dnaOutput.scrollIntoView({ behavior: "smooth", block: "center" });
-              
-              setTimeout(() => {
-                const originalDnaOutputStyle = dnaOutput.style.cssText;
-                const originalDnaOutputBoxShadow = dnaOutput.style.boxShadow;
-                const originalDnaOutputBorder = dnaOutput.style.border;
-                
-                dnaOutput.style.transition = "all 0.3s ease";
-                dnaOutput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                dnaOutput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
-                dnaOutput.style.zIndex = "1000";
-                dnaOutput.style.position = "relative";
-                
-                // Surligner le texte "Le résultat apparaitra ici" dans le pseudo-élément
-                // On crée un overlay similaire pour le texte du placeholder
-                const resultOverlay = document.createElement("div");
-                resultOverlay.id = "resultOverlay";
-                const resultPlaceholderText = "Le résultat apparaitra ici... Tu peux le copier-coller dans encodage pour tester que tout fonctionne puis envoyer ce message codé à qui tu veux. Pour les textes à trous, double-clique sur les mots que tu souhaites masquer.";
-                const resultHighlight = "Le résultat apparaitra ici";
-                
-                let highlightedResultText = resultPlaceholderText;
-                highlightedResultText = highlightedResultText.replace(
-                  resultHighlight,
-                  '<span style="background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">' + resultHighlight + '</span>'
-                );
-                
-                resultOverlay.innerHTML = highlightedResultText;
-                
-                const dnaOutputComputedStyle = window.getComputedStyle(dnaOutput);
-                
-                resultOverlay.style.cssText = `
-                  position: absolute;
-                  top: ${parseInt(dnaOutputComputedStyle.paddingTop) || 8}px;
-                  left: ${parseInt(dnaOutputComputedStyle.paddingLeft) || 8}px;
-                  width: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingLeft) || 8) + (parseInt(dnaOutputComputedStyle.paddingRight) || 8)}px);
-                  height: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingTop) || 8) + (parseInt(dnaOutputComputedStyle.paddingBottom) || 8)}px);
-                  background: ${dnaOutputComputedStyle.backgroundColor || '#fff'};
-                  border: none;
-                  padding: ${dnaOutputComputedStyle.padding || '8px'};
-                  font-family: ${dnaOutputComputedStyle.fontFamily || 'inherit'};
-                  font-size: ${dnaOutputComputedStyle.fontSize || '14px'};
-                  line-height: ${dnaOutputComputedStyle.lineHeight || '1.5'};
-                  color: ${dnaOutputComputedStyle.color || '#999'};
-                  font-style: italic;
-                  pointer-events: none;
-                  z-index: 10002;
-                  overflow: hidden;
-                  box-sizing: border-box;
-                  white-space: pre-wrap;
-                  word-wrap: break-word;
-                `;
-                
-                // Ne montrer l'overlay que si dnaOutput est vide
-                if (dnaOutput.textContent.trim() === "") {
-                  dnaOutput.appendChild(resultOverlay);
-                }
-                
-                setTimeout(() => {
-                  dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
-                  dnaOutput.style.border = originalDnaOutputBorder;
-                  dnaOutput.style.zIndex = "";
-                  dnaOutput.style.position = "";
-                  if (resultOverlay.parentNode) {
-                    resultOverlay.remove();
-                  }
-                  dnaOutput.style.transition = "";
-                  
-                  // 3. Dès que le résultat n'est plus highlight, highlight le bouton "Texte" pendant 2 secondes
-                  encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+            // 2. Highlight le bouton "Texte" avec tooltip pendant 2 secondes
+            encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
 
-                  const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
-
-                  encodeTextBtn.style.transition = "all 0.3s ease";
-                  encodeTextBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                  encodeTextBtn.style.transform = "scale(1.1)";
-                  encodeTextBtn.style.zIndex = "1000";
-
-                  setTimeout(() => {
-                    encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
-                    encodeTextBtn.style.transform = "";
-                    encodeTextBtn.style.zIndex = "";
-                    encodeTextBtn.style.transition = "";
-
-                    // 4. Dès que le 1er bouton est éteint, highlight le bouton "Texte à trous" pendant 2 secondes
-                    trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                    const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
-
-                    trouModeBtn.style.transition = "all 0.3s ease";
-                    trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                    trouModeBtn.style.transform = "scale(1.1)";
-                    trouModeBtn.style.zIndex = "1000";
-
-                    setTimeout(() => {
-                      trouModeBtn.style.boxShadow = originalTrouBoxShadow;
-                      trouModeBtn.style.transform = "";
-                      trouModeBtn.style.zIndex = "";
-                      trouModeBtn.style.transition = "";
-                      // Recentrer vers la première fenêtre après 1 seconde
-                      setTimeout(() => {
-                        const fenetre1 = document.getElementById("demarrageFenetre1");
-                        if (fenetre1) {
-                          fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
-                        }
-                      }, 1000);
-                    }, 2000);
-                  }, 2000);
-                }, 3000);
-              }, 500);
-            } else {
-              // Si dnaOutput n'existe pas, continuer avec les boutons
-              encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-
+            setTimeout(() => {
               const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
 
               encodeTextBtn.style.transition = "all 0.3s ease";
@@ -11399,35 +11287,199 @@
               encodeTextBtn.style.transform = "scale(1.1)";
               encodeTextBtn.style.zIndex = "1000";
 
+              // Créer le tooltip au-dessus des boutons
+              const tooltip = document.createElement("div");
+              tooltip.id = "encodeTextTooltip";
+              
+              const tooltipContent = document.createElement("div");
+              tooltipContent.innerHTML = "Clique sur le bouton Texte ou Texte à trous selon le résultat souhaité";
+              tooltipContent.style.cssText = `
+                padding-right: 30px;
+                text-align: center;
+              `;
+              
+              tooltip.style.cssText = `
+                position: fixed;
+                background: rgba(255, 255, 255, 0.98);
+                border: 2px solid #667eea;
+                border-radius: 8px;
+                padding: 15px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                z-index: 10000;
+                max-width: 400px;
+                font-size: 0.95rem;
+                line-height: 1.6;
+                color: #333;
+              `;
+              
+              tooltip.appendChild(tooltipContent);
+              
+              // Positionner le tooltip au-dessus du bouton
+              const rect = encodeTextBtn.getBoundingClientRect();
+              const tooltipWidth = 400;
+              const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+              tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
+              tooltip.style.top = (rect.top - 10) + "px";
+              tooltip.style.transform = "translateY(-100%)";
+              
+              document.body.appendChild(tooltip);
+
               setTimeout(() => {
                 encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
                 encodeTextBtn.style.transform = "";
                 encodeTextBtn.style.zIndex = "";
                 encodeTextBtn.style.transition = "";
+                if (tooltip.parentNode) {
+                  tooltip.remove();
+                }
 
+                // 3. Highlight le bouton "Texte à trous" avec tooltip pendant 2 secondes
                 trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
 
-                const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
-
-                trouModeBtn.style.transition = "all 0.3s ease";
-                trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
-                trouModeBtn.style.transform = "scale(1.1)";
-                trouModeBtn.style.zIndex = "1000";
-
                 setTimeout(() => {
-                  trouModeBtn.style.boxShadow = originalTrouBoxShadow;
-                  trouModeBtn.style.transform = "";
-                  trouModeBtn.style.zIndex = "";
-                  trouModeBtn.style.transition = "";
+                  const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
+
+                  trouModeBtn.style.transition = "all 0.3s ease";
+                  trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                  trouModeBtn.style.transform = "scale(1.1)";
+                  trouModeBtn.style.zIndex = "1000";
+
+                  // Créer le tooltip au-dessus du bouton "Texte à trous"
+                  const tooltip2 = document.createElement("div");
+                  tooltip2.id = "trouModeTooltip";
+                  
+                  const tooltipContent2 = document.createElement("div");
+                  tooltipContent2.innerHTML = "Clique sur le bouton Texte ou Texte à trous selon le résultat souhaité";
+                  tooltipContent2.style.cssText = `
+                    padding-right: 30px;
+                    text-align: center;
+                  `;
+                  
+                  tooltip2.style.cssText = `
+                    position: fixed;
+                    background: rgba(255, 255, 255, 0.98);
+                    border: 2px solid #667eea;
+                    border-radius: 8px;
+                    padding: 15px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                    z-index: 10000;
+                    max-width: 400px;
+                    font-size: 0.95rem;
+                    line-height: 1.6;
+                    color: #333;
+                  `;
+                  
+                  tooltip2.appendChild(tooltipContent2);
+                  
+                  // Positionner le tooltip au-dessus du bouton
+                  const rect2 = trouModeBtn.getBoundingClientRect();
+                  const tooltipWidth2 = 400;
+                  const leftPosition2 = rect2.left + (rect2.width / 2) - (tooltipWidth2 / 2);
+                  tooltip2.style.left = Math.max(10, Math.min(leftPosition2, window.innerWidth - tooltipWidth2 - 10)) + "px";
+                  tooltip2.style.top = (rect2.top - 10) + "px";
+                  tooltip2.style.transform = "translateY(-100%)";
+                  
+                  document.body.appendChild(tooltip2);
+
                   setTimeout(() => {
-                    const fenetre1 = document.getElementById("demarrageFenetre1");
-                    if (fenetre1) {
-                      fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                    trouModeBtn.style.boxShadow = originalTrouBoxShadow;
+                    trouModeBtn.style.transform = "";
+                    trouModeBtn.style.zIndex = "";
+                    trouModeBtn.style.transition = "";
+                    if (tooltip2.parentNode) {
+                      tooltip2.remove();
                     }
-                  }, 1000);
-                }, 2000);
+
+                    // 4. En dernier, highlight de la zone de résultat dnaOutput avec surlignage de "Le résultat apparaitra ici"
+                    if (dnaOutput) {
+                      dnaOutput.scrollIntoView({ behavior: "smooth", block: "center" });
+                      
+                      setTimeout(() => {
+                        const originalDnaOutputBoxShadow = dnaOutput.style.boxShadow;
+                        const originalDnaOutputBorder = dnaOutput.style.border;
+                        
+                        dnaOutput.style.transition = "all 0.3s ease";
+                        dnaOutput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                        dnaOutput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
+                        dnaOutput.style.zIndex = "1000";
+                        dnaOutput.style.position = "relative";
+                        
+                        // Surligner le texte "Le résultat apparaitra ici" dans le pseudo-élément
+                        const resultOverlay = document.createElement("div");
+                        resultOverlay.id = "resultOverlay";
+                        const resultPlaceholderText = "Le résultat apparaitra ici... Tu peux le copier-coller dans encodage pour tester que tout fonctionne puis envoyer ce message codé à qui tu veux. Pour les textes à trous, double-clique sur les mots que tu souhaites masquer.";
+                        const resultHighlight = "Le résultat apparaitra ici";
+                        
+                        let highlightedResultText = resultPlaceholderText;
+                        const resultHighlightRegex = new RegExp(resultHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                        highlightedResultText = highlightedResultText.replace(
+                          resultHighlightRegex,
+                          '<span style="background: rgba(255, 215, 0, 0.5); padding: 2px 4px; border-radius: 3px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);">' + resultHighlight + '</span>'
+                        );
+                        
+                        resultOverlay.innerHTML = highlightedResultText;
+                        
+                        const dnaOutputComputedStyle = window.getComputedStyle(dnaOutput);
+                        
+                        resultOverlay.style.cssText = `
+                          position: absolute;
+                          top: ${parseInt(dnaOutputComputedStyle.paddingTop) || 8}px;
+                          left: ${parseInt(dnaOutputComputedStyle.paddingLeft) || 8}px;
+                          width: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingLeft) || 8) + (parseInt(dnaOutputComputedStyle.paddingRight) || 8)}px);
+                          height: calc(100% - ${(parseInt(dnaOutputComputedStyle.paddingTop) || 8) + (parseInt(dnaOutputComputedStyle.paddingBottom) || 8)}px);
+                          background: ${dnaOutputComputedStyle.backgroundColor || '#fff'};
+                          border: none;
+                          padding: ${dnaOutputComputedStyle.padding || '8px'};
+                          font-family: ${dnaOutputComputedStyle.fontFamily || 'inherit'};
+                          font-size: ${dnaOutputComputedStyle.fontSize || '14px'};
+                          line-height: ${dnaOutputComputedStyle.lineHeight || '1.5'};
+                          color: ${dnaOutputComputedStyle.color || '#999'};
+                          font-style: italic;
+                          pointer-events: none;
+                          z-index: 10002;
+                          overflow: hidden;
+                          box-sizing: border-box;
+                          white-space: pre-wrap;
+                          word-wrap: break-word;
+                        `;
+                        
+                        // Ne montrer l'overlay que si dnaOutput est vide
+                        if (dnaOutput.textContent.trim() === "") {
+                          dnaOutput.appendChild(resultOverlay);
+                        }
+                        
+                        setTimeout(() => {
+                          dnaOutput.style.boxShadow = originalDnaOutputBoxShadow;
+                          dnaOutput.style.border = originalDnaOutputBorder;
+                          dnaOutput.style.zIndex = "";
+                          dnaOutput.style.position = "";
+                          if (resultOverlay.parentNode) {
+                            resultOverlay.remove();
+                          }
+                          dnaOutput.style.transition = "";
+                          
+                          // Recentrer vers la première fenêtre après 1 seconde
+                          setTimeout(() => {
+                            const fenetre1 = document.getElementById("demarrageFenetre1");
+                            if (fenetre1) {
+                              fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                            }
+                          }, 1000);
+                        }, 3000);
+                      }, 500);
+                    } else {
+                      // Si dnaOutput n'existe pas, recentrer vers la première fenêtre
+                      setTimeout(() => {
+                        const fenetre1 = document.getElementById("demarrageFenetre1");
+                        if (fenetre1) {
+                          fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                      }, 1000);
+                    }
+                  }, 2000);
+                }, 500);
               }, 2000);
-            }
+            }, 500);
           }, 5000);
         }, 500);
       }
