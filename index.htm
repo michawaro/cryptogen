@@ -929,9 +929,9 @@
               min-width: 250px;
             "
           >
-            Je suis pressé, montre moi tout de suite comment :<br />
-            - <a href="#" onclick="highlightButton('encodeTextBtn', 3000); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer un texte en une séquence ADN</a><br />
-            - <a href="#" onclick="highlightButton('pixelArtBtn', 3000); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer une image en une séquence ADN</a><br />
+            Je suis pressé, montre moi comment :<br />
+            - <a href="#" onclick="highlightEncodeTextSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer un texte en une séquence ADN</a><br />
+            - <a href="#" onclick="highlightPixelArtWithTooltip(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer une image en une séquence ADN</a><br />
             - <a href="#" onclick="highlightDecodeSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">décoder une séquence ADN</a>
           </p>
           <p
@@ -948,6 +948,7 @@
               min-width: 250px;
             "
           >
+            J'ai 5 minutes pour prendre le temps de comprendre comment fonctionne Cryptogen, <a href="https://youtu.be/hiESgS8diVg" target="_blank" style="color: #e91e63; text-decoration: underline; cursor: pointer;">je regarde la vidéo</a>
           </p>
           <p
             style="
@@ -963,6 +964,7 @@
               min-width: 250px;
             "
           >
+            Je suis ici en activité pratique, pour gagner du temps sur la mise en page je peux directement répondre dans le formulaire (en cours de construction)
           </p>
         </div>
       </div>
@@ -3127,7 +3129,9 @@
         </p>
         <textarea
           id="textInput"
-          placeholder="Ecris, colle ou importe un texte que tu souhaites encoder dans de l'ADN. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
+          placeholder="Ecris, colle ou importe un texte que tu souhaites encoder dans de l'ADN puis clique sur le bouton Texte ou Texte à trous 
+          selon le résultat souhaité. Anecdote : il est aujourd'hui possible d'encapsuler l'ADN dans des nanobilles de silice. En les stockant 
+          dans des capsules en acier inoxydable, on estime pouvoir obtenir une durée de vie de 50.000 ans. Source : Académie des technologies - Wikipedia"
         ></textarea>
         <div
           style="
@@ -11182,6 +11186,143 @@
             button.style.transition = "";
           }, 300);
         }, duration);
+      }
+
+      // Fonction pour highlight la séquence d'encodage de texte
+      function highlightEncodeTextSequence() {
+        const textInput = document.getElementById("textInput");
+        const encodeTextBtn = document.getElementById("encodeTextBtn");
+        const trouModeBtn = document.getElementById("trouModeBtn");
+
+        if (!textInput || !encodeTextBtn || !trouModeBtn) {
+          console.warn("Éléments d'encodage texte non trouvés");
+          return;
+        }
+
+        // 1. Scroller vers le textarea et le highlight 2 secondes
+        textInput.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        const originalTextareaStyle = textInput.style.cssText;
+        const originalTextareaBoxShadow = textInput.style.boxShadow;
+        const originalTextareaBorder = textInput.style.border;
+
+        textInput.style.transition = "all 0.3s ease";
+        textInput.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+        textInput.style.border = "3px solid rgba(255, 215, 0, 0.8)";
+        textInput.style.zIndex = "1000";
+
+        setTimeout(() => {
+          textInput.style.boxShadow = originalTextareaBoxShadow;
+          textInput.style.border = originalTextareaBorder;
+          textInput.style.zIndex = "";
+          setTimeout(() => {
+            textInput.style.transition = "";
+          }, 300);
+
+          // 2. Après 2 secondes, highlight le bouton "Texte" pendant 2 secondes
+          setTimeout(() => {
+            encodeTextBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            const originalEncodeBoxShadow = encodeTextBtn.style.boxShadow;
+
+            encodeTextBtn.style.transition = "all 0.3s ease";
+            encodeTextBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+            encodeTextBtn.style.transform = "scale(1.1)";
+            encodeTextBtn.style.zIndex = "1000";
+
+            setTimeout(() => {
+              encodeTextBtn.style.boxShadow = originalEncodeBoxShadow;
+              encodeTextBtn.style.transform = "";
+              encodeTextBtn.style.zIndex = "";
+              setTimeout(() => {
+                encodeTextBtn.style.transition = "";
+
+                // 3. Après 2 secondes, highlight le bouton "Texte à trous" pendant 2 secondes
+                setTimeout(() => {
+                  trouModeBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                  const originalTrouBoxShadow = trouModeBtn.style.boxShadow;
+
+                  trouModeBtn.style.transition = "all 0.3s ease";
+                  trouModeBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+                  trouModeBtn.style.transform = "scale(1.1)";
+                  trouModeBtn.style.zIndex = "1000";
+
+                  setTimeout(() => {
+                    trouModeBtn.style.boxShadow = originalTrouBoxShadow;
+                    trouModeBtn.style.transform = "";
+                    trouModeBtn.style.zIndex = "";
+                    setTimeout(() => {
+                      trouModeBtn.style.transition = "";
+                    }, 300);
+                  }, 2000);
+                }, 100);
+              }, 300);
+            }, 2000);
+          }, 100);
+        }, 2000);
+      }
+
+      // Fonction pour highlight Pixel Art avec tooltip
+      function highlightPixelArtWithTooltip() {
+        const pixelArtBtn = document.getElementById("pixelArtBtn");
+        if (!pixelArtBtn) {
+          console.warn("Bouton Pixel Art non trouvé");
+          return;
+        }
+
+        // Scroller vers le bouton
+        pixelArtBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Attendre que le scroll soit terminé avant de positionner le tooltip
+        setTimeout(() => {
+          // Créer la fenêtre tooltip
+          const tooltip = document.createElement("div");
+          tooltip.id = "pixelArtTooltip";
+          tooltip.innerHTML = "Une fois cliqué il te suffit de sélectionner une palette (= un code génétique) et de dessiner. Chaque pixel coloré correspond à un triplet de nucléotide (par exemple AAA = pixel blanc), Enregistre alors ton dessin en ADN. Quand tu souhaites revoir ton dessin il te suffira de l'importer dans la fenêtre de décodage";
+          tooltip.style.cssText = `
+            position: fixed;
+            background: rgba(255, 255, 255, 0.98);
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            max-width: 400px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #333;
+            pointer-events: none;
+          `;
+
+          // Positionner le tooltip au-dessus du bouton
+          const rect = pixelArtBtn.getBoundingClientRect();
+          const tooltipWidth = 400;
+          const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+          tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
+          tooltip.style.top = (rect.top - 10) + "px";
+          tooltip.style.transform = "translateY(-100%)";
+
+          document.body.appendChild(tooltip);
+
+          // Highlight le bouton
+          const originalBoxShadow = pixelArtBtn.style.boxShadow;
+          pixelArtBtn.style.transition = "all 0.3s ease";
+          pixelArtBtn.style.boxShadow = "0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)";
+          pixelArtBtn.style.transform = "scale(1.1)";
+          pixelArtBtn.style.zIndex = "1000";
+
+          // Retirer le highlight et le tooltip après 3 secondes
+          setTimeout(() => {
+            pixelArtBtn.style.boxShadow = originalBoxShadow;
+            pixelArtBtn.style.transform = "";
+            pixelArtBtn.style.zIndex = "";
+            tooltip.remove();
+            setTimeout(() => {
+              pixelArtBtn.style.transition = "";
+            }, 300);
+          }, 3000);
+        }, 500);
       }
 
       // Fonction pour highlight la séquence de décodage (Importer puis Décoder)
