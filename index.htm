@@ -11243,6 +11243,8 @@
       let highlightTimeouts = [];
       let highlightKeyboardListener = null;
       let currentTooltip = null;
+      let previousHighlightedElement = null;
+      let previousElementStyles = null;
 
       // Fonction helper pour créer un tooltip avec navigation
       function createTooltipWithNavigation(message, stepIndex, totalSteps, onNext, onPrevious, onClose) {
@@ -11290,7 +11292,7 @@
           buttonsContainer.appendChild(prevBtn);
         }
         
-        // Ajouter bouton "Suivant" si ce n'est pas le dernier
+        // Ajouter bouton "Suivant" ou "Terminer" selon l'étape
         if (stepIndex < totalSteps - 1) {
           const nextBtn = document.createElement("div");
           nextBtn.innerHTML = "→ Suivant";
@@ -11310,6 +11312,27 @@
             if (onNext) onNext();
           };
           buttonsContainer.appendChild(nextBtn);
+        } else {
+          // Dernière étape : afficher "Terminer" qui revient à la première étape
+          const finishBtn = document.createElement("div");
+          finishBtn.innerHTML = "Terminer";
+          finishBtn.style.cssText = `
+            color: #667eea;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+          `;
+          finishBtn.onmouseover = () => finishBtn.style.background = "rgba(102, 126, 234, 0.1)";
+          finishBtn.onmouseout = () => finishBtn.style.background = "transparent";
+          finishBtn.onclick = (e) => {
+            e.stopPropagation();
+            // Revenir à la première étape (comme si on appuyait sur flèche droite)
+            if (onNext) onNext(); // onNext sera showStep(0) pour la dernière étape
+          };
+          buttonsContainer.appendChild(finishBtn);
         }
         
         tooltip.style.cssText = `
@@ -11340,6 +11363,14 @@
               if (onNext) onNext();
             }
           };
+        } else {
+          // Dernière étape : clic sur la fenêtre = terminer (revenir au début)
+          tooltip.onclick = (e) => {
+            // Ne pas déclencher si on clique sur les boutons de navigation
+            if (!e.target.closest('div[style*="cursor: pointer"]') || e.target === tooltipContent) {
+              if (onNext) onNext(); // onNext sera showStep(0) pour la dernière étape
+            }
+          };
         }
         
         return tooltip;
@@ -11367,6 +11398,20 @@
         if (currentTooltip && currentTooltip.parentNode) {
           currentTooltip.remove();
         }
+        // Restaurer les styles de l'élément précédemment highlighté
+        if (previousHighlightedElement && previousElementStyles) {
+          previousHighlightedElement.style.transition = "all 0.3s ease";
+          Object.keys(previousElementStyles).forEach(key => {
+            if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
+              previousHighlightedElement.style[key] = '';
+            } else {
+              previousHighlightedElement.style[key] = previousElementStyles[key];
+            }
+          });
+          setTimeout(() => {
+            previousHighlightedElement.style.transition = "";
+          }, 300);
+        }
         if (highlightKeyboardListener) {
           document.removeEventListener('keydown', highlightKeyboardListener);
           highlightKeyboardListener = null;
@@ -11374,6 +11419,8 @@
         currentHighlightSequence = null;
         currentHighlightStep = 0;
         highlightSteps = [];
+        previousHighlightedElement = null;
+        previousElementStyles = null;
       }
 
       // Fonction pour highlight la séquence d'encodage de texte
@@ -11438,7 +11485,12 @@
 
         // Fonction pour afficher un step
         function showStep(stepIndex) {
-          if (stepIndex < 0 || stepIndex >= highlightSteps.length) {
+          // Si on dépasse la dernière étape, revenir à la première
+          if (stepIndex >= highlightSteps.length) {
+            stepIndex = 0;
+          }
+          
+          if (stepIndex < 0) {
             cleanupHighlights();
             // Recentrer vers la première fenêtre
             setTimeout(() => {
@@ -11448,6 +11500,21 @@
               }
             }, 500);
             return;
+          }
+
+          // Restaurer les styles de l'élément précédent
+          if (previousHighlightedElement && previousElementStyles) {
+            previousHighlightedElement.style.transition = "all 0.3s ease";
+            Object.keys(previousElementStyles).forEach(key => {
+              if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
+                previousHighlightedElement.style[key] = '';
+              } else {
+                previousHighlightedElement.style[key] = previousElementStyles[key];
+              }
+            });
+            setTimeout(() => {
+              previousHighlightedElement.style.transition = "";
+            }, 300);
           }
 
           currentHighlightStep = stepIndex;
@@ -11463,22 +11530,30 @@
           element.scrollIntoView({ behavior: "smooth", block: "center" });
 
           setTimeout(() => {
-            // Sauvegarder les styles originaux
+            // Sauvegarder les styles originaux avant d'appliquer le highlight
             const originalStyles = {};
             Object.keys(step.highlightStyle).forEach(key => {
               originalStyles[key] = element.style[key] || window.getComputedStyle(element)[key];
             });
 
+            // Stocker l'élément et ses styles pour la restauration suivante
+            previousHighlightedElement = element;
+            previousElementStyles = originalStyles;
+
             // Appliquer le highlight
             element.style.transition = "all 0.3s ease";
             Object.assign(element.style, step.highlightStyle);
+
+            // Déterminer la fonction onNext : si dernière étape, revenir à 0, sinon étape suivante
+            const isLastStep = stepIndex === highlightSteps.length - 1;
+            const onNextFunction = isLastStep ? () => showStep(0) : () => showStep(stepIndex + 1);
 
             // Créer le tooltip avec navigation
             currentTooltip = createTooltipWithNavigation(
               step.message,
               stepIndex,
               highlightSteps.length,
-              () => showStep(stepIndex + 1), // onNext
+              onNextFunction, // onNext
               () => showStep(stepIndex - 1), // onPrevious
               () => cleanupHighlights() // onClose
             );
@@ -11556,7 +11631,12 @@
 
         // Fonction pour afficher un step
         function showStep(stepIndex) {
-          if (stepIndex < 0 || stepIndex >= highlightSteps.length) {
+          // Si on dépasse la dernière étape, revenir à la première
+          if (stepIndex >= highlightSteps.length) {
+            stepIndex = 0;
+          }
+          
+          if (stepIndex < 0) {
             cleanupHighlights();
             // Recentrer vers la première fenêtre
             setTimeout(() => {
@@ -11566,6 +11646,21 @@
               }
             }, 500);
             return;
+          }
+
+          // Restaurer les styles de l'élément précédent
+          if (previousHighlightedElement && previousElementStyles) {
+            previousHighlightedElement.style.transition = "all 0.3s ease";
+            Object.keys(previousElementStyles).forEach(key => {
+              if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
+                previousHighlightedElement.style[key] = '';
+              } else {
+                previousHighlightedElement.style[key] = previousElementStyles[key];
+              }
+            });
+            setTimeout(() => {
+              previousHighlightedElement.style.transition = "";
+            }, 300);
           }
 
           currentHighlightStep = stepIndex;
@@ -11581,22 +11676,30 @@
           element.scrollIntoView({ behavior: "smooth", block: "center" });
 
           setTimeout(() => {
-            // Sauvegarder les styles originaux
+            // Sauvegarder les styles originaux avant d'appliquer le highlight
             const originalStyles = {};
             Object.keys(step.highlightStyle).forEach(key => {
               originalStyles[key] = element.style[key] || window.getComputedStyle(element)[key];
             });
 
+            // Stocker l'élément et ses styles pour la restauration suivante
+            previousHighlightedElement = element;
+            previousElementStyles = originalStyles;
+
             // Appliquer le highlight
             element.style.transition = "all 0.3s ease";
             Object.assign(element.style, step.highlightStyle);
+
+            // Déterminer la fonction onNext : si dernière étape, revenir à 0, sinon étape suivante
+            const isLastStep = stepIndex === highlightSteps.length - 1;
+            const onNextFunction = isLastStep ? () => showStep(0) : () => showStep(stepIndex + 1);
 
             // Créer le tooltip avec navigation
             currentTooltip = createTooltipWithNavigation(
               step.message,
               stepIndex,
               highlightSteps.length,
-              () => showStep(stepIndex + 1), // onNext
+              onNextFunction, // onNext
               () => showStep(stepIndex - 1), // onPrevious
               () => cleanupHighlights() // onClose
             );
@@ -11713,7 +11816,12 @@
 
         // Fonction pour afficher un step
         function showStep(stepIndex) {
-          if (stepIndex < 0 || stepIndex >= highlightSteps.length) {
+          // Si on dépasse la dernière étape, revenir à la première
+          if (stepIndex >= highlightSteps.length) {
+            stepIndex = 0;
+          }
+          
+          if (stepIndex < 0) {
             cleanupHighlights();
             // Recentrer vers la première fenêtre
             setTimeout(() => {
@@ -11723,6 +11831,21 @@
               }
             }, 500);
             return;
+          }
+
+          // Restaurer les styles de l'élément précédent
+          if (previousHighlightedElement && previousElementStyles) {
+            previousHighlightedElement.style.transition = "all 0.3s ease";
+            Object.keys(previousElementStyles).forEach(key => {
+              if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
+                previousHighlightedElement.style[key] = '';
+              } else {
+                previousHighlightedElement.style[key] = previousElementStyles[key];
+              }
+            });
+            setTimeout(() => {
+              previousHighlightedElement.style.transition = "";
+            }, 300);
           }
 
           currentHighlightStep = stepIndex;
@@ -11738,22 +11861,30 @@
           element.scrollIntoView({ behavior: "smooth", block: "center" });
 
           setTimeout(() => {
-            // Sauvegarder les styles originaux
+            // Sauvegarder les styles originaux avant d'appliquer le highlight
             const originalStyles = {};
             Object.keys(step.highlightStyle).forEach(key => {
               originalStyles[key] = element.style[key] || window.getComputedStyle(element)[key];
             });
 
+            // Stocker l'élément et ses styles pour la restauration suivante
+            previousHighlightedElement = element;
+            previousElementStyles = originalStyles;
+
             // Appliquer le highlight
             element.style.transition = "all 0.3s ease";
             Object.assign(element.style, step.highlightStyle);
+
+            // Déterminer la fonction onNext : si dernière étape, revenir à 0, sinon étape suivante
+            const isLastStep = stepIndex === highlightSteps.length - 1;
+            const onNextFunction = isLastStep ? () => showStep(0) : () => showStep(stepIndex + 1);
 
             // Créer le tooltip avec navigation
             currentTooltip = createTooltipWithNavigation(
               step.message,
               stepIndex,
               highlightSteps.length,
-              () => showStep(stepIndex + 1), // onNext
+              onNextFunction, // onNext
               () => showStep(stepIndex - 1), // onPrevious
               () => cleanupHighlights() // onClose
             );
