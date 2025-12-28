@@ -11369,16 +11369,55 @@
       function positionTooltip(tooltip, targetElement) {
         document.body.appendChild(tooltip);
         
-        const rect = targetElement.getBoundingClientRect();
-        const tooltipWidth = 400;
-        const tooltipHeight = tooltip.offsetHeight;
-        const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-        const spacing = window.innerWidth <= 768 ? 5 : 10;
+        // Fonction pour calculer et appliquer la position
+        const calculatePosition = () => {
+          const rect = targetElement.getBoundingClientRect();
+          const tooltipWidth = 400;
+          const tooltipHeight = tooltip.offsetHeight;
+          const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+          const spacing = window.innerWidth <= 768 ? 5 : 10;
+          
+          // Utiliser window.innerWidth et window.innerHeight pour une meilleure compatibilité Android
+          const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+          
+          // Calculer la position horizontale
+          let left = Math.max(10, Math.min(leftPosition, viewportWidth - tooltipWidth - 10));
+          
+          // Calculer la position verticale
+          let top = rect.top - spacing - tooltipHeight;
+          
+          // Vérifier si le tooltip dépasse en haut de l'écran (problème fréquent sur Android)
+          if (top < 10) {
+            // Si oui, le positionner en dessous de l'élément
+            top = rect.bottom + spacing;
+            // Si ça dépasse toujours, le centrer verticalement par rapport à l'élément
+            if (top + tooltipHeight > viewportHeight - 10) {
+              top = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+            }
+          }
+          
+          // S'assurer que le tooltip reste dans les limites de la fenêtre
+          top = Math.max(10, Math.min(top, viewportHeight - tooltipHeight - 10));
+          
+          return { left, top };
+        };
         
-        // Toujours positionner depuis le haut de l'élément, comme pour les boutons
-        tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
-        tooltip.style.top = (rect.top - spacing - tooltipHeight) + "px";
+        // Calculer et appliquer la position
+        const position = calculatePosition();
+        tooltip.style.left = position.left + "px";
+        tooltip.style.top = position.top + "px";
         tooltip.style.transform = "none";
+        tooltip.style.position = "fixed";
+        
+        // Recalculer après un court délai pour corriger les problèmes de rendu Android
+        setTimeout(() => {
+          if (tooltip.parentNode) {
+            const newPosition = calculatePosition();
+            tooltip.style.left = newPosition.left + "px";
+            tooltip.style.top = newPosition.top + "px";
+          }
+        }, 50);
       }
 
       // Fonction pour nettoyer les highlights
