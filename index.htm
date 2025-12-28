@@ -159,6 +159,16 @@
         transform: translateY(-50%) scale(1.05);
         opacity: 0.9;
       }
+      /* Styles pour les cellules de la grille pixel art */
+      .pixel-cell {
+        min-width: 0 !important;
+        min-height: 0 !important;
+        flex-shrink: 1 !important;
+        flex-grow: 0 !important;
+      }
+      #pixelGrid {
+        contain: layout style;
+      }
       /* Styles pour l'image de la fabrique dans l'éditeur Pixel Art */
       .pixel-art-image-container {
         display: flex;
@@ -438,6 +448,13 @@
           visibility: visible !important;
           opacity: 1 !important;
         }
+        /* Cellules de la grille en portrait */
+        #pixelGrid .pixel-cell {
+          min-width: 0 !important;
+          min-height: 0 !important;
+          width: auto !important;
+          height: auto !important;
+        }
       }
       /* Mode paysage mobile : boutons à gauche, grille optimisée en hauteur */
       @media (max-width: 768px) and (orientation: landscape) {
@@ -469,6 +486,13 @@
           display: grid !important;
           visibility: visible !important;
           opacity: 1 !important;
+        }
+        /* Cellules de la grille en paysage */
+        #pixelGrid .pixel-cell {
+          min-width: 0 !important;
+          min-height: 0 !important;
+          width: auto !important;
+          height: auto !important;
         }
         /* Conteneur de la grille optimisé en paysage */
         #pixelArtContent > div > div:last-child {
@@ -9657,7 +9681,7 @@
           actualGridWidth +
           '/' +
           actualGridHeight +
-          '; user-select: none; touch-action: pan-x pan-y pinch-zoom; flex: 1; overflow: visible; transition: transform 0.1s ease-out; box-sizing: border-box;"></div>';
+          '; user-select: none; touch-action: pan-x pan-y pinch-zoom; flex: 1; overflow: visible; transition: transform 0.1s ease-out; box-sizing: border-box;">';
 
         for (let i = 0; i < actualGridHeight; i++) {
           for (let j = 0; j < actualGridWidth; j++) {
