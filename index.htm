@@ -6592,6 +6592,9 @@
         const tbody = document.getElementById("codeTable");
         if (!tbody) return; // Si le tbody n'existe pas encore, sortir
 
+        // Vider le tbody avant de le remplir pour éviter les doublons
+        tbody.innerHTML = "";
+
         const entries = Object.entries(geneticCode)
           .filter(([k, v]) => v !== "START")
           .sort(([a], [b]) => a.localeCompare(b));
@@ -6644,13 +6647,7 @@
         });
       }
 
-      // Appeler la fonction au chargement du DOM
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", populateCodeTable);
-      } else {
-        // Le DOM est déjà chargé
-        populateCodeTable();
-      }
+      // Appeler la fonction au chargement du DOM (sera appelée aussi dans le gestionnaire DOMContentLoaded global)
 
       // Coloriser le textarea de décodage en temps réel
       const dnaInput = document.getElementById("dnaInput");
