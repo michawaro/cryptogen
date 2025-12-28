@@ -975,9 +975,9 @@
             "
           >
             Je suis pressé, montre moi comment :<br /><br />
-            - <a href="#" onclick="highlightEncodeTextSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer un texte en une séquence ADN</a><br />
-            - <a href="#" onclick="highlightPixelArtWithTooltip(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer une image en une séquence ADN</a><br />
-            - <a href="#" onclick="highlightDecodeSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">décoder une séquence ADN</a>
+            <a href="#" onclick="highlightEncodeTextSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer un texte en une séquence ADN</a><br />
+            <a href="#" onclick="highlightPixelArtWithTooltip(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">transformer une image en une séquence ADN</a><br />
+            <a href="#" onclick="highlightDecodeSequence(); return false;" style="color: #4caf50; text-decoration: underline; cursor: pointer;">décoder une séquence ADN</a>
           </p>
           <p
             style="
@@ -11400,7 +11400,7 @@
           currentTooltip.remove();
         }
         // Restaurer les styles de l'élément précédemment highlighté
-        if (previousHighlightedElement && previousElementStyles) {
+        if (previousHighlightedElement && previousElementStyles && previousHighlightedElement.parentNode) {
           previousHighlightedElement.style.transition = "all 0.3s ease";
           Object.keys(previousElementStyles).forEach(key => {
             if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
@@ -11410,7 +11410,9 @@
             }
           });
           setTimeout(() => {
-            previousHighlightedElement.style.transition = "";
+            if (previousHighlightedElement && previousHighlightedElement.parentNode) {
+              previousHighlightedElement.style.transition = "";
+            }
           }, 300);
         }
         if (highlightKeyboardListener) {
@@ -11504,7 +11506,7 @@
           }
 
           // Restaurer les styles de l'élément précédent
-          if (previousHighlightedElement && previousElementStyles) {
+          if (previousHighlightedElement && previousElementStyles && previousHighlightedElement.parentNode) {
             previousHighlightedElement.style.transition = "all 0.3s ease";
             Object.keys(previousElementStyles).forEach(key => {
               if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
@@ -11514,7 +11516,9 @@
               }
             });
             setTimeout(() => {
-              previousHighlightedElement.style.transition = "";
+              if (previousHighlightedElement && previousHighlightedElement.parentNode) {
+                previousHighlightedElement.style.transition = "";
+              }
             }, 300);
           }
 
@@ -11658,7 +11662,7 @@
           }
 
           // Restaurer les styles de l'élément précédent
-          if (previousHighlightedElement && previousElementStyles) {
+          if (previousHighlightedElement && previousElementStyles && previousHighlightedElement.parentNode) {
             previousHighlightedElement.style.transition = "all 0.3s ease";
             Object.keys(previousElementStyles).forEach(key => {
               if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
@@ -11668,7 +11672,9 @@
               }
             });
             setTimeout(() => {
-              previousHighlightedElement.style.transition = "";
+              if (previousHighlightedElement && previousHighlightedElement.parentNode) {
+                previousHighlightedElement.style.transition = "";
+              }
             }, 300);
           }
 
@@ -11851,7 +11857,7 @@
           }
 
           // Restaurer les styles de l'élément précédent
-          if (previousHighlightedElement && previousElementStyles) {
+          if (previousHighlightedElement && previousElementStyles && previousHighlightedElement.parentNode) {
             previousHighlightedElement.style.transition = "all 0.3s ease";
             Object.keys(previousElementStyles).forEach(key => {
               if (previousElementStyles[key] === '' || previousElementStyles[key] === 'none' || previousElementStyles[key] === 'auto') {
@@ -11861,7 +11867,9 @@
               }
             });
             setTimeout(() => {
-              previousHighlightedElement.style.transition = "";
+              if (previousHighlightedElement && previousHighlightedElement.parentNode) {
+                previousHighlightedElement.style.transition = "";
+              }
             }, 300);
           }
 
