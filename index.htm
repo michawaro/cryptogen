@@ -1035,7 +1035,7 @@
           >
             J'ai 5 minutes pour regarder la vidéo explicative :<br />
             <a href="https://youtu.be/hiESgS8diVg" target="_blank" style="display: inline-block; margin-top: 10px; cursor: pointer;">
-              <img src="https://www.dropbox.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&dl=1" alt="Miniature vidéo explicative" style="max-width: 50%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+              <img id="videoExplicativeImg" src="https://dl.dropboxusercontent.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&dl=1" alt="Miniature vidéo explicative" style="max-width: 50%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
             </a>
           </p>
           <p
@@ -2210,7 +2210,7 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 15px;
-                justify-content: flex-start;
+                justify-content: center;
                 align-items: center;
                 margin-bottom: 15px;
               "
@@ -2308,7 +2308,7 @@
               style="
                 display: flex;
                 gap: 8px;
-                justify-content: flex-start;
+                justify-content: center;
                 align-items: center;
                 flex-wrap: wrap;
               "
@@ -2528,7 +2528,7 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 15px;
-                justify-content: flex-start;
+                justify-content: center;
                 align-items: center;
                 margin-bottom: 15px;
               "
@@ -2626,7 +2626,7 @@
               style="
                 display: flex;
                 gap: 8px;
-                justify-content: flex-start;
+                justify-content: center;
                 align-items: center;
                 flex-wrap: wrap;
               "
@@ -2944,7 +2944,7 @@
               style="
                 display: flex;
                 gap: 8px;
-                justify-content: flex-start;
+                justify-content: center;
                 align-items: center;
                 flex-wrap: wrap;
               "
@@ -6587,57 +6587,70 @@
         downloadFile(blob, fileName);
       }
 
-      const tbody = document.getElementById("codeTable");
-      const entries = Object.entries(geneticCode)
-        .filter(([k, v]) => v !== "START")
-        .sort(([a], [b]) => a.localeCompare(b));
+      // Fonction pour remplir le tableau de code génétique
+      function populateCodeTable() {
+        const tbody = document.getElementById("codeTable");
+        if (!tbody) return; // Si le tbody n'existe pas encore, sortir
 
-      // Organiser en 4 colonnes, remplir verticalement (colonne par colonne)
-      const numColumns = 4; // 4 colonnes de paires Codon/Symbole
-      const entriesPerColumn = Math.ceil(entries.length / numColumns);
+        const entries = Object.entries(geneticCode)
+          .filter(([k, v]) => v !== "START")
+          .sort(([a], [b]) => a.localeCompare(b));
 
-      // Créer toutes les lignes nécessaires avec toutes les cellules vides
-      const rows = [];
-      for (let i = 0; i < entriesPerColumn; i++) {
-        const row = document.createElement("tr");
-        // Créer 8 cellules vides (4 paires Codon/Symbole)
-        for (let j = 0; j < numColumns * 2; j++) {
-          const cell = document.createElement("td");
-          row.appendChild(cell);
+        // Organiser en 4 colonnes, remplir verticalement (colonne par colonne)
+        const numColumns = 4; // 4 colonnes de paires Codon/Symbole
+        const entriesPerColumn = Math.ceil(entries.length / numColumns);
+
+        // Créer toutes les lignes nécessaires avec toutes les cellules vides
+        const rows = [];
+        for (let i = 0; i < entriesPerColumn; i++) {
+          const row = document.createElement("tr");
+          // Créer 8 cellules vides (4 paires Codon/Symbole)
+          for (let j = 0; j < numColumns * 2; j++) {
+            const cell = document.createElement("td");
+            row.appendChild(cell);
+          }
+          rows.push(row);
+          tbody.appendChild(row);
         }
-        rows.push(row);
-        tbody.appendChild(row);
+
+        // Remplir colonne par colonne (verticalement)
+        // Colonne 0 : entrées 0, 1, 2, 3, ...
+        // Colonne 1 : entrées entriesPerColumn, entriesPerColumn+1, ...
+        // Colonne 2 : entrées 2*entriesPerColumn, 2*entriesPerColumn+1, ...
+        // Colonne 3 : entrées 3*entriesPerColumn, 3*entriesPerColumn+1, ...
+        entries.forEach(([codon, symbol], index) => {
+          // Calculer la colonne et la ligne pour un remplissage vertical
+          const columnIndex = Math.floor(index / entriesPerColumn);
+          const rowIndex = index % entriesPerColumn;
+
+          // S'assurer qu'on ne dépasse pas le nombre de colonnes
+          if (columnIndex >= numColumns) return;
+
+          const row = rows[rowIndex];
+
+          // Trouver la position dans la ligne (chaque colonne = 2 cellules : Codon + Symbole)
+          const codonCellIndex = columnIndex * 2;
+          const symbolCellIndex = codonCellIndex + 1;
+
+          // Remplir les cellules
+          row.cells[codonCellIndex].textContent = codon;
+          row.cells[symbolCellIndex].textContent = symbol;
+
+          // Colorer les codons stop en rose pastel
+          if (["TAA", "TAG", "TGA"].includes(codon)) {
+            row.cells[codonCellIndex].style.backgroundColor = "#ffb3d9";
+            row.cells[symbolCellIndex].style.backgroundColor = "#ffb3d9";
+          }
+        });
       }
 
-      // Remplir colonne par colonne (verticalement)
-      // Colonne 0 : entrées 0, 1, 2, 3, ...
-      // Colonne 1 : entrées entriesPerColumn, entriesPerColumn+1, ...
-      // Colonne 2 : entrées 2*entriesPerColumn, 2*entriesPerColumn+1, ...
-      // Colonne 3 : entrées 3*entriesPerColumn, 3*entriesPerColumn+1, ...
-      entries.forEach(([codon, symbol], index) => {
-        // Calculer la colonne et la ligne pour un remplissage vertical
-        const columnIndex = Math.floor(index / entriesPerColumn);
-        const rowIndex = index % entriesPerColumn;
-
-        // S'assurer qu'on ne dépasse pas le nombre de colonnes
-        if (columnIndex >= numColumns) return;
-
-        const row = rows[rowIndex];
-
-        // Trouver la position dans la ligne (chaque colonne = 2 cellules : Codon + Symbole)
-        const codonCellIndex = columnIndex * 2;
-        const symbolCellIndex = codonCellIndex + 1;
-
-        // Remplir les cellules
-        row.cells[codonCellIndex].textContent = codon;
-        row.cells[symbolCellIndex].textContent = symbol;
-
-        // Colorer les codons stop en rose pastel
-        if (["TAA", "TAG", "TGA"].includes(codon)) {
-          row.cells[codonCellIndex].style.backgroundColor = "#ffb3d9";
-          row.cells[symbolCellIndex].style.backgroundColor = "#ffb3d9";
-        }
-      });
+      // Appeler la fonction au chargement du DOM
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", populateCodeTable);
+      } else {
+        // Le DOM est déjà chargé
+        populateCodeTable();
+      }
 
       // Coloriser le textarea de décodage en temps réel
       const dnaInput = document.getElementById("dnaInput");
@@ -8932,6 +8945,44 @@
         }
       }
 
+      // Fonction pour charger l'image de la vidéo explicative avec plusieurs formats d'URL
+      function loadVideoExplicativeImage() {
+        const img = document.getElementById("videoExplicativeImg");
+        if (!img) return;
+
+        const dropboxUrl =
+          "https://www.dropbox.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&dl=1";
+
+        // Essayer plusieurs formats d'URL Dropbox
+        const urls = [
+          "https://dl.dropboxusercontent.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&dl=1",
+          dropboxUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com"),
+          dropboxUrl.replace("&dl=1", "&raw=1"),
+          dropboxUrl,
+          "https://www.dropbox.com/scl/fi/kmx268y2xchlu1objbjo4/ADN-Mut.jpg?rlkey=lziujwhr354lq43r3j28t2nfl&st=1mzqlzub&raw=1",
+        ];
+
+        let currentIndex = 0;
+        function tryNextUrl() {
+          if (currentIndex >= urls.length) {
+            console.warn("Impossible de charger l'image de la vidéo explicative");
+            return;
+          }
+
+          const testImg = new Image();
+          testImg.onload = function() {
+            img.src = urls[currentIndex];
+          };
+          testImg.onerror = function() {
+            currentIndex++;
+            tryNextUrl();
+          };
+          testImg.src = urls[currentIndex];
+        }
+
+        tryNextUrl();
+      }
+
       // Fonction pour configurer l'agrandissement de l'image La fabrique
       function setupFabriqueZoom(img) {
         // Créer le modal s'il n'existe pas
@@ -9524,18 +9575,17 @@
         const actualGridHeight = pixelArtGrid.length || 70;
 
         // Conteneur pour la grille (image maintenant sous la palette)
-        html +=
-          '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(' +
+        html += '<div id="pixelGrid" style="display: grid; grid-template-columns: repeat(' +
           actualGridWidth +
-          ", 1fr); grid-template-rows: repeat(" +
+          ', 1fr); grid-template-rows: repeat(' +
           actualGridHeight +
-          ", 1fr); gap: 0; background: " +
+          ', 1fr); gap: 0; background: ' +
           pixelBorderColor +
-          "; border: 2px solid #333; padding: 0; width: 100%; max-width: 100%; aspect-ratio: " +
+          '; border: 2px solid #333; padding: 0; width: 100%; max-width: 100%; aspect-ratio: ' +
           actualGridWidth +
-          "/" +
+          '/' +
           actualGridHeight +
-          "; user-select: none; touch-action: pan-x pan-y pinch-zoom; flex: 1; overflow: visible; transition: transform 0.1s ease-out; box-sizing: border-box;"></div>';
+          '; user-select: none; touch-action: pan-x pan-y pinch-zoom; flex: 1; overflow: visible; transition: transform 0.1s ease-out; box-sizing: border-box;"></div>';
 
         for (let i = 0; i < actualGridHeight; i++) {
           for (let j = 0; j < actualGridWidth; j++) {
@@ -11041,6 +11091,9 @@
         const mosaicContainer = document.getElementById("pixelArtMosaic");
         if (!mosaicContainer) return;
 
+        // Vider le conteneur avant de créer de nouveaux carreaux
+        mosaicContainer.innerHTML = "";
+
         // Couleurs variées pour les mosaïques
         const mosaicColors = [
           "#FF6B6B",
@@ -11245,11 +11298,14 @@
         document.addEventListener("DOMContentLoaded", function () {
           createPixelArtMosaic();
           setupAllButtonsForMobile();
+          loadVideoExplicativeImage();
+          populateCodeTable();
         });
       } else {
         // Le DOM est déjà chargé
         createPixelArtMosaic();
         setupAllButtonsForMobile();
+        populateCodeTable();
       }
 
       // Réappliquer la configuration des boutons après un court délai pour les boutons créés dynamiquement
