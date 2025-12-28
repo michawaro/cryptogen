@@ -11384,38 +11384,11 @@
         const tooltipWidth = 400;
         const tooltipHeight = tooltip.offsetHeight;
         const leftPosition = rect.left + (rect.width / 2) - (tooltipWidth / 2);
-        const isMobile = window.innerWidth <= 768;
+        const spacing = window.innerWidth <= 768 ? 5 : 10;
         
-        // Sur mobile, pour les éléments plus grands (comme textarea, table, div), 
-        // positionner le tooltip plus proche en utilisant le bas de l'élément
-        // Pour les boutons (petits éléments), utiliser le top comme avant
-        const isButton = targetElement.tagName === 'BUTTON' || 
-                        (targetElement.tagName === 'INPUT' && targetElement.type === 'button') ||
-                        (rect.height < 60); // Éléments petits considérés comme boutons
-        
-        let spacing, topPosition;
-        if (isMobile) {
-          if (isButton) {
-            // Pour les boutons, garder le spacing de 5px depuis le top
-            spacing = 5;
-            topPosition = rect.top - spacing - tooltipHeight;
-          } else {
-            // Pour les éléments plus grands, positionner depuis le bas avec un spacing réduit
-            spacing = 5;
-            topPosition = rect.bottom - tooltipHeight - spacing;
-            // Si le tooltip dépasse en haut, le positionner au-dessus avec un spacing minimal
-            if (topPosition < 10) {
-              topPosition = rect.top - tooltipHeight - 5;
-            }
-          }
-        } else {
-          // Desktop : comportement normal
-          spacing = 10;
-          topPosition = rect.top - spacing - tooltipHeight;
-        }
-        
+        // Toujours positionner depuis le haut de l'élément, comme pour les boutons
         tooltip.style.left = Math.max(10, Math.min(leftPosition, window.innerWidth - tooltipWidth - 10)) + "px";
-        tooltip.style.top = Math.max(10, topPosition) + "px";
+        tooltip.style.top = (rect.top - spacing - tooltipHeight) + "px";
         tooltip.style.transform = "none";
       }
 
