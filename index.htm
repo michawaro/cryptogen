@@ -407,6 +407,81 @@
           margin: 10px auto !important;
         }
       }
+      /* Mode portrait mobile : tout en colonne, grille en pleine largeur après les boutons */
+      @media (max-width: 768px) and (orientation: portrait) {
+        /* Mode portrait : tout en colonne, grille en pleine largeur après les boutons */
+        #pixelArtContent > div {
+          flex-direction: column !important;
+          flex-wrap: nowrap !important;
+        }
+        /* Palette et outils en haut en portrait */
+        #pixelArtContent > div > div:first-child {
+          width: 100% !important;
+          flex: 0 0 auto !important;
+          order: 1 !important;
+          max-width: 100% !important;
+        }
+        /* Conteneur de la grille en bas en portrait */
+        #pixelArtContent > div > div:last-child {
+          width: 100% !important;
+          flex: 0 0 auto !important;
+          order: 2 !important;
+          max-width: 100% !important;
+          display: block !important;
+        }
+        /* Grille en pleine largeur en portrait */
+        #pixelGrid {
+          width: 100% !important;
+          max-width: 100% !important;
+          aspect-ratio: 1 !important;
+          display: grid !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+      }
+      /* Mode paysage mobile : boutons à gauche, grille optimisée en hauteur */
+      @media (max-width: 768px) and (orientation: landscape) {
+        #pixelArtContent > div {
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          align-items: flex-start !important;
+          gap: 15px !important;
+        }
+        /* Palette et outils à gauche */
+        #pixelArtContent > div > div:first-child {
+          flex: 0 0 200px !important;
+          max-width: 200px !important;
+          order: 1 !important;
+        }
+        /* Conteneur de la grille à droite */
+        #pixelArtContent > div > div:last-child {
+          flex: 1 1 auto !important;
+          min-width: 0 !important;
+          order: 2 !important;
+        }
+        /* Grille optimisée en hauteur pour le paysage */
+        #pixelGrid {
+          width: 100% !important;
+          max-width: 100% !important;
+          aspect-ratio: unset !important;
+          max-height: calc(100vh - 250px) !important;
+          height: auto !important;
+          display: grid !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        /* Conteneur de la grille optimisé en paysage */
+        #pixelArtContent > div > div:last-child {
+          max-height: calc(100vh - 250px) !important;
+          overflow-y: auto !important;
+        }
+        /* Ajuster la hauteur de la modale en paysage */
+        #pixelArtModal > div {
+          max-height: 95vh !important;
+          overflow-y: auto !important;
+          padding: 15px 10px !important;
+        }
+      }
       @media (max-width: 768px) {
         .container {
           padding: 15px 10px;
@@ -11728,7 +11803,18 @@
                 if (currentHighlightSequence === 'encodeText') {
                   if (e.key === 'ArrowRight') {
                     e.preventDefault();
-                    showStep(currentHighlightStep + 1);
+                    // Si on est à la dernière étape, déclencher la même action que le bouton "Terminer"
+                    if (currentHighlightStep === highlightSteps.length - 1) {
+                      cleanupHighlights();
+                      setTimeout(() => {
+                        const fenetre1 = document.getElementById("demarrageFenetre1");
+                        if (fenetre1) {
+                          fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                      }, 500);
+                    } else {
+                      showStep(currentHighlightStep + 1);
+                    }
                   } else if (e.key === 'ArrowLeft') {
                     e.preventDefault();
                     showStep(currentHighlightStep - 1);
@@ -11884,7 +11970,18 @@
                 if (currentHighlightSequence === 'pixelArt') {
                   if (e.key === 'ArrowRight') {
                     e.preventDefault();
-                    showStep(currentHighlightStep + 1);
+                    // Si on est à la dernière étape, déclencher la même action que le bouton "Terminer"
+                    if (currentHighlightStep === highlightSteps.length - 1) {
+                      cleanupHighlights();
+                      setTimeout(() => {
+                        const fenetre1 = document.getElementById("demarrageFenetre1");
+                        if (fenetre1) {
+                          fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                      }, 500);
+                    } else {
+                      showStep(currentHighlightStep + 1);
+                    }
                   } else if (e.key === 'ArrowLeft') {
                     e.preventDefault();
                     showStep(currentHighlightStep - 1);
@@ -12079,7 +12176,18 @@
                 if (currentHighlightSequence === 'decodeSequence') {
                   if (e.key === 'ArrowRight') {
                     e.preventDefault();
-                    showStep(currentHighlightStep + 1);
+                    // Si on est à la dernière étape, déclencher la même action que le bouton "Terminer"
+                    if (currentHighlightStep === highlightSteps.length - 1) {
+                      cleanupHighlights();
+                      setTimeout(() => {
+                        const fenetre1 = document.getElementById("demarrageFenetre1");
+                        if (fenetre1) {
+                          fenetre1.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                      }, 500);
+                    } else {
+                      showStep(currentHighlightStep + 1);
+                    }
                   } else if (e.key === 'ArrowLeft') {
                     e.preventDefault();
                     showStep(currentHighlightStep - 1);
