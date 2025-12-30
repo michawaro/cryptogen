@@ -3481,15 +3481,15 @@
             >
               Télécharger
             </button>
+            <button
+              id="copyBtn"
+              onclick="copyDNAWithTrous()"
+              style="background: #51cf66; display: none"
+            >
+              Copier la séquence
+            </button>
           </div>
         </div>
-        <button
-          id="copyBtn"
-          onclick="copyDNAWithTrous()"
-          style="margin-left: 10px; background: #51cf66; display: none"
-        >
-          Copier la séquence
-        </button>
         <p
           id="dnaOutputLabel"
           style="
@@ -8049,10 +8049,82 @@
       }
 
       // Fonction pour charger la séquence de test texte (ancienne logique)
-      function loadTestTextSequence() {
+      // Fonction pour charger la séquence de test texte depuis Dropbox
+      async function loadTestTextSequence() {
+        const baseUrl =
+          "https://www.dropbox.com/scl/fi/h4e1ey2h1rtaswu3pox4j/Tester-texte.fasta?rlkey=9kzlv41dyp4eo6gu222fkw3ce&st=8mbyoxmd&dl=0";
+
+        // Essayer plusieurs formats d'URL Dropbox
+        const urls = [
+          baseUrl.replace("&dl=0", "&raw=1"),
+          baseUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("&dl=0", "&dl=1"),
+          "https://dl.dropboxusercontent.com/scl/fi/h4e1ey2h1rtaswu3pox4j/Tester-texte.fasta?rlkey=9kzlv41dyp4eo6gu222fkw3ce&st=8mbyoxmd&dl=1",
+        ];
+
         // Vider tous les champs avant le chargement
         clearAllFields();
-        loadTestSequenceOld();
+
+        try {
+          // Afficher un message de chargement
+          const dnaInput = document.getElementById("dnaInput");
+          dnaInput.textContent = "Chargement...";
+
+          let text = null;
+          let lastError = null;
+
+          // Essayer chaque URL jusqu'à ce qu'une fonctionne
+          for (const url of urls) {
+            try {
+              const response = await fetch(url);
+              if (response.ok) {
+                text = await response.text();
+                break; // Succès, sortir de la boucle
+              } else {
+                lastError = new Error(`Erreur HTTP: ${response.status}`);
+              }
+            } catch (err) {
+              console.log("Tentative avec URL échouée:", url, err);
+              lastError = err;
+              continue; // Essayer l'URL suivante
+            }
+          }
+
+          if (!text) {
+            throw (
+              lastError ||
+              new Error("Impossible de télécharger le fichier depuis Dropbox")
+            );
+          }
+
+          // Parser le fichier FASTA
+          const lines = text.split("\n");
+          let sequence = "";
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            // Ignorer les lignes vides et les en-têtes FASTA (commençant par >)
+            if (line && !line.startsWith(">")) {
+              // Retirer les espaces et caractères non-ADN
+              sequence += line.replace(/\s+/g, "").toUpperCase();
+            }
+          }
+
+          if (!sequence) {
+            throw new Error("Aucune séquence ADN trouvée dans le fichier");
+          }
+
+          // Mettre la séquence dans le champ de décodage
+          dnaInput.textContent = sequence;
+
+          // Décoder automatiquement
+          decodeDNA();
+        } catch (error) {
+          console.error("Erreur lors du chargement:", error);
+          alert(
+            "Erreur lors du chargement du fichier de test : " + error.message
+          );
+          dnaInput.textContent = "";
+        }
       }
 
       // Fonction pour charger la séquence de test image depuis Dropbox
