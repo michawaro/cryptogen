@@ -1160,52 +1160,53 @@
             "
             >
             Je suis ici en activité pratique. Pour gagner du temps sur la mise en page je peux directement répondre dans le formulaire :
+            <br />
+            <div
+              style="
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin-top: 15px;
+                flex-wrap: wrap;
+              "
+            >
+              <button
+                onclick="window.open('https://www.dropbox.com/scl/fi/0iof5ncrdisucs2he5bql/TP-Enonc-Seconde.pdf?rlkey=ytiq7buu07wlq81eqr353cs7f&st=10wwmwn9&dl=0', '_blank')"
+                style="
+                  padding: 12px 24px;
+                  font-size: 1rem;
+                  font-weight: 600;
+                  color: white;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  border: none;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  transition: transform 0.2s, box-shadow 0.2s;
+                  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)'"
+              >
+                Enoncé 2nde
+              </button>
+              <button
+                disabled
+                style="
+                  padding: 12px 24px;
+                  font-size: 1rem;
+                  font-weight: 600;
+                  color: #999;
+                  background: #e0e0e0;
+                  border: none;
+                  border-radius: 8px;
+                  cursor: not-allowed;
+                  opacity: 0.6;
+                "
+              >
+                Enoncé 1ere
+              </button>
+            </div>
           </p>
-          <div
-            style="
-              display: flex;
-              justify-content: center;
-              gap: 15px;
-              margin: 15px 0 0 0;
-              flex-wrap: wrap;
-            "
-          >
-            <button
-              onclick="window.open('https://www.dropbox.com/scl/fi/0iof5ncrdisucs2he5bql/TP-Enonc-Seconde.pdf?rlkey=ytiq7buu07wlq81eqr353cs7f&st=10wwmwn9&dl=0', '_blank')"
-              style="
-                padding: 12px 24px;
-                font-size: 1rem;
-                font-weight: 600;
-                color: white;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: transform 0.2s, box-shadow 0.2s;
-                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-              "
-              onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)'"
-              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)'"
-            >
-              Enoncé 2nde
-            </button>
-            <button
-              disabled
-              style="
-                padding: 12px 24px;
-                font-size: 1rem;
-                font-weight: 600;
-                color: #999;
-                background: #e0e0e0;
-                border: none;
-                border-radius: 8px;
-                cursor: not-allowed;
-                opacity: 0.6;
-              "
-            >
-              Enoncé 1ere
-            </button>
-          </div>
         </div>
       </div>
 
