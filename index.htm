@@ -877,10 +877,17 @@
       #contextMenu .menu-item:active {
         background-color: #e0e0e0;
       }
-      /* Style pour les nucléotides modifiés (blanc sur fond noir) */
+      /* Style pour les nucléotides modifiés - additions (blanc sur fond noir) */
       .nucleotide-modified {
         color: white !important;
         background-color: black !important;
+        padding: 2px 1px;
+        border-radius: 2px;
+      }
+      /* Style pour les nucléotides substitués (fond mauve) */
+      .nucleotide-substituted {
+        color: white !important;
+        background-color: #9b59b6 !important;
         padding: 2px 1px;
         border-radius: 2px;
       }
@@ -3862,6 +3869,17 @@
           Dans le cas où certains mots s'affichent sous forme de séquence de
           nucléotides, double cliquez dessus pour les déchiffrer.
         </p>
+        <p
+          style="
+            margin-top: 10px;
+            margin-bottom: 10px;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+          "
+        >
+          Concernant les mutations : 1) Les nucléotides sur fond noir indiquent une addition 2) Les coches rouges indiquent une délétion 3) Les nucléotides sur fond mauve indiquent une substitution
+        </p>
         <div class="output" id="output"></div>
       </div>
 
@@ -5326,11 +5344,13 @@
                 );
 
                 if (overlapStart < overlapEnd) {
+                  // Déterminer le type : substitution ou addition (par défaut addition pour compatibilité)
+                  const mutationType = range.type === "substitution" ? "substitution" : "addition";
                   nodesToWrap.push({
                     node: node,
                     start: overlapStart,
                     end: overlapEnd,
-                    type: "modified",
+                    type: mutationType,
                   });
                 }
               }
@@ -5396,8 +5416,16 @@
                   // Le contenu visuel est créé par CSS (::before et ::after)
                   newContent.push(deletedMarker);
                   lastPos = mod.start;
+                } else if (mod.type === "substitution") {
+                  // Pour les substitutions, ajouter le texte avec fond mauve
+                  const modifiedText = nodeText.substring(mod.start, mod.end);
+                  const modifiedSpan = document.createElement("span");
+                  modifiedSpan.className = "nucleotide-substituted";
+                  modifiedSpan.textContent = modifiedText;
+                  newContent.push(modifiedSpan);
+                  lastPos = mod.end;
                 } else {
-                  // Pour les modifications, ajouter le texte modifié
+                  // Pour les additions, ajouter le texte avec fond noir
                   const modifiedText = nodeText.substring(mod.start, mod.end);
                   const modifiedSpan = document.createElement("span");
                   modifiedSpan.className = "nucleotide-modified";
@@ -8063,16 +8091,18 @@
             // Avant la mutation, pas de changement
             return range;
           } else if (range.start >= oldCleanedPos.end) {
-            // Après la mutation, décaler
+            // Après la mutation, décaler (préserver le type)
             return {
               start: range.start + lengthDiff,
               end: range.end + lengthDiff,
+              type: range.type || "addition" // Préserver le type ou utiliser "addition" par défaut
             };
           } else {
-            // Chevauchement, fusionner
+            // Chevauchement, fusionner (préserver le type si identique)
             return {
               start: Math.min(range.start, oldCleanedPos.start),
               end: Math.max(range.end, oldCleanedPos.end) + lengthDiff,
+              type: range.type || "addition" // Préserver le type ou utiliser "addition" par défaut
             };
           }
         });
@@ -8102,24 +8132,29 @@
             end: oldCleanedPos.end,
           });
         } else {
+          // Stocker le type de mutation : "addition" ou "substitution"
           updatedRanges.push({
             start: newCleanedPos.start,
             end: newCleanedPos.end,
+            type: mutationType === "addition" ? "addition" : "substitution"
           });
         }
 
-        // Fusionner les plages qui se chevauchent
+        // Fusionner les plages qui se chevauchent (uniquement si même type)
         updatedRanges.sort((a, b) => a.start - b.start);
         const merged = [];
         for (let range of updatedRanges) {
+          const lastRange = merged[merged.length - 1];
           if (
             merged.length === 0 ||
-            merged[merged.length - 1].end < range.start
+            lastRange.end < range.start ||
+            (lastRange.type || "addition") !== (range.type || "addition")
           ) {
             merged.push(range);
           } else {
-            merged[merged.length - 1].end = Math.max(
-              merged[merged.length - 1].end,
+            // Fusionner uniquement si même type
+            lastRange.end = Math.max(
+              lastRange.end,
               range.end
             );
           }
@@ -8163,8 +8198,8 @@
           dnaInput.getAttribute("data-modified-ranges") || "[]"
         );
 
-        // Ajouter la nouvelle plage modifiée
-        modifiedRanges.push({ start: cleanedPos.start, end: cleanedPos.end });
+        // Ajouter la nouvelle plage modifiée (par défaut, type "addition" pour compatibilité)
+        modifiedRanges.push({ start: cleanedPos.start, end: cleanedPos.end, type: "addition" });
 
         // Fusionner les plages qui se chevauchent
         modifiedRanges.sort((a, b) => a.start - b.start);
