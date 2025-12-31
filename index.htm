@@ -3831,6 +3831,24 @@
             Mutation
           </button>
           <button id="decodeBtn" onclick="decodeDNA()">Décoder</button>
+          <button
+            id="downloadDecodeBtn"
+            onclick="openDecodeExportModal()"
+            style="
+              background-image: url('https://www.dropbox.com/scl/fi/914wi5wvt59l7dy4j7onz/Bouton-sauvegarder.png?rlkey=g1xvkbw2orc5dxthgo5wkofpf&st=jy6l5f3n&raw=1');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              color: #fff;
+              text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
+                1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
+                1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
+                0 0 5px rgba(0, 0, 0, 0.5);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+            "
+          >
+            Télécharger
+          </button>
         </div>
         <p
           style="
@@ -4229,6 +4247,7 @@
           <h3 style="margin: 0; color: #667eea">Choisir le format d'import</h3>
           <button
             id="closeImportModal"
+            onclick="closeImportModal()"
             style="
               background: #ff6b6b;
               color: white;
@@ -4382,6 +4401,103 @@
             Format standard en bioinformatique : commence par un en-tête (ligne
             commençant par ">") suivi de la séquence ADN sur une ou plusieurs
             lignes. Plus lisible pour les longues séquences.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fenêtre modale pour choisir le format d'export du décodage -->
+    <div
+      id="decodeExportModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1002;
+        overflow-y: auto;
+      "
+    >
+      <div
+        style="
+          background: white;
+          margin: 100px auto;
+          padding: 30px;
+          border-radius: 12px;
+          max-width: 500px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          "
+        >
+          <h3 style="margin: 0; color: #667eea">Choisir le format d'export</h3>
+          <button
+            id="closeDecodeExportModal"
+            onclick="closeDecodeExportModal()"
+            style="
+              background: #ff6b6b;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+            "
+          >
+            ✕
+          </button>
+        </div>
+        <div style="margin-bottom: 20px">
+          <button
+            onclick="exportDecodeEDIFile()"
+            style="
+              width: 100%;
+              padding: 15px;
+              margin-bottom: 10px;
+              background: #ffa94d;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1.1rem;
+              font-weight: bold;
+            "
+          >
+            📄 Format .edi
+          </button>
+          <p style="margin: 5px 0 15px 0; color: #666; font-size: 0.9rem">
+            Format simple : une seule ligne de séquence ADN sans en-tête. Les mutations sont conservées.
+          </p>
+          <button
+            onclick="exportDecodeFASTAFile()"
+            style="
+              width: 100%;
+              padding: 15px;
+              margin-bottom: 10px;
+              background: #ffa94d;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 1.1rem;
+              font-weight: bold;
+            "
+          >
+            🧬 Format .fasta
+          </button>
+          <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem">
+            Format standard en bioinformatique : commence par un en-tête (ligne
+            commençant par ">") suivi de la séquence ADN sur une ou plusieurs
+            lignes. Les mutations sont conservées dans les métadonnées.
           </p>
         </div>
       </div>
@@ -6888,6 +7004,98 @@
         downloadFile(blob, fileName);
       }
 
+      // Fonction pour ouvrir la modale d'export du décodage
+      function openDecodeExportModal() {
+        const modal = document.getElementById("decodeExportModal");
+        if (modal) {
+          modal.style.display = "block";
+        }
+      }
+
+      // Fonction pour fermer la modale d'export du décodage
+      function closeDecodeExportModal() {
+        const modal = document.getElementById("decodeExportModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      // Fonction pour exporter la séquence de décodage en format .edi avec mutations
+      async function exportDecodeEDIFile(fileName = "sequence_decodee.edi") {
+        const dnaInput = document.getElementById("dnaInput");
+        if (!dnaInput) {
+          alert("Aucune séquence à exporter. Veuillez d'abord importer une séquence.");
+          return;
+        }
+
+        let fullSequence = dnaInput.getAttribute("data-full-sequence");
+        if (!fullSequence) {
+          fullSequence = dnaInput.innerText || dnaInput.textContent || "";
+        }
+
+        if (!fullSequence) {
+          alert("Aucune séquence à exporter. Veuillez d'abord importer une séquence.");
+          return;
+        }
+
+        // Récupérer les mutations
+        const modifiedRanges = JSON.parse(
+          dnaInput.getAttribute("data-modified-ranges") || "[]"
+        );
+        const deletedRanges = JSON.parse(
+          dnaInput.getAttribute("data-deleted-ranges") || "[]"
+        );
+
+        // Format .edi : séquence ADN avec métadonnées JSON en commentaire
+        // Le format est compatible : séquence ADN suivie d'un commentaire JSON
+        const ediFile = fullSequence + "\n#MUTATIONS:" + JSON.stringify({modified: modifiedRanges, deleted: deletedRanges});
+
+        // Télécharger directement
+        const blob = new Blob([ediFile], { type: "text/plain;charset=utf-8;" });
+        downloadFile(blob, fileName);
+        closeDecodeExportModal();
+      }
+
+      // Fonction pour exporter la séquence de décodage en format .fasta avec mutations
+      async function exportDecodeFASTAFile(fileName = "sequence_decodee.fasta") {
+        const dnaInput = document.getElementById("dnaInput");
+        if (!dnaInput) {
+          alert("Aucune séquence à exporter. Veuillez d'abord importer une séquence.");
+          return;
+        }
+
+        let fullSequence = dnaInput.getAttribute("data-full-sequence");
+        if (!fullSequence) {
+          fullSequence = dnaInput.innerText || dnaInput.textContent || "";
+        }
+
+        if (!fullSequence) {
+          alert("Aucune séquence à exporter. Veuillez d'abord importer une séquence.");
+          return;
+        }
+
+        // Récupérer les mutations
+        const modifiedRanges = JSON.parse(
+          dnaInput.getAttribute("data-modified-ranges") || "[]"
+        );
+        const deletedRanges = JSON.parse(
+          dnaInput.getAttribute("data-deleted-ranges") || "[]"
+        );
+
+        // Format FASTA : en-tête avec métadonnées JSON, puis séquence (60 caractères par ligne)
+        const mutationsJson = JSON.stringify({modified: modifiedRanges, deleted: deletedRanges});
+        const fastaContent = `>Sequence_ADN_decodee mutations=${mutationsJson}\n`;
+        const sequenceLines = fullSequence.match(/.{1,60}/g) || [fullSequence];
+        const fastaFile = fastaContent + sequenceLines.join("\n") + "\n";
+
+        // Télécharger directement
+        const blob = new Blob([fastaFile], {
+          type: "text/plain;charset=utf-8;",
+        });
+        downloadFile(blob, fileName);
+        closeDecodeExportModal();
+      }
+
       // Fonction pour remplir le tableau de code génétique
       function populateCodeTable() {
         const tbody = document.getElementById("codeTable");
@@ -8147,15 +8355,43 @@
             const text = e.target.result;
             const dnaInput = document.getElementById("dnaInput");
 
+            // Vérifier si le fichier contient des métadonnées de mutations
+            let mutationsData = null;
+            const mutationsMatch = text.match(/#MUTATIONS:(.+)$/m);
+            if (mutationsMatch) {
+              try {
+                mutationsData = JSON.parse(mutationsMatch[1]);
+              } catch (e) {
+                console.warn("Impossible de parser les mutations:", e);
+              }
+            }
+
             // Format .edi : extraire la séquence ADN complète (y compris les marqueurs "à trou" TGGTGG)
             // On extrait toutes les séquences de nucléotides (A, T, C, G) pour préserver TGGTGG et les positions
-            const sequences = text.match(/[ATCG]+/gi);
+            // Exclure la ligne des mutations si présente
+            const textWithoutMutations = text.split('\n').filter(line => !line.startsWith('#MUTATIONS:')).join('\n');
+            const sequences = textWithoutMutations.match(/[ATCG]+/gi);
 
             if (sequences && sequences.length > 0) {
               // Concaténer toutes les séquences trouvées pour préserver les marqueurs "à trou"
               const dnaSequence = sequences.join("").toUpperCase();
               // Stocker la séquence complète (avec marqueurs) pour le décodage
               dnaInput.setAttribute("data-full-sequence", dnaSequence);
+              
+              // Restaurer les mutations si présentes
+              if (mutationsData) {
+                if (mutationsData.modified) {
+                  dnaInput.setAttribute("data-modified-ranges", JSON.stringify(mutationsData.modified));
+                }
+                if (mutationsData.deleted) {
+                  dnaInput.setAttribute("data-deleted-ranges", JSON.stringify(mutationsData.deleted));
+                }
+              } else {
+                // Réinitialiser les mutations si aucune n'est trouvée
+                dnaInput.removeAttribute("data-modified-ranges");
+                dnaInput.removeAttribute("data-deleted-ranges");
+              }
+              
               // Afficher seulement la partie visible avant le marqueur
               const markerIndex = dnaSequence.indexOf(TROU_MARKER);
               const visible =
@@ -8164,7 +8400,7 @@
                   : dnaSequence;
               dnaInput.textContent = visible;
               colorizeDNAInput();
-              alert("Fichier .edi importé avec succès !");
+              alert("Fichier .edi importé avec succès !" + (mutationsData ? " Les mutations ont été restaurées." : ""));
             } else {
               alert("Aucune séquence ADN trouvée dans le fichier .edi");
             }
@@ -8197,11 +8433,21 @@
             // Format FASTA : les lignes commençant par > sont des en-têtes, les autres sont des séquences
             const lines = text.split("\n");
             let sequences = [];
+            let mutationsData = null;
 
             for (let line of lines) {
               line = line.trim();
-              // Ignorer les lignes d'en-tête (commencent par >)
-              if (line && !line.startsWith(">")) {
+              // Vérifier les lignes d'en-tête pour les métadonnées de mutations
+              if (line.startsWith(">")) {
+                const mutationsMatch = line.match(/mutations=({.+})/);
+                if (mutationsMatch) {
+                  try {
+                    mutationsData = JSON.parse(mutationsMatch[1]);
+                  } catch (e) {
+                    console.warn("Impossible de parser les mutations:", e);
+                  }
+                }
+              } else if (line) {
                 // Extraire uniquement les caractères A, T, C, G (ignorer les espaces, retours à la ligne, etc.)
                 const sequence = line.replace(/[^ATCGatcg]/g, "").toUpperCase();
                 if (sequence.length > 0) {
@@ -8213,9 +8459,25 @@
             if (sequences.length > 0) {
               // Concaténer toutes les séquences trouvées
               const dnaSequence = sequences.join("");
+              dnaInput.setAttribute("data-full-sequence", dnaSequence);
+              
+              // Restaurer les mutations si présentes
+              if (mutationsData) {
+                if (mutationsData.modified) {
+                  dnaInput.setAttribute("data-modified-ranges", JSON.stringify(mutationsData.modified));
+                }
+                if (mutationsData.deleted) {
+                  dnaInput.setAttribute("data-deleted-ranges", JSON.stringify(mutationsData.deleted));
+                }
+              } else {
+                // Réinitialiser les mutations si aucune n'est trouvée
+                dnaInput.removeAttribute("data-modified-ranges");
+                dnaInput.removeAttribute("data-deleted-ranges");
+              }
+              
               dnaInput.textContent = dnaSequence;
               colorizeDNAInput();
-              alert("Fichier .fasta importé avec succès !");
+              alert("Fichier .fasta importé avec succès !" + (mutationsData ? " Les mutations ont été restaurées." : ""));
             } else {
               alert("Aucune séquence ADN trouvée dans le fichier .fasta");
             }
