@@ -1967,6 +1967,8 @@
               <div
                 class="nucleotide-square"
                 data-nucleotide="A"
+                data-word="manip"
+                data-position="1"
                 onclick="cycleNucleotide(this)"
                 style="
                   width: 50px;
@@ -1991,6 +1993,8 @@
               <div
                 class="nucleotide-square"
                 data-nucleotide="A"
+                data-word="manip"
+                data-position="2"
                 onclick="cycleNucleotide(this)"
                 style="
                   width: 50px;
@@ -2015,6 +2019,8 @@
               <div
                 class="nucleotide-square"
                 data-nucleotide="A"
+                data-word="manip"
+                data-position="3"
                 onclick="cycleNucleotide(this)"
                 style="
                   width: 50px;
@@ -2039,6 +2045,8 @@
               <div
                 class="nucleotide-square"
                 data-nucleotide="A"
+                data-word="manip"
+                data-position="4"
                 onclick="cycleNucleotide(this)"
                 style="
                   width: 50px;
@@ -2063,6 +2071,8 @@
               <div
                 class="nucleotide-square"
                 data-nucleotide="A"
+                data-word="manip"
+                data-position="5"
                 onclick="cycleNucleotide(this)"
                 style="
                   width: 50px;
@@ -4849,6 +4859,14 @@
           }
         }
 
+        // M : 1ère position de manip (indice 0)
+        if (manipSeq.length >= 1) {
+          if (manipSeq[0] !== codeM) {
+            isValid = false;
+            errors.push("M dans 'manip' position 1");
+          }
+        }
+
         // I : 4e et 5e position de manip (indices 3 et 4) - vérifier que le code I correspond bien aux 4e et 5e lettres
         if (manipSeq.length >= 5) {
           const iSeq = manipSeq[3] + manipSeq[4]; // 4e et 5e lettres de manip
@@ -4858,7 +4876,7 @@
           }
         } else if (manipSeq.length < 5) {
           isValid = false;
-          errors.push("La séquence 'manip' doit avoir au moins 5 nucléotides pour vérifier I");
+          errors.push("manip incomplet");
         }
 
         // Modifier le style de la fenêtre "code-input-window" au lieu d'afficher un message
@@ -4881,7 +4899,7 @@
             resultEl.textContent = "✓ Bravo, tu viens de créer ton 1er code génétique fictif !";
             resultEl.style.color = "#51cf66";
           } else {
-            resultEl.textContent = "✗ " + (errors.length > 0 ? errors.join(", ") : "Erreur de validation");
+            resultEl.textContent = "✗ Votre code comporte au moins une erreur";
             resultEl.style.color = "#f5576c";
           }
         }
