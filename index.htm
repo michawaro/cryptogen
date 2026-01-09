@@ -590,6 +590,9 @@
         margin-bottom: 40px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(10px);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
       }
       h2 {
         font-size: 2.4rem;
@@ -3954,9 +3957,9 @@
           placeholder="Ecris ou colle ici une séquence d'ADN. L'ADN contient des informations codées sous forme de séquence de nucléotides. Peut-être qu'un message est caché dans la séquence que tu vas étudier ?"
         ></div>
         <div id="contextMenu" style="display: none">
-          <div class="menu-item" data-action="substitution">Substitution</div>
-          <div class="menu-item" data-action="addition">Addition</div>
-          <div class="menu-item" data-action="suppression">Délétion</div>
+          <div class="menu-item" data-action="substitution">Substitution = Remplacer un/des nucléotides par un/des autres</div>
+          <div class="menu-item" data-action="addition">Addition = Ajouter un/des nucléotides</div>
+          <div class="menu-item" data-action="suppression">Délétion = Supprimer un/des nucléotides</div>
         </div>
         <div
           style="
@@ -4015,7 +4018,7 @@
             text-align: center;
           "
         >
-          Concernant les mutations : 1) Les nucléotides sur fond noir indiquent une addition 2) Les coches rouges indiquent une délétion 3) Les nucléotides sur fond mauve indiquent une substitution
+          Concernant les mutations : 1) Les nucléotides sur <span style="background-color: #000; color: #fff; padding: 2px 4px; border-radius: 3px;">fond noir</span> indiquent une addition 2) Les coches <span style="color: #f00;">rouges</span> ✓ indiquent une délétion 3) Les nucléotides sur <span style="background-color: #9370db; color: #fff; padding: 2px 4px; border-radius: 3px;">fond mauve</span> indiquent une substitution
         </p>
         <div class="output" id="output"></div>
       </div>
