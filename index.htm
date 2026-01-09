@@ -2109,7 +2109,7 @@
                 text-align: center;
               "
             >
-              Note, au fur et à mesure, la correspondance que tu choisis entre les nucléotides (carrés à compléter) et les lettres codées par ces nucléotides. Bravo, tu viens de créer ton 1er code génétique fictif !
+              Note, au fur et à mesure, la correspondance que tu choisis entre les nucléotides (carrés à compléter) et les lettres codées par ces nucléotides.
             </p>
             <div
               style="
@@ -2320,59 +2320,59 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <div
+      <div
+        style="
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 12px;
+          padding: 25px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          margin: 30px 0;
+        "
+      >
+        <p
           style="
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin: 30px 0;
+            margin: 15px 0;
+            color: #333;
+            font-size: 1.1rem;
+            line-height: 1.8;
           "
         >
-          <p
-            style="
-              margin: 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
-            "
-          >
-            <strong>Q1)</strong> Recopie le code que tu as obtenu.
-          </p>
-          <p
-            style="
-              margin: 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
-            "
-          >
-            <strong>Q2)</strong> Quel problème s'est posé lorsque tu as eu à
-            écrire le mot « manip » ?
-          </p>
-          <p
-            style="
-              margin: 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
-            "
-          >
-            <strong>Q3)</strong> Quelle a été la seule solution pour toi ?
-          </p>
-          <p
-            style="
-              margin: 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
-            "
-          >
-            <strong>Q4)</strong> Et si tu devais encoder les 26 lettres de
-            l'alphabet à l'aide de seulement 4 nucléotides, comment ferais-tu ?
-          </p>
-        </div>
+          <strong>Q1)</strong> Recopie le code que tu as obtenu.
+        </p>
+        <p
+          style="
+            margin: 15px 0;
+            color: #333;
+            font-size: 1.1rem;
+            line-height: 1.8;
+          "
+        >
+          <strong>Q2)</strong> Quel problème s'est posé lorsque tu as eu à
+          écrire le mot « manip » ?
+        </p>
+        <p
+          style="
+            margin: 15px 0;
+            color: #333;
+            font-size: 1.1rem;
+            line-height: 1.8;
+          "
+        >
+          <strong>Q3)</strong> Quelle a été la seule solution pour toi ?
+        </p>
+        <p
+          style="
+            margin: 15px 0;
+            color: #333;
+            font-size: 1.1rem;
+            line-height: 1.8;
+          "
+        >
+          <strong>Q4)</strong> Et si tu devais encoder les 26 lettres de
+          l'alphabet à l'aide de seulement 4 nucléotides, comment ferais-tu ?
+        </p>
       </div>
 
       <div class="section">
@@ -4849,13 +4849,16 @@
           }
         }
 
-        // I : 4e et 5e position de manip (indices 3 et 4)
+        // I : 4e et 5e position de manip (indices 3 et 4) - vérifier que le code I correspond bien aux 4e et 5e lettres
         if (manipSeq.length >= 5) {
-          const iSeq = manipSeq[3] + manipSeq[4];
+          const iSeq = manipSeq[3] + manipSeq[4]; // 4e et 5e lettres de manip
           if (iSeq !== codeI) {
             isValid = false;
             errors.push("I dans 'manip' positions 4-5");
           }
+        } else if (manipSeq.length < 5) {
+          isValid = false;
+          errors.push("La séquence 'manip' doit avoir au moins 5 nucléotides pour vérifier I");
         }
 
         // Modifier le style de la fenêtre "code-input-window" au lieu d'afficher un message
@@ -4872,9 +4875,15 @@
           }
         }
         
-        // Masquer le message de résultat
+        // Afficher le message de résultat
         if (resultEl) {
-          resultEl.textContent = "";
+          if (isValid) {
+            resultEl.textContent = "✓ Bravo, tu viens de créer ton 1er code génétique fictif !";
+            resultEl.style.color = "#51cf66";
+          } else {
+            resultEl.textContent = "✗ " + (errors.length > 0 ? errors.join(", ") : "Erreur de validation");
+            resultEl.style.color = "#f5576c";
+          }
         }
       }
 
