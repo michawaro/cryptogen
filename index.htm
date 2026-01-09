@@ -2109,7 +2109,7 @@
                 text-align: center;
               "
             >
-              Remplis ici, au fur et à mesure, le code que tu as créé et utilisé.
+              Note, au fur et à mesure, la correspondance que tu choisis entre les nucléotides (carrés à compléter) et les lettres codées par ces nucléotides. Bravo, tu viens de créer ton 1er code génétique fictif !
             </p>
             <div
               style="
@@ -2122,7 +2122,7 @@
             >
               <div style="display: flex; align-items: center; gap: 5px">
                 <span style="font-size: 1.1rem; font-weight: 600; color: #333"
-                  >A=</span
+                  >Lettre A =</span
                 >
                 <div
                   class="nucleotide-square-empty"
@@ -2150,7 +2150,91 @@
               </div>
               <div style="display: flex; align-items: center; gap: 5px">
                 <span style="font-size: 1.1rem; font-weight: 600; color: #333"
-                  >I=</span
+                  >Lettre P =</span
+                >
+                <div
+                  class="nucleotide-square-empty"
+                  data-letter="P"
+                  data-nucleotide=""
+                  onclick="cycleNucleotide(this)"
+                  style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 12px;
+                    background: #f0f0f0;
+                    border: 2px dashed #ccc;
+                    color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
+                ></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px">
+                <span style="font-size: 1.1rem; font-weight: 600; color: #333"
+                  >Lettre M =</span
+                >
+                <div
+                  class="nucleotide-square-empty"
+                  data-letter="M"
+                  data-nucleotide=""
+                  onclick="cycleNucleotide(this)"
+                  style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 12px;
+                    background: #f0f0f0;
+                    border: 2px dashed #ccc;
+                    color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
+                ></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px">
+                <span style="font-size: 1.1rem; font-weight: 600; color: #333"
+                  >Lettre N =</span
+                >
+                <div
+                  class="nucleotide-square-empty"
+                  data-letter="N"
+                  data-nucleotide=""
+                  onclick="cycleNucleotide(this)"
+                  style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 12px;
+                    background: #f0f0f0;
+                    border: 2px dashed #ccc;
+                    color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                  "
+                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
+                ></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px">
+                <span style="font-size: 1.1rem; font-weight: 600; color: #333"
+                  >Lettre I =</span
                 >
                 <div style="display: flex; gap: 3px">
                   <div
@@ -2202,90 +2286,6 @@
                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
                   ></div>
                 </div>
-              </div>
-              <div style="display: flex; align-items: center; gap: 5px">
-                <span style="font-size: 1.1rem; font-weight: 600; color: #333"
-                  >M=</span
-                >
-                <div
-                  class="nucleotide-square-empty"
-                  data-letter="M"
-                  data-nucleotide=""
-                  onclick="cycleNucleotide(this)"
-                  style="
-                    width: 45px;
-                    height: 45px;
-                    border-radius: 12px;
-                    background: #f0f0f0;
-                    border: 2px dashed #ccc;
-                    color: transparent;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.2rem;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                  "
-                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                ></div>
-              </div>
-              <div style="display: flex; align-items: center; gap: 5px">
-                <span style="font-size: 1.1rem; font-weight: 600; color: #333"
-                  >N=</span
-                >
-                <div
-                  class="nucleotide-square-empty"
-                  data-letter="N"
-                  data-nucleotide=""
-                  onclick="cycleNucleotide(this)"
-                  style="
-                    width: 45px;
-                    height: 45px;
-                    border-radius: 12px;
-                    background: #f0f0f0;
-                    border: 2px dashed #ccc;
-                    color: transparent;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.2rem;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                  "
-                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                ></div>
-              </div>
-              <div style="display: flex; align-items: center; gap: 5px">
-                <span style="font-size: 1.1rem; font-weight: 600; color: #333"
-                  >P=</span
-                >
-                <div
-                  class="nucleotide-square-empty"
-                  data-letter="P"
-                  data-nucleotide=""
-                  onclick="cycleNucleotide(this)"
-                  style="
-                    width: 45px;
-                    height: 45px;
-                    border-radius: 12px;
-                    background: #f0f0f0;
-                    border: 2px dashed #ccc;
-                    color: transparent;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.2rem;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                  "
-                  onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#999'"
-                  onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='#ccc'"
-                ></div>
               </div>
             </div>
             <div style="text-align: center; margin-top: 20px">
@@ -3099,6 +3099,7 @@
               border-radius: 12px;
               padding: 20px;
               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+              margin-top: 30px;
             "
           >
             <p
@@ -3431,69 +3432,69 @@
             </div>
             </div>
           </div>
-        </div>
 
-        <div
-          style="
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin: 30px 0;
-          "
-        >
-          <p
+          <div
             style="
-              margin: 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
+              background: rgba(255, 255, 255, 0.8);
+              border-radius: 12px;
+              padding: 25px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+              margin: 30px 0;
             "
           >
-            <strong>Q1)</strong> Compare tes résultats 1 et 2 pour expliquer en quoi
-            consiste une information génétique.
-          </p>
-          <p
-            style="
-              margin: 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
-            "
-          >
-            <strong>Q2)</strong> Compare tes résultats obtenus en 2) et 3) pour une même
-            information génétique mais avec 2 codes génétiques différents pour expliquer la
-            différence entre une information génétique et un code génétique !
-          </p>
-          <p
-            style="
-              margin: 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
-            "
-          >
-            <strong>Q3)</strong> Dans l'expérience de transgenèse (<a href="https://www.canva.com/design/DAG8PqCZsx4/65sGfIci6KjlzDWKIhrujg/view?utm_content=DAG8PqCZsx4&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hd3cb4c7f86" target="_blank" style="color: #667eea; text-decoration: underline;">voir prérequis</a>) il a été vu que de l'ADN humain, 
-            le gène de l'insuline, introduit dans une bactérie, a permis de produire de l'insuline humaine chez cette bactérie.
-            Selon toi, la bactérie et l'homme ont-ils le même code génétique ? Argumente ta réponse.
-          </p>
-          <p
-            style="
-              margin: 20px 0 15px 0;
-              color: #333;
-              font-size: 1.1rem;
-              line-height: 1.8;
-              padding: 15px;
-              background: rgba(102, 126, 234, 0.1);
-              border-radius: 8px;
-              border-left: 4px solid #667eea;
-            "
-          >
-            Les êtres vivants possèdent tous le même code génétique, autrement dit,
-            le code génétique est universel. En revanche chaque être vivant, à
-            l'exception des clones et des jumeaux, possède une information
-            génétique unique.
-          </p>
+            <p
+              style="
+                margin: 15px 0;
+                color: #333;
+                font-size: 1.1rem;
+                line-height: 1.8;
+              "
+            >
+              <strong>Q1)</strong> Compare tes résultats 1 et 2 pour expliquer en quoi
+              consiste une information génétique.
+            </p>
+            <p
+              style="
+                margin: 15px 0;
+                color: #333;
+                font-size: 1.1rem;
+                line-height: 1.8;
+              "
+            >
+              <strong>Q2)</strong> Compare tes résultats obtenus en 2) et 3) pour une même
+              information génétique mais avec 2 codes génétiques différents pour expliquer la
+              différence entre une information génétique et un code génétique !
+            </p>
+            <p
+              style="
+                margin: 15px 0;
+                color: #333;
+                font-size: 1.1rem;
+                line-height: 1.8;
+              "
+            >
+              <strong>Q3)</strong> Dans l'expérience de transgenèse (<a href="https://www.canva.com/design/DAG8PqCZsx4/65sGfIci6KjlzDWKIhrujg/view?utm_content=DAG8PqCZsx4&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hd3cb4c7f86" target="_blank" style="color: #667eea; text-decoration: underline;">voir prérequis</a>) il a été vu que de l'ADN humain, 
+              le gène de l'insuline, introduit dans une bactérie, a permis de produire de l'insuline humaine chez cette bactérie.
+              Selon toi, la bactérie et l'homme ont-ils le même code génétique ? Argumente ta réponse.
+            </p>
+            <p
+              style="
+                margin: 20px 0 15px 0;
+                color: #333;
+                font-size: 1.1rem;
+                line-height: 1.8;
+                padding: 15px;
+                background: rgba(102, 126, 234, 0.1);
+                border-radius: 8px;
+                border-left: 4px solid #667eea;
+              "
+            >
+              Les êtres vivants possèdent tous le même code génétique, autrement dit,
+              le code génétique est universel. En revanche chaque être vivant, à
+              l'exception des clones et des jumeaux, possède une information
+              génétique unique.
+            </p>
+          </div>
         </div>
       </div>
 
