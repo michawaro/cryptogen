@@ -3507,6 +3507,9 @@
         >
           Activité 3 : Décoder l'ADN selon un code génétique fictif
         </h3>
+        <p style="text-align: center; margin: 15px 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
+          Téléchargez les séquences ci dessous puis ouvrez les dans <a href="#importDnaBtn" style="color: #667eea; text-decoration: underline; cursor: pointer;">la rubrique « Décodage »</a> à l'aide du bouton « Importer de l'ADN ». La séquence 4 est un peu spéciale, vous ne pourrez la télécharger qu'après avoir trouvé le code grâce aux autres séquences
+        </p>
         <div
           style="
             display: flex;
@@ -5871,6 +5874,11 @@
             { passive: false }
           );
         });
+
+        // Centrer la vue sur la fenêtre de résultats
+        setTimeout(() => {
+          output.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
       }
 
       // Fonction pour ouvrir la modale de décodage interactif
