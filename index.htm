@@ -1223,17 +1223,22 @@
               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             "
           >
-            <h3
-              style="
-                margin: 0 0 20px 0;
-                color: #333;
-                font-size: 1.5rem;
-                font-weight: 600;
-                text-align: center;
-              "
-            >
-              Quelques notions sur l'ADN
-            </h3>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin: 0 0 20px 0;">
+              <h3
+                style="
+                  margin: 0;
+                  color: #333;
+                  font-size: 1.5rem;
+                  font-weight: 600;
+                  flex: 1;
+                "
+              >
+                Quelques notions sur l'ADN
+              </h3>
+              <a href="https://youtu.be/OChk3V-VbSo?si=4ky2P-fsTNSEt--8" target="_blank" style="display: inline-block; margin-left: 20px; cursor: pointer;">
+                <img src="https://www.dropbox.com/scl/fi/42a1mgkljgighbt5517a9/YT-26-ADN-1.jpg?rlkey=4p97aw2apt7y6fg4anen91cca&st=bkja6z1x&dl=0" alt="Miniature vidéo ADN" style="max-width: 50%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" />
+              </a>
+            </div>
             <div
               id="notionsADNButtons"
               style="display: flex; flex-direction: column; gap: 10px"
@@ -3529,7 +3534,10 @@
           Activité 3 : Décoder l'ADN selon un code génétique fictif
         </h3>
         <p style="text-align: center; margin: 15px 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
-          Téléchargez les séquences ci dessous puis ouvrez les dans <a href="#importDnaBtn" style="color: #667eea; text-decoration: underline; cursor: pointer;">la rubrique « Décodage »</a> à l'aide du bouton « Importer de l'ADN ».
+          Téléchargez les séquences ci dessous puis ouvrez les dans <a href="#importDnaBtn" style="color: #667eea; text-decoration: underline; cursor: pointer;">la rubrique « Décodage »</a> à l'aide du bouton « Importer de l'ADN ». ⚠️
+        </p>
+        <p style="text-align: center; margin: 15px 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
+          Contrairement à ce que l'on pourrait croire, aucune identification n'est nécessaire pour télécharger les séquences : cliquer juste sur "Télécharger" puis cliquer en dessous du bouton "Continuer" sur "Poursuivez en le téléchargeant uniquement"
         </p>
         <p style="text-align: center; margin: 15px 0; color: #333; font-size: 0.95rem; line-height: 1.6;">
           La séquence 4 est un peu spéciale, vous ne pourrez la télécharger qu'après avoir trouvé le code grâce aux autres séquences
@@ -4006,7 +4014,7 @@
             text-align: center;
           "
         >
-          Bouton Décoder : permet de visualiser l'information contenue dans ton ADN
+          <span style="background: #ff6b6b; color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Bouton mutation</span> : cliquer puis sélectionner une portion d'ADN pour ajouter ou supprimer une mutation
         </p>
         <p
           style="
@@ -4029,7 +4037,7 @@
             text-align: center;
           "
         >
-          Bouton mutation : cliquer puis sélectionner une portion d'ADN pour ajouter ou supprimer une mutation
+          <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Bouton Décoder</span> : permet de visualiser l'information contenue dans ton ADN
         </p>
         <p
           style="
@@ -4040,7 +4048,7 @@
             text-align: center;
           "
         >
-          Concernant les mutations : 1) Les nucléotides sur <span style="background-color: #000; color: #fff; padding: 2px 4px; border-radius: 3px;">fond noir</span> indiquent une addition 2) Les coches <span style="color: #f00;">rouges</span> ✓ indiquent une délétion 3) Les nucléotides sur <span style="background-color: #9370db; color: #fff; padding: 2px 4px; border-radius: 3px;">fond mauve</span> indiquent une substitution
+          Concernant les mutations : 1) Les nucléotides sur <span style="background-color: #000; color: #fff; padding: 2px 4px; border-radius: 3px;">fond noir</span> indiquent une addition 2) Les coches <span style="color: #f00;">rouges</span> <span class="nucleotide-deleted-marker"></span> indiquent une délétion 3) Les nucléotides sur <span style="background-color: #9370db; color: #fff; padding: 2px 4px; border-radius: 3px;">fond mauve</span> indiquent une substitution
         </p>
         <div class="output" id="output"></div>
       </div>
