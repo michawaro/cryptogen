@@ -3548,7 +3548,7 @@
         </p>
         <div style="text-align: center; margin: 15px 0;">
           <img 
-            src="https://www.dropbox.com/scl/fi/VOTRE_IMAGE.png?rlkey=VOTRE_CLE&raw=1" 
+            src="https://www.dropbox.com/scl/fi/169y4p1cri1vrelyf2l6q/T-l-charger.jpg?rlkey=gsy5el787s6atdpdbga7o6qlh&st=ao84a0f3&dl=0&raw=1" 
             alt="Instructions de téléchargement" 
             style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"
           />
@@ -4072,42 +4072,6 @@
 
       <div class="section">
         <h2>Code génétique fictif - Triplet de nucléotides / texte</h2>
-        <div style="margin-bottom: 20px; text-align: center">
-          <button
-            onclick="exportGeneticCode()"
-            style="margin-right: 10px; background: #51cf66"
-          >
-            Exporter CSV
-          </button>
-          <label for="csvFileInput" style="display: inline-block">
-            <button
-              onclick="document.getElementById('csvFileInput').click()"
-              style="background: #4dabf7"
-            >
-              Importer CSV
-            </button>
-            <input
-              type="file"
-              id="csvFileInput"
-              accept=".csv"
-              style="display: none"
-              onchange="importGeneticCode(event)"
-            />
-          </label>
-        </div>
-        <p
-          style="
-            margin-top: 10px;
-            margin-bottom: 15px;
-            color: #666;
-            font-style: italic;
-            text-align: center;
-            font-size: 0.9rem;
-          "
-        >
-          L'import CSV permet à chaque utilisateur de personnaliser
-          temporairement le code génétique pour sa session.
-        </p>
         <table>
           <thead>
             <tr>
@@ -11835,155 +11799,6 @@
           tile.style.border = "none";
           mosaicContainer.appendChild(tile);
         }
-      }
-
-      // Fonction pour exporter le code génétique en CSV
-      function exportGeneticCode() {
-        const entries = Object.entries(geneticCode)
-          .filter(([k, v]) => v !== "START")
-          .sort(([a], [b]) => a.localeCompare(b));
-
-        // Créer le contenu CSV
-        let csvContent = "Codon,Symbole\n";
-        entries.forEach(([codon, symbol]) => {
-          // Échapper les virgules et guillemets dans les symboles
-          const escapedSymbol =
-            symbol.includes(",") || symbol.includes('"')
-              ? `"${symbol.replace(/"/g, '""')}"`
-              : symbol;
-          csvContent += `${codon},${escapedSymbol}\n`;
-        });
-
-        // Créer un blob et télécharger
-        const blob = new Blob([csvContent], {
-          type: "text/csv;charset=utf-8;",
-        });
-        downloadFile(blob, "code_genetique.csv");
-      }
-
-      // Fonction pour importer le code génétique depuis un CSV
-      function importGeneticCode(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          try {
-            const text = e.target.result;
-            const lines = text.split("\n").filter((line) => line.trim() !== "");
-
-            // Ignorer la première ligne (en-tête)
-            const dataLines = lines.slice(1);
-
-            // Créer un nouveau code génétique
-            const newGeneticCode = { ATG: "START" };
-            let hasError = false;
-            let errorMessage = "";
-
-            dataLines.forEach((line, index) => {
-              // Parser la ligne CSV (gérer les virgules dans les valeurs)
-              const match = line.match(/^([^,]+),(".*"|[^,]*)$/);
-              if (match) {
-                const codon = match[1].trim();
-                let symbol = match[2].trim();
-
-                // Enlever les guillemets si présents
-                if (symbol.startsWith('"') && symbol.endsWith('"')) {
-                  symbol = symbol.slice(1, -1).replace(/""/g, '"');
-                }
-
-                // Valider le codon (3 lettres A, T, C, G)
-                if (/^[ATCG]{3}$/.test(codon)) {
-                  newGeneticCode[codon] = symbol;
-                } else {
-                  hasError = true;
-                  errorMessage += `Ligne ${
-                    index + 2
-                  }: Codon invalide "${codon}"\n`;
-                }
-              } else if (line.trim() !== "") {
-                hasError = true;
-                errorMessage += `Ligne ${index + 2}: Format invalide\n`;
-              }
-            });
-
-            if (hasError) {
-              alert("Erreurs lors de l'importation :\n" + errorMessage);
-              return;
-            }
-
-            // Demander confirmation avant de remplacer
-            if (
-              confirm(
-                "Voulez-vous remplacer le code génétique actuel par celui du fichier CSV ?"
-              )
-            ) {
-              // Remplacer le code génétique
-              Object.keys(geneticCode).forEach((key) => {
-                if (key !== "ATG") delete geneticCode[key];
-              });
-              Object.assign(geneticCode, newGeneticCode);
-
-              // Reconstruire le reverseCode global
-              Object.keys(reverseCode).forEach(
-                (key) => delete reverseCode[key]
-              );
-              for (let [codon, char] of Object.entries(geneticCode)) {
-                if (char !== "START" && char !== "Majuscule") {
-                  if (!reverseCode[char]) reverseCode[char] = [];
-                  reverseCode[char].push(codon);
-                }
-              }
-
-              // Recharger le tableau
-              const tbody = document.getElementById("codeTable");
-              tbody.innerHTML = "";
-              const entries = Object.entries(geneticCode)
-                .filter(([k, v]) => v !== "START")
-                .sort(([a], [b]) => a.localeCompare(b));
-
-              const numColumns = 4;
-              const entriesPerColumn = Math.ceil(entries.length / numColumns);
-
-              const rows = [];
-              for (let i = 0; i < entriesPerColumn; i++) {
-                const row = document.createElement("tr");
-                for (let j = 0; j < numColumns * 2; j++) {
-                  const cell = document.createElement("td");
-                  row.appendChild(cell);
-                }
-                rows.push(row);
-                tbody.appendChild(row);
-              }
-
-              entries.forEach(([codon, symbol], index) => {
-                const columnIndex = Math.floor(index / entriesPerColumn);
-                const rowIndex = index % entriesPerColumn;
-                if (columnIndex >= numColumns) return;
-                const row = rows[rowIndex];
-                const codonCellIndex = columnIndex * 2;
-                const symbolCellIndex = codonCellIndex + 1;
-                row.cells[codonCellIndex].textContent = codon;
-                row.cells[symbolCellIndex].textContent = symbol;
-
-                // Colorer les codons stop en rose pastel
-                if (["TAA", "TAG", "TGA"].includes(codon)) {
-                  row.cells[codonCellIndex].style.backgroundColor = "#ffb3d9";
-                  row.cells[symbolCellIndex].style.backgroundColor = "#ffb3d9";
-                }
-              });
-
-              alert("Code génétique importé avec succès !");
-            }
-
-            // Réinitialiser l'input file
-            event.target.value = "";
-          } catch (error) {
-            alert("Erreur lors de la lecture du fichier : " + error.message);
-            event.target.value = "";
-          }
-        };
-        reader.readAsText(file);
       }
 
       // Initialiser les mosaïques du bouton pixel art au chargement
