@@ -3839,7 +3839,7 @@
         <div style="margin-bottom: 15px; text-align: center">
           <button
             id="importDnaBtn"
-            onclick="openImportModal()"
+            onclick="openImportFASTA()"
             style="
               background-image: url('https://www.dropbox.com/scl/fi/cmxmx7gp6ipkgbnkwo7ul/Bouton-ADN.png?rlkey=de5pm9v22723web0s3v5ykp38&st=4s2y7aj8&raw=1');
               background-size: cover;
@@ -3856,13 +3856,6 @@
           >
             Importer de l'ADN
           </button>
-          <input
-            type="file"
-            id="ediFileInput"
-            accept=".edi"
-            style="display: none"
-            onchange="importEDIFile(event)"
-          />
           <input
             type="file"
             id="fastaFileInput"
@@ -3992,24 +3985,6 @@
             Mutation
           </button>
           <button id="decodeBtn" onclick="decodeDNA()">Décoder</button>
-          <button
-            id="downloadDecodeBtn"
-            onclick="openDecodeExportModal()"
-            style="
-              background-image: url('https://www.dropbox.com/scl/fi/914wi5wvt59l7dy4j7onz/Bouton-sauvegarder.png?rlkey=g1xvkbw2orc5dxthgo5wkofpf&st=jy6l5f3n&raw=1');
-              background-size: cover;
-              background-position: center;
-              background-repeat: no-repeat;
-              color: #fff;
-              text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
-                1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
-                1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
-                0 0 5px rgba(0, 0, 0, 0.5);
-              border: 1px solid rgba(255, 255, 255, 0.3);
-            "
-          >
-            Télécharger
-          </button>
         </div>
         <p
           style="
@@ -4057,6 +4032,34 @@
           <strong>Concernant les mutations :</strong> 1) Les nucléotides sur <span style="background-color: #000; color: #fff; padding: 2px 4px; border-radius: 3px;">fond noir</span> indiquent une addition 2) Les coches <span style="color: #f00;">rouges</span> <span class="nucleotide-deleted-marker"></span> indiquent une délétion 3) Les nucléotides sur <span style="background-color: #9370db; color: #fff; padding: 2px 4px; border-radius: 3px;">fond mauve</span> indiquent une substitution
         </p>
         <div class="output" id="output"></div>
+        <div
+          style="
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+          "
+        >
+          <button
+            id="downloadDecodeBtn"
+            onclick="exportDecodeFASTAFile()"
+            style="
+              background-image: url('https://www.dropbox.com/scl/fi/914wi5wvt59l7dy4j7onz/Bouton-sauvegarder.png?rlkey=g1xvkbw2orc5dxthgo5wkofpf&st=jy6l5f3n&raw=1');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              color: #fff;
+              text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9),
+                1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9),
+                1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 3px rgba(0, 0, 0, 0.8),
+                0 0 5px rgba(0, 0, 0, 0.5);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+            "
+          >
+            Télécharger
+          </button>
+        </div>
       </div>
 
       <div class="section">
@@ -4403,7 +4406,7 @@
       </div>
     </div>
 
-    <!-- Fenêtre modale pour choisir le format d'import -->
+    <!-- Fenêtre modale pour l'import d'ADN -->
     <div
       id="importModal"
       style="
@@ -4438,7 +4441,7 @@
             margin-bottom: 20px;
           "
         >
-          <h3 style="margin: 0; color: #667eea">Choisir le format d'import</h3>
+          <h3 style="margin: 0; color: #667eea">Import de séquence ADN</h3>
           <button
             id="closeImportModal"
             onclick="closeImportModal()"
@@ -4456,12 +4459,20 @@
           </button>
         </div>
         <div style="margin-bottom: 20px">
+          <p style="margin: 0 0 15px 0; color: #333; font-size: 1rem; line-height: 1.6;">
+            Pour être lue, la séquence ADN doit être au format <strong>.fasta</strong>.
+          </p>
+          <p style="margin: 0 0 20px 0; color: #666; font-size: 0.95rem; line-height: 1.6;">
+            Le format FASTA est le format standard en bioinformatique : il commence par un en-tête (ligne commençant par ">") suivi de la séquence ADN sur une ou plusieurs lignes.
+          </p>
+          <p style="margin: 0 0 20px 0; color: #667eea; font-size: 1rem; font-weight: 600; line-height: 1.6;">
+            Une fois la séquence chargée, il vous suffit de cliquer sur le bouton <strong>"Décoder"</strong> pour voir l'information secrète contenue dans l'ADN.
+          </p>
           <button
-            onclick="openImportFormat('edi')"
+            onclick="closeImportModal(); openImportFASTA();"
             style="
               width: 100%;
               padding: 15px;
-              margin-bottom: 10px;
               background: #4dabf7;
               color: white;
               border: none;
@@ -4471,34 +4482,8 @@
               font-weight: bold;
             "
           >
-            📄 Format .edi
+            🧬 Importer un fichier .fasta
           </button>
-          <p style="margin: 5px 0 15px 0; color: #666; font-size: 0.9rem">
-            Format simple : une seule ligne de séquence ADN sans en-tête. Idéal
-            pour les séquences courtes.
-          </p>
-          <button
-            onclick="openImportFormat('fasta')"
-            style="
-              width: 100%;
-              padding: 15px;
-              margin-bottom: 10px;
-              background: #4dabf7;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 1.1rem;
-              font-weight: bold;
-            "
-          >
-            🧬 Format .fasta
-          </button>
-          <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem">
-            Format standard en bioinformatique : commence par un en-tête (ligne
-            commençant par ">") suivi de la séquence ADN sur une ou plusieurs
-            lignes. Plus lisible pour les longues séquences.
-          </p>
         </div>
       </div>
     </div>
@@ -4600,102 +4585,6 @@
       </div>
     </div>
 
-    <!-- Fenêtre modale pour choisir le format d'export du décodage -->
-    <div
-      id="decodeExportModal"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1002;
-        overflow-y: auto;
-      "
-    >
-      <div
-        style="
-          background: white;
-          margin: 100px auto;
-          padding: 30px;
-          border-radius: 12px;
-          max-width: 500px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-          "
-        >
-          <h3 style="margin: 0; color: #667eea">Choisir le format d'export</h3>
-          <button
-            id="closeDecodeExportModal"
-            onclick="closeDecodeExportModal()"
-            style="
-              background: #ff6b6b;
-              color: white;
-              border: none;
-              padding: 8px 16px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 1rem;
-            "
-          >
-            ✕
-          </button>
-        </div>
-        <div style="margin-bottom: 20px">
-          <button
-            onclick="exportDecodeEDIFile()"
-            style="
-              width: 100%;
-              padding: 15px;
-              margin-bottom: 10px;
-              background: #ffa94d;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 1.1rem;
-              font-weight: bold;
-            "
-          >
-            📄 Format .edi
-          </button>
-          <p style="margin: 5px 0 15px 0; color: #666; font-size: 0.9rem">
-            Format simple : une seule ligne de séquence ADN sans en-tête. Les mutations sont conservées.
-          </p>
-          <button
-            onclick="exportDecodeFASTAFile()"
-            style="
-              width: 100%;
-              padding: 15px;
-              margin-bottom: 10px;
-              background: #ffa94d;
-              color: white;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 1.1rem;
-              font-weight: bold;
-            "
-          >
-            🧬 Format .fasta
-          </button>
-          <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem">
-            Format standard en bioinformatique : commence par un en-tête (ligne
-            commençant par ">") suivi de la séquence ADN sur une ou plusieurs
-            lignes. Les mutations sont conservées dans les métadonnées.
-          </p>
-        </div>
-      </div>
-    </div>
 
     <!-- Fenêtre modale pour le décodage interactif -->
     <div
@@ -6950,32 +6839,20 @@
         }
       }
 
-      // Fonction pour ouvrir le sélecteur de fichier selon le format choisi
-      async function openImportFormat(format) {
-        closeImportModal();
-
+      // Fonction pour ouvrir directement le sélecteur de fichier .fasta
+      async function openImportFASTA() {
         // Essayer d'utiliser l'API File System Access pour ouvrir le dossier de téléchargements
         if ("showOpenFilePicker" in window) {
           try {
-            const acceptTypes =
-              format === "edi"
-                ? { "text/plain": [".edi"] }
-                : { "text/plain": [".fasta", ".fa", ".fas"] };
-
             const [fileHandle] = await window.showOpenFilePicker({
-              types: [{ accept: acceptTypes }],
+              types: [{ accept: { "text/plain": [".fasta", ".fa", ".fas"] } }],
               multiple: false,
               startIn: "downloads", // Suggère le dossier de téléchargements
             });
 
             const file = await fileHandle.getFile();
             const event = { target: { files: [file] } };
-
-            if (format === "edi") {
-              importEDIFile(event);
-            } else if (format === "fasta") {
-              importFASTAFile(event);
-            }
+            importFASTAFile(event);
             return;
           } catch (error) {
             // Si l'utilisateur annule ou si l'API échoue, utiliser l'input file classique
@@ -6987,12 +6864,8 @@
           }
         }
 
-        // Fallback : utiliser l'input file classique
-        if (format === "edi") {
-          document.getElementById("ediFileInput").click();
-        } else if (format === "fasta") {
-          document.getElementById("fastaFileInput").click();
-        }
+        // Utiliser l'input file classique
+        document.getElementById("fastaFileInput").click();
       }
 
       // Fonction pour ouvrir la modale d'export
@@ -7230,58 +7103,6 @@
         downloadFile(blob, fileName);
       }
 
-      // Fonction pour ouvrir la modale d'export du décodage
-      function openDecodeExportModal() {
-        const modal = document.getElementById("decodeExportModal");
-        if (modal) {
-          modal.style.display = "block";
-        }
-      }
-
-      // Fonction pour fermer la modale d'export du décodage
-      function closeDecodeExportModal() {
-        const modal = document.getElementById("decodeExportModal");
-        if (modal) {
-          modal.style.display = "none";
-        }
-      }
-
-      // Fonction pour exporter la séquence de décodage en format .edi avec mutations
-      async function exportDecodeEDIFile(fileName = "sequence_decodee.edi") {
-        const dnaInput = document.getElementById("dnaInput");
-        if (!dnaInput) {
-          alert("Aucune séquence à exporter. Veuillez d'abord importer une séquence.");
-          return;
-        }
-
-        let fullSequence = dnaInput.getAttribute("data-full-sequence");
-        if (!fullSequence) {
-          fullSequence = dnaInput.innerText || dnaInput.textContent || "";
-        }
-
-        if (!fullSequence) {
-          alert("Aucune séquence à exporter. Veuillez d'abord importer une séquence.");
-          return;
-        }
-
-        // Récupérer les mutations
-        const modifiedRanges = JSON.parse(
-          dnaInput.getAttribute("data-modified-ranges") || "[]"
-        );
-        const deletedRanges = JSON.parse(
-          dnaInput.getAttribute("data-deleted-ranges") || "[]"
-        );
-
-        // Format .edi : séquence ADN avec métadonnées JSON en commentaire
-        // Le format est compatible : séquence ADN suivie d'un commentaire JSON
-        const ediFile = fullSequence + "\n#MUTATIONS:" + JSON.stringify({modified: modifiedRanges, deleted: deletedRanges});
-
-        // Télécharger directement
-        const blob = new Blob([ediFile], { type: "text/plain;charset=utf-8;" });
-        downloadFile(blob, fileName);
-        closeDecodeExportModal();
-      }
-
       // Fonction pour exporter la séquence de décodage en format .fasta avec mutations
       async function exportDecodeFASTAFile(fileName = "sequence_decodee.fasta") {
         const dnaInput = document.getElementById("dnaInput");
@@ -7319,7 +7140,6 @@
           type: "text/plain;charset=utf-8;",
         });
         downloadFile(blob, fileName);
-        closeDecodeExportModal();
       }
 
       // Fonction pour remplir le tableau de code génétique
